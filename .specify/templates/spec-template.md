@@ -98,6 +98,25 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
+### Constitution Requirements *(mandatory)*
+
+- **CR-001**: Requirements MUST NOT introduce abstractions that are not required
+  by current functional requirements.
+- **CR-002**: Data requirements MUST identify the Prisma schema entities,
+  fields, relationships, or constraints that represent the source of truth.
+- **CR-003**: Business rules MUST be described as server-side behavior unless a
+  client-only interaction is explicitly required for UX.
+- **CR-004**: Protected data access MUST identify the authenticated user/session
+  requirement and sensitive fields that must not be exposed publicly.
+- **CR-005**: User input MUST identify both client-facing validation needs and
+  server-side validation/security requirements.
+- **CR-006**: Client state requirements MUST be limited to transient UI state
+  unless the feature provides a documented reason for a richer client state flow.
+- **CR-007**: New dependency requirements MUST state why the existing stack
+  cannot satisfy the capability.
+- **CR-008**: Entity typing requirements MUST use Prisma generated types or
+  narrow derivatives and must not require explicit `any`.
+
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]

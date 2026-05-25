@@ -13,34 +13,52 @@
 ## Technical Context
 
 <!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
+  ACTION REQUIRED: Replace the remaining placeholder content with concrete
+  technical details for this feature. The fixed stack values come from the
+  AdoptPlace Constitution and must not be changed without amending it.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript 5.x strict, Next.js 15 App Router
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Primary Dependencies**: NextAuth v5, Prisma 5.x, Zod 3.x, Tailwind CSS v4, shadcn/ui, Uploadthing
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Storage**: PostgreSQL 16 via Prisma schema and Prisma Client
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Testing**: [Project test commands or NEEDS CLARIFICATION]
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: Next.js web application
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Project Type**: Web application
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Performance Goals**: [domain-specific, e.g., p95 response time or NEEDS CLARIFICATION]
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific constraints plus constitution constraints or NEEDS CLARIFICATION]
 
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific scope, e.g., users, records, screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Zero over-engineering**: Document every new abstraction and the current FR
+  that requires it. Prefer direct Server Actions, Route Handlers, Prisma Client,
+  and shadcn/ui primitives.
+- **Schema first**: Identify all model changes in `prisma/schema.prisma`.
+  Confirm Prisma migrations and generated Prisma types are used. Raw SQL is not
+  allowed.
+- **Server-side by default**: Place business logic in Server Actions, Route
+  Handlers, or server-only modules. Client Components are limited to UI concerns.
+- **Proactive security**: Protected data paths call `getServerSession()` and
+  authorize before data access. Public routes expose no sensitive fields.
+- **Two-layer validation**: Define client Zod schemas for UX and server Zod
+  schemas for security before trusted operations.
+- **Minimal client state**: Mutations prefer `useFormState` and Server Actions.
+  Any manual `useState` plus `fetch` mutation flow is justified here.
+- **No unnecessary dependencies**: New packages require proof that Next.js,
+  Prisma, NextAuth, Zod, Tailwind, shadcn/ui, Uploadthing, and TypeScript do not
+  cover the need.
+- **TypeScript strict**: Confirm `strict: true`, no explicit `any`, and entity
+  types are Prisma generated types or narrow derivatives.
 
 ## Project Structure
 
@@ -48,56 +66,39 @@
 
 ```text
 specs/[###-feature]/
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+|-- plan.md              # This file (/speckit-plan command output)
+|-- research.md          # Phase 0 output (/speckit-plan command)
+|-- data-model.md        # Phase 1 output (/speckit-plan command)
+|-- quickstart.md        # Phase 1 output (/speckit-plan command)
+|-- contracts/           # Phase 1 output (/speckit-plan command)
+`-- tasks.md             # Phase 2 output (/speckit-tasks command)
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  for this feature. Keep the App Router, Prisma, validation, and auth boundaries
+  explicit so constitution checks remain reviewable.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
+app/
+|-- (routes)/
+|-- api/
+`-- actions/
+components/
+|-- ui/
+`-- [feature-components]/
+lib/
+|-- auth/
+|-- prisma/
+`-- validations/
+prisma/
+`-- schema.prisma
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+|-- integration/
+`-- unit/
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real
@@ -109,5 +110,6 @@ directories captured above]
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| [e.g., new service layer] | [current FR] | [why direct Server Action or Route Handler is insufficient] |
+| [e.g., manual client fetch mutation] | [specific UX need] | [why useFormState plus Server Action is insufficient] |
+| [e.g., new dependency] | [specific capability missing from stack] | [why current stack cannot cover it] |
