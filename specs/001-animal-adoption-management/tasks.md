@@ -59,19 +59,19 @@ description: "Task list for Animal Adoption Management implementation"
 - [X] T011 Create `.env.example` with `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `UPLOADTHING_SECRET`, and `UPLOADTHING_APP_ID`
 - [X] T012 Create App Router folders in `app/(auth)/`, `app/(public)/`, `app/dashboard/`, `app/api/auth/[...nextauth]/`, and `app/api/uploadthing/`
 - [X] T013 Create domain folders in `components/app/animais/`, `components/app/auth/`, `components/app/dashboard/`, `components/app/saude/`, `components/app/solicitacoes/`, and `components/app/vitrine/`
-- [ ] T014 Create library folders in `lib/actions/`, `lib/queries/`, `lib/schemas/`, and `types/`
-- [ ] T015 Create `app/globals.css` with Tailwind CSS v4 import and base design tokens
-- [ ] T016 Create NextAuth configuration with Credentials provider, Prisma Adapter, bcryptjs password validation, role/session enrichment, and inactive-account blocking in `lib/auth.ts`
-- [ ] T017 Create NextAuth route handler in `app/api/auth/[...nextauth]/route.ts`
-- [ ] T018 Extend session and user types with `tipoPerfil`, `ativo`, and profile entity ids in `types/next-auth.d.ts`
-- [ ] T019 Create role, active-account, and ownership permission helpers in `lib/permissions.ts`
-- [ ] T020 Create shared auth guard helpers for Server Actions and dashboard reads in `lib/actions/auth-guards.ts`
-- [ ] T021 Create base Zod schemas for shared primitives, CPF, email, password, dates, IDs, pagination, and form state in `lib/schemas/common.ts`
-- [ ] T022 Create shared form state helpers for Server Actions in `lib/actions/form-state.ts`
-- [ ] T023 Create derived animal tag helper for Porte, Sexo, Castrado, Vacinado, Vermifugado, and Testado in `lib/tags.ts`
-- [ ] T024 Create root layout and metadata in `app/layout.tsx`
-- [ ] T025 Create basic public and dashboard layout shells in `app/(public)/layout.tsx` and `app/dashboard/layout.tsx`
-- [ ] T026 Create minimal shadcn/ui wrapper exports or placeholders for Button, Input, Select, Card, Table, Tabs, Dialog, Badge, Alert, and Form in `components/ui/`
+- [X] T014 Create library folders in `lib/actions/`, `lib/queries/`, `lib/schemas/`, and `types/`
+- [X] T015 Create `app/globals.css` with Tailwind CSS v4 import and base design tokens
+- [X] T016 Create NextAuth configuration with Credentials provider, Prisma Adapter, bcryptjs password validation, role/session enrichment, and inactive-account blocking in `lib/auth.ts`
+- [X] T017 Create NextAuth route handler in `app/api/auth/[...nextauth]/route.ts`
+- [X] T018 Extend session and user types with `tipoPerfil`, `ativo`, and profile entity ids in `types/next-auth.d.ts`
+- [X] T019 Create role, active-account, and ownership permission helpers in `lib/permissions.ts`
+- [X] T020 Create shared auth guard helpers for Server Actions and dashboard reads in `lib/actions/auth-guards.ts`
+- [X] T021 Create base Zod schemas for shared primitives, CPF, email, password, dates, IDs, pagination, and form state in `lib/schemas/common.ts`
+- [X] T022 Create shared form state helpers for Server Actions in `lib/actions/form-state.ts`
+- [X] T023 Create derived animal tag helper for Porte, Sexo, Castrado, Vacinado, Vermifugado, and Testado in `lib/tags.ts`
+- [X] T024 Create root layout and metadata in `app/layout.tsx`
+- [X] T025 Create basic public and dashboard layout shells in `app/(public)/layout.tsx` and `app/dashboard/layout.tsx`
+- [X] T026 Create minimal shadcn/ui wrapper exports or placeholders for Button, Input, Select, Card, Table, Tabs, Dialog, Badge, Alert, and Form in `components/ui/`
 
 **Checkpoint**: Schema, migration, generated Prisma Client, auth, validation primitives, and layouts are ready.
 

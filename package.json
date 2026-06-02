@@ -44,5 +44,9 @@
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "overrides": {
+    "csstype": "3.1.3",
+    "tsconfig-paths": "4.2.0"
   }
 }
