@@ -36,16 +36,16 @@ description: "Task list for Animal Adoption Management implementation"
 
 **Purpose**: Initialize package/tooling configuration and establish the Prisma schema-first gate.
 
-- [ ] T001 Create `package.json` with Next.js 15, React, TypeScript, Prisma, NextAuth v5, Zod, Tailwind CSS v4, shadcn/ui prerequisites, Uploadthing, bcryptjs, ESLint scripts, and Prisma scripts
-- [ ] T002 Create `tsconfig.json` with `strict: true`, no implicit any, Next.js-compatible module settings, and path alias configuration
-- [ ] T003 Create `next.config.ts` with minimal Next.js configuration for App Router
-- [ ] T004 Create `postcss.config.mjs` for Tailwind CSS v4
-- [ ] T005 Create `eslint.config.mjs` with Next.js TypeScript linting and ignored generated/build paths
-- [ ] T006 Create complete Prisma schema with enums, models, relationships, and explicitly named indexes for `Animal.status`, `Animal.especieId`, `Animal.porte`, `Animal.sexo`, `RegistroSaude.animalId`, `RegistroSaude.tipo`, `SolicitacaoAdocao.adotanteId`, `SolicitacaoAdocao.animalId`, `Animal.organizacaoId`, and `Animal.acolhedorId` in `prisma/schema.prisma`
-- [ ] T007 Configure Prisma generator and datasource for PostgreSQL production and documented SQLite fallback in `prisma/schema.prisma`
-- [ ] T008 Run and verify Prisma schema validation, initial migration, and Prisma Client generation as a blocking gate before any application code starts using `prisma/schema.prisma`
-- [ ] T009 Create Prisma Client singleton in `lib/prisma.ts`
-- [ ] T010 Create seed data for catalogs, species, breeds, users, organizations, foster, adopters, animals, health records, related pairs, request, and favorites in `prisma/seed.ts`
+- [X] T001 Create `package.json` with Next.js 15, React, TypeScript, Prisma, NextAuth v5, Zod, Tailwind CSS v4, shadcn/ui prerequisites, Uploadthing, bcryptjs, ESLint scripts, and Prisma scripts
+- [X] T002 Create `tsconfig.json` with `strict: true`, no implicit any, Next.js-compatible module settings, and path alias configuration
+- [X] T003 Create `next.config.ts` with minimal Next.js configuration for App Router
+- [X] T004 Create `postcss.config.mjs` for Tailwind CSS v4
+- [X] T005 Create `eslint.config.mjs` with Next.js TypeScript linting and ignored generated/build paths
+- [X] T006 Create complete Prisma schema with enums, models, relationships, and explicitly named indexes for `Animal.status`, `Animal.especieId`, `Animal.porte`, `Animal.sexo`, `RegistroSaude.animalId`, `RegistroSaude.tipo`, `SolicitacaoAdocao.adotanteId`, `SolicitacaoAdocao.animalId`, `Animal.organizacaoId`, and `Animal.acolhedorId` in `prisma/schema.prisma`
+- [X] T007 Configure Prisma generator and datasource for PostgreSQL production and documented SQLite fallback in `prisma/schema.prisma`
+- [X] T008 Run and verify Prisma schema validation, initial migration, and Prisma Client generation as a blocking gate before any application code starts using `prisma/schema.prisma`
+- [X] T009 Create Prisma Client singleton in `lib/prisma.ts`
+- [X] T010 Create seed data for catalogs, species, breeds, users, organizations, foster, adopters, animals, health records, related pairs, request, and favorites in `prisma/seed.ts`
 
 ---
 
@@ -56,9 +56,9 @@ description: "Task list for Animal Adoption Management implementation"
 **CRITICAL**: No user story work can begin until this phase is complete.
 **SCHEMA-FIRST GATE**: T008 must pass before starting any task in this phase.
 
-- [ ] T011 Create `.env.example` with `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `UPLOADTHING_SECRET`, and `UPLOADTHING_APP_ID`
-- [ ] T012 Create App Router folders in `app/(auth)/`, `app/(public)/`, `app/dashboard/`, `app/api/auth/[...nextauth]/`, and `app/api/uploadthing/`
-- [ ] T013 Create domain folders in `components/app/animais/`, `components/app/auth/`, `components/app/dashboard/`, `components/app/saude/`, `components/app/solicitacoes/`, and `components/app/vitrine/`
+- [X] T011 Create `.env.example` with `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `UPLOADTHING_SECRET`, and `UPLOADTHING_APP_ID`
+- [X] T012 Create App Router folders in `app/(auth)/`, `app/(public)/`, `app/dashboard/`, `app/api/auth/[...nextauth]/`, and `app/api/uploadthing/`
+- [X] T013 Create domain folders in `components/app/animais/`, `components/app/auth/`, `components/app/dashboard/`, `components/app/saude/`, `components/app/solicitacoes/`, and `components/app/vitrine/`
 - [ ] T014 Create library folders in `lib/actions/`, `lib/queries/`, `lib/schemas/`, and `types/`
 - [ ] T015 Create `app/globals.css` with Tailwind CSS v4 import and base design tokens
 - [ ] T016 Create NextAuth configuration with Credentials provider, Prisma Adapter, bcryptjs password validation, role/session enrichment, and inactive-account blocking in `lib/auth.ts`

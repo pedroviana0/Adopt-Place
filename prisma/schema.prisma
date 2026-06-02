@@ -1,0 +1,309 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Production target: PostgreSQL 16.
+// Local SQLite fallback: change provider to "sqlite" and use DATABASE_URL="file:./dev.db".
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoPerfil {
+  ADOTANTE
+  ORGANIZACAO
+  ACOLHEDOR
+  ADMIN
+}
+
+enum Porte {
+  P
+  M
+  G
+}
+
+enum Sexo {
+  M
+  F
+}
+
+enum StatusAnimal {
+  RESGATADO
+  EM_CUIDADOS
+  DISPONIVEL
+  EM_PROCESSO_ADOCAO
+  ADOTADO
+}
+
+enum StatusSolicitacao {
+  EM_ANALISE
+  APROVADA
+  RECUSADA
+  CONCLUIDA
+}
+
+enum TipoMoradia {
+  CASA
+  APARTAMENTO
+  SITIO_FAZENDA
+}
+
+enum TipoRegistroSaude {
+  VACINA
+  CONTROLE_PARASITAS
+  TESTE_DOENCA
+}
+
+enum ResultadoTeste {
+  POSITIVO
+  NEGATIVO
+}
+
+model Usuario {
+  id          String                  @id @default(cuid())
+  email       String                  @unique
+  senhaHash   String
+  tipoPerfil  TipoPerfil
+  ativo       Boolean                 @default(true)
+  criadoEm    DateTime                @default(now())
+  adotante    Adotante?
+  organizacao Organizacao?
+  acolhedor   AcolhedorIndependente?
+  accounts    Account[]
+  sessions    Session[]
+}
+
+model Adotante {
+  id                         String              @id @default(cuid())
+  usuarioId                  String              @unique
+  usuario                    Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nomeCompleto               String
+  cpf                        String              @unique
+  telefone                   String
+  instagram                  String?
+  endereco                   String
+  cidade                     String
+  estado                     String
+  motivoAdocao               String?
+  tipoAnimalDesejado         String?
+  podeArcarCustosVet         Boolean?
+  adocaoParaPresente         Boolean?
+  adocaoParaPresenteDetalhe  String?
+  tipoMoradia                TipoMoradia?
+  moradiaPropria             Boolean?
+  numAdultosCasa             Int?
+  temCriancas                Boolean?
+  criancasFaixaEtaria        String?
+  todosConordamAdocao        Boolean?
+  condominioPermiteAnimal    String?
+  janelasTeladas             Boolean?
+  acessoRua                  String?
+  murosSeguros               Boolean?
+  horasSozinho               String?
+  responsavelViagem          String?
+  planoEmGravidez            String?
+  alergicosNaCasa            Boolean?
+  alergicosNaCasaDetalhe     String?
+  planoMudanca               String?
+  historicoDevolucao         String?
+  historicoPercaDescuido     String?
+  cienteLongevidade          Boolean?
+  permiteVisitaProtetor      Boolean?
+  ciendeNaoRepassar          Boolean?
+  teveAnimaisAntes           Boolean?
+  animaisAnterioresDescricao String?
+  temOutrosAnimais           Boolean?
+  outrosAnimaisDescricao     String?
+  triagemConcluida           Boolean             @default(false)
+  solicitacoes               SolicitacaoAdocao[]
+  favoritos                  Favorito[]
+}
+
+model Organizacao {
+  id                String    @id @default(cuid())
+  usuarioId         String    @unique
+  usuario           Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  razaoSocial       String
+  cnpj              String    @unique
+  telefone          String
+  endereco          String
+  cidade            String
+  estado            String
+  responsavelNome   String
+  capacidadeMaxima  Int?
+  animais           Animal[]
+}
+
+model AcolhedorIndependente {
+  id              String   @id @default(cuid())
+  usuarioId       String   @unique
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nomeCompleto    String
+  cpf             String   @unique
+  telefone        String
+  endereco        String
+  cidade          String
+  estado          String
+  capacidadeAtual Int      @default(0)
+  animais         Animal[]
+}
+
+model Especie {
+  id      String   @id @default(cuid())
+  nome    String   @unique
+  racas   Raca[]
+  animais Animal[]
+}
+
+model Raca {
+  id        String  @id @default(cuid())
+  especieId String
+  especie   Especie @relation(fields: [especieId], references: [id], onDelete: Cascade)
+  nome      String
+  animais   Animal[]
+
+  @@unique([especieId, nome])
+}
+
+model Animal {
+  id              String                  @id @default(cuid())
+  nome            String
+  especieId       String
+  especie         Especie                 @relation(fields: [especieId], references: [id])
+  racaId          String?
+  raca            Raca?                   @relation(fields: [racaId], references: [id])
+  porte           Porte
+  sexo            Sexo
+  cor             String
+  idadeEstimada   String?
+  castrado        Boolean                 @default(false)
+  descricao       String?
+  status          StatusAnimal            @default(RESGATADO)
+  organizacaoId   String?
+  organizacao     Organizacao?            @relation(fields: [organizacaoId], references: [id])
+  acolhedorId     String?
+  acolhedor       AcolhedorIndependente?  @relation(fields: [acolhedorId], references: [id])
+  criadoEm        DateTime                @default(now())
+  fotos           FotoAnimal[]
+  registrosSaude  RegistroSaude[]
+  solicitacoes    SolicitacaoAdocao[]
+  favoritos       Favorito[]
+  relacionadosA   AnimalRelacionado[]     @relation("AnimalPrincipal")
+  relacionadosB   AnimalRelacionado[]     @relation("AnimalRelacionado")
+
+  @@index([status], map: "idx_animal_status")
+  @@index([especieId], map: "idx_animal_especie_id")
+  @@index([porte], map: "idx_animal_porte")
+  @@index([sexo], map: "idx_animal_sexo")
+  @@index([organizacaoId], map: "idx_animal_organizacao_id")
+  @@index([acolhedorId], map: "idx_animal_acolhedor_id")
+}
+
+model AnimalRelacionado {
+  animalId             String
+  animalRelacionadoId String
+  animal               Animal @relation("AnimalPrincipal", fields: [animalId], references: [id], onDelete: Cascade)
+  animalRelacionado    Animal @relation("AnimalRelacionado", fields: [animalRelacionadoId], references: [id], onDelete: Cascade)
+
+  @@id([animalId, animalRelacionadoId])
+}
+
+model FotoAnimal {
+  id        String   @id @default(cuid())
+  animalId  String
+  animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  urlFoto   String
+  principal Boolean  @default(false)
+  ordem     Int      @default(0)
+  criadoEm  DateTime @default(now())
+}
+
+model VacinaCatalogo {
+  id   String @id @default(cuid())
+  nome String @unique
+}
+
+model DoencaCatalogo {
+  id   String @id @default(cuid())
+  nome String @unique
+}
+
+model RegistroSaude {
+  id                  String              @id @default(cuid())
+  animalId            String
+  animal              Animal              @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  tipo                TipoRegistroSaude
+  dataRegistro        DateTime
+  dataProxima         DateTime?
+  responsavelRegistro String
+  nomeVacina          String?
+  ehVacinaCustomizada Boolean?
+  tipoMedicamento     String?
+  frequencia          String?
+  nomeDoenca          String?
+  ehDoencaCustomizada Boolean?
+  resultado           ResultadoTeste?
+
+  @@index([animalId], map: "idx_registro_saude_animal_id")
+  @@index([tipo], map: "idx_registro_saude_tipo")
+}
+
+model Favorito {
+  adotanteId String
+  animalId   String
+  adotante   Adotante @relation(fields: [adotanteId], references: [id], onDelete: Cascade)
+  animal     Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  criadoEm   DateTime @default(now())
+
+  @@id([adotanteId, animalId])
+}
+
+model SolicitacaoAdocao {
+  id              String             @id @default(cuid())
+  animalId        String
+  animal          Animal             @relation(fields: [animalId], references: [id])
+  adotanteId      String
+  adotante        Adotante           @relation(fields: [adotanteId], references: [id])
+  status          StatusSolicitacao  @default(EM_ANALISE)
+  dataSolicitacao DateTime           @default(now())
+  dataAtualizacao DateTime           @updatedAt
+  observacoes     String?
+
+  @@unique([animalId, adotanteId])
+  @@index([adotanteId], map: "idx_solicitacao_adocao_adotante_id")
+  @@index([animalId], map: "idx_solicitacao_adocao_animal_id")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
