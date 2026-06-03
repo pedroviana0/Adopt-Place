@@ -85,19 +85,19 @@ description: "Task list for Animal Adoption Management implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T027 [P] [US1] Create showcase query with available-only filtering, tag filters, and 12-item pagination in `lib/queries/animal-showcase.ts`
-- [ ] T028 [P] [US1] Create public animal detail query with public data minimization and related animals in `lib/queries/public-animal.ts`
-- [ ] T029 [P] [US1] Create public metrics query for aggregate home values in `lib/queries/public-metrics.ts`
-- [ ] T030 [P] [US1] Create showcase filter schema for search params in `lib/schemas/showcase.ts`
-- [ ] T031 [US1] Create animal card component with primary photo, name, estimated age, responsible public data, and derived tags in `components/app/vitrine/animal-card.tsx`
-- [ ] T032 [US1] Create showcase filter component with species, breed, size, sex, city, and tag controls in `components/app/vitrine/showcase-filters.tsx`
-- [ ] T033 [US1] Create paginated showcase component with empty state and clear-filters action in `components/app/vitrine/showcase.tsx`
-- [ ] T034 [US1] Create home page with metrics, CTA anchors, and integrated showcase in `app/(public)/page.tsx`
-- [ ] T035 [US1] Create public animal gallery component in `components/app/animais/public-animal-gallery.tsx`
-- [ ] T036 [US1] Create public animal health summary that hides empty sections in `components/app/animais/public-health-summary.tsx`
-- [ ] T037 [US1] Create related animals component that hides when empty and omits request action for unavailable animals in `components/app/animais/related-animals.tsx`
-- [ ] T038 [US1] Create public animal profile page in `app/(public)/animais/[id]/page.tsx`
-- [ ] T039 [US1] Create login redirect helpers for request and favorite actions on public animal pages in `components/app/animais/protected-action-buttons.tsx`
+- [X] T027 [P] [US1] Create showcase query with available-only filtering, tag filters, and 12-item pagination in `lib/queries/animal-showcase.ts`
+- [X] T028 [P] [US1] Create public animal detail query with public data minimization and related animals in `lib/queries/public-animal.ts`
+- [X] T029 [P] [US1] Create public metrics query for aggregate home values in `lib/queries/public-metrics.ts`
+- [X] T030 [P] [US1] Create showcase filter schema for search params in `lib/schemas/showcase.ts`
+- [X] T031 [US1] Create animal card component with primary photo, name, estimated age, responsible public data, and derived tags in `components/app/vitrine/animal-card.tsx`
+- [X] T032 [US1] Create showcase filter component with species, breed, size, sex, city, and tag controls in `components/app/vitrine/showcase-filters.tsx`
+- [X] T033 [US1] Create paginated showcase component with empty state and clear-filters action in `components/app/vitrine/showcase.tsx`
+- [X] T034 [US1] Create home page with metrics, CTA anchors, and integrated showcase in `app/(public)/page.tsx`
+- [X] T035 [US1] Create public animal gallery component in `components/app/animais/public-animal-gallery.tsx`
+- [X] T036 [US1] Create public animal health summary that hides empty sections in `components/app/animais/public-health-summary.tsx`
+- [X] T037 [US1] Create related animals component that hides when empty and omits request action for unavailable animals in `components/app/animais/related-animals.tsx`
+- [X] T038 [US1] Create public animal profile page in `app/(public)/animais/[id]/page.tsx`
+- [X] T039 [US1] Create login redirect helpers for request and favorite actions on public animal pages in `components/app/animais/protected-action-buttons.tsx`
 
 **Checkpoint**: Public showcase and animal profile are usable without login and expose no sensitive data.
 
