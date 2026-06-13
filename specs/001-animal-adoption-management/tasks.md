@@ -111,16 +111,16 @@ description: "Task list for Animal Adoption Management implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T040 [P] [US2] Create registration and adopter screening Zod schemas in `lib/schemas/adotante.ts`
-- [ ] T041 [P] [US2] Create adopter registration Server Action with duplicate e-mail and CPF handling in `lib/actions/auth-register.ts`
-- [ ] T042 [US2] Create login page with credentials form and callback handling in `app/(auth)/login/page.tsx`
-- [ ] T043 [US2] Create shared registration profile selector page in `app/(auth)/cadastro/page.tsx`
-- [ ] T044 [US2] Create adopter registration page using `registerAdopter` in `app/(auth)/cadastro/adotante/page.tsx`
-- [ ] T045 [US2] Create adopter screening Server Action with standardized fields and `triagemConcluida` update in `lib/actions/triagem.ts`
-- [ ] T046 [US2] Create adopter screening form component in `components/app/auth/triagem-form.tsx`
-- [ ] T047 [US2] Create `/dashboard/triagem` page for viewing and editing screening in `app/dashboard/triagem/page.tsx`
-- [ ] T048 [US2] Create adopter dashboard query with screening status in `lib/queries/adotante-dashboard.ts`
-- [ ] T049 [US2] Add screening guard helper used by adoption request flow in `lib/actions/request-guards.ts`
+- [X] T040 [P] [US2] Create registration and adopter screening Zod schemas in `lib/schemas/adotante.ts`
+- [X] T041 [P] [US2] Create adopter registration Server Action with duplicate e-mail and CPF handling in `lib/actions/auth-register.ts`
+- [X] T042 [US2] Create login page with credentials form and callback handling in `app/(auth)/login/page.tsx`
+- [X] T043 [US2] Create shared registration profile selector page in `app/(auth)/cadastro/page.tsx`
+- [X] T044 [US2] Create adopter registration page using `registerAdopter` in `app/(auth)/cadastro/adotante/page.tsx`
+- [X] T045 [US2] Create adopter screening Server Action with standardized fields and `triagemConcluida` update in `lib/actions/triagem.ts`
+- [X] T046 [US2] Create adopter screening form component in `components/app/auth/triagem-form.tsx`
+- [X] T047 [US2] Create `/dashboard/triagem` page for viewing and editing screening in `app/dashboard/triagem/page.tsx`
+- [X] T048 [US2] Create adopter dashboard query with screening status in `lib/queries/adotante-dashboard.ts`
+- [X] T049 [US2] Add screening guard helper used by adoption request flow in `lib/actions/request-guards.ts`
 
 **Checkpoint**: Adopter registration and standardized screening work independently.
 
