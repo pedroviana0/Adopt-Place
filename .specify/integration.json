@@ -2,7 +2,8 @@
   "version": "0.8.13",
   "integration_state_schema": 1,
   "installed_integrations": [
-    "codex"
+    "codex",
+    "roo"
   ],
   "integration_settings": {
     "codex": {
@@ -12,6 +13,10 @@
         "skills": true
       },
       "invoke_separator": "-"
+    },
+    "roo": {
+      "script": "ps",
+      "invoke_separator": "."
     }
   },
   "integration": "codex",

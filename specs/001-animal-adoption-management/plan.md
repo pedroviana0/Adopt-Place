@@ -26,7 +26,7 @@ Route Handlers only for auth/upload integration points that require them.
 allowed local fallback through Prisma provider switching only; production target
 remains PostgreSQL.
 
-**Testing**: Manual acceptance validation from `quickstart.md` plus TypeScript,
+**Testing**: Vitest for automated unit and integration tests on tasks marked [TEST-FIRST] (Principle IX). Test files live in __tests__/ mirroring the lib/ structure. Manual acceptance validation from quickstart.md for all other tasks. TypeScript, lint, Prisma validation, and build checks run in Phase 10.
 lint, Prisma validation, and targeted unit/integration tests where tasks request
 them.
 
