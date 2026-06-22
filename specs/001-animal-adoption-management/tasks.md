@@ -71,7 +71,7 @@ description: "Task list for Animal Adoption Management implementation"
 - [X] T023 Create derived animal tag helper for Porte, Sexo, Castrado, Vacinado, Vermifugado, and Testado in `lib/tags.ts`
 - [X] T024 Create root layout and metadata in `app/layout.tsx`
 - [X] T025 Create basic public and dashboard layout shells in `app/(public)/layout.tsx` and `app/dashboard/layout.tsx`
- - [ ] T026a [TEST-FIRST INFRA] Install and configure Vitest with Next.js 15, TypeScript strict, and Prisma mock helpers in itest.config.ts, __tests__/setup.ts, and package.json test scripts
+ - [X] T026a [TEST-FIRST INFRA] Install and configure Vitest with Next.js 15, TypeScript strict, and Prisma mock helpers in itest.config.ts, __tests__/setup.ts, and package.json test scripts
 - [X] T026 Create minimal shadcn/ui wrapper exports or placeholders for Button, Input, Select, Card, Table, Tabs, Dialog, Badge, Alert, and Form in `components/ui/`
 
 **Checkpoint**: Schema, migration, generated Prisma Client, auth, validation primitives, and layouts are ready.
@@ -135,9 +135,9 @@ description: "Task list for Animal Adoption Management implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T050 [P] [US3] Create adoption request Zod schema in `lib/schemas/solicitacao.ts`
+- [X] T050 [P] [US3] Create adoption request Zod schema in `lib/schemas/solicitacao.ts`
  - [ ] T052t [TEST-FIRST] [US3] Write Vitest tests for createAdoptionRequest covering session guard, adopter-only guard, screening guard (FR-019), availability guard (FR-023), duplicate guard (FR-022), and happy-path EM_ANALISE creation (FR-021) in __tests__/actions/solicitacoes.test.ts
-- [ ] T051 [P] [US3] Create favorite Zod schema in `lib/schemas/favorito.ts`
+- [X] T051 [P] [US3] Create favorite Zod schema in `lib/schemas/favorito.ts`
 - [ ] T052 [US3] Implement `createAdoptionRequest` with session, active-account, adopter, screening, availability, and duplicate guards in `lib/actions/solicitacoes.ts`
 - [ ] T053 [US3] Implement `toggleFavorite` with adopter-only guard in `lib/actions/favoritos.ts`
 - [ ] T054 [US3] Wire request and favorite Server Actions into public animal buttons in `components/app/animais/protected-action-buttons.tsx`
@@ -161,9 +161,9 @@ description: "Task list for Animal Adoption Management implementation"
 
 - [ ] T059 [P] [US4] Create animal Zod schema with XOR owner validation and primary-photo rules in `lib/schemas/animal.ts`
  - [ ] T063t [TEST-FIRST] [US4] Write Vitest tests for animal Server Actions covering ownership guard denial (SC-006/CR-003), XOR enforcement at action layer, and valid lifecycle transitions in __tests__/actions/animais.test.ts
-- [ ] T060 [P] [US4] Create photo Zod schema with max 10 photos and primary selection rules in `lib/schemas/foto-animal.ts`
-- [ ] T061 [P] [US4] Create health record Zod schema with type-specific validation, date rules, and positive/negative-only test result in `lib/schemas/registro-saude.ts`
-- [ ] T062 [P] [US4] Create animal relationship Zod schema with self-link prevention in `lib/schemas/animal-relacionado.ts`
+- [X] T060 [P] [US4] Create photo Zod schema with max 10 photos and primary selection rules in `lib/schemas/foto-animal.ts`
+- [X] T061 [P] [US4] Create health record Zod schema with type-specific validation, date rules, and positive/negative-only test result in `lib/schemas/registro-saude.ts`
+- [X] T062 [P] [US4] Create animal relationship Zod schema with self-link prevention in `lib/schemas/animal-relacionado.ts`
  - [ ] T067t [TEST-FIRST] [US4] Write Vitest tests for linkAnimals and unlinkAnimals covering bidirectional insert (FR-037), bidirectional remove (FR-038), self-link rejection (FR-039), and duplicate silence (FR-040) in __tests__/actions/animal-relacionado.test.ts
 - [ ] T063 [US4] Implement animal create, update, status update, and delete Server Actions with ownership guards in `lib/actions/animais.ts`
 - [ ] T064 [US4] Implement Uploadthing route and ownership-aware upload configuration in `app/api/uploadthing/route.ts`
@@ -192,7 +192,7 @@ description: "Task list for Animal Adoption Management implementation"
  - [ ] T079t [TEST-FIRST] [US5] Write Vitest tests for decideAdoptionRequest covering approval status transition (FR-044), automatic refusal of competing requests in same transaction (FR-044a), refusal keeping animal DISPONIVEL (FR-045/046), and ownership guard denial (FR-047) in __tests__/actions/solicitacoes.test.ts
 ### Implementation for User Story 5
 
-- [ ] T076 [P] [US5] Create request decision Zod schema with decision and observations in `lib/schemas/solicitacao-decisao.ts`
+- [X] T076 [P] [US5] Create request decision Zod schema with decision and observations in `lib/schemas/solicitacao-decisao.ts`
 - [ ] T077 [US5] Extend request query for owner-scoped request lists sorted newest first in `lib/queries/owner-requests.ts`
 - [ ] T078 [US5] Extend request query for owner-scoped request detail with read-only screening profile in `lib/queries/owner-request-detail.ts`
 - [ ] T079 [US5] Implement `decideAdoptionRequest` approval/refusal transaction and competing-request refusal in `lib/actions/solicitacoes.ts`
