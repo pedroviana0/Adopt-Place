@@ -139,7 +139,7 @@ description: "Task list for Animal Adoption Management implementation"
  - [ ] T052t [TEST-FIRST] [US3] Write Vitest tests for createAdoptionRequest covering session guard, adopter-only guard, screening guard (FR-019), availability guard (FR-023), duplicate guard (FR-022), and happy-path EM_ANALISE creation (FR-021) in __tests__/actions/solicitacoes.test.ts
 - [X] T051 [P] [US3] Create favorite Zod schema in `lib/schemas/favorito.ts`
 - [ ] T052 [US3] Implement `createAdoptionRequest` with session, active-account, adopter, screening, availability, and duplicate guards in `lib/actions/solicitacoes.ts`
-- [ ] T053 [US3] Implement `toggleFavorite` with adopter-only guard in `lib/actions/favoritos.ts`
+- [X] T053 [US3] Implement `toggleFavorite` with adopter-only guard in `lib/actions/favoritos.ts`
 - [ ] T054 [US3] Wire request and favorite Server Actions into public animal buttons in `components/app/animais/protected-action-buttons.tsx`
 - [ ] T055 [US3] Create adopter request list query in `lib/queries/adopter-requests.ts`
 - [ ] T056 [US3] Create adopter favorites query in `lib/queries/favorites.ts`
