@@ -6,6 +6,8 @@ import { PublicHealthSummary } from "@/components/app/animais/public-health-summ
 import { ProtectedActionButtons } from "@/components/app/animais/protected-action-buttons";
 import { RelatedAnimals } from "@/components/app/animais/related-animals";
 import { Badge } from "@/components/ui";
+import { getServerSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getPublicAnimal } from "@/lib/queries/public-animal";
 import { getAnimalTags } from "@/lib/tags";
 
@@ -36,11 +38,26 @@ export async function generateMetadata({ params }: PublicAnimalPageProps): Promi
 
 export default async function PublicAnimalPage({ params }: PublicAnimalPageProps) {
   const { id } = await params;
-  const animal = await getPublicAnimal(id);
+  const [animal, session] = await Promise.all([getPublicAnimal(id), getServerSession()]);
 
   if (!animal) {
     notFound();
   }
+
+  const adopterState =
+    session?.user?.tipoPerfil === "ADOTANTE" && session.user.adotanteId
+      ? await prisma.adotante.findUnique({
+          where: { id: session.user.adotanteId },
+          select: {
+            triagemConcluida: true,
+            favoritos: {
+              where: { animalId: animal.id },
+              select: { animalId: true },
+              take: 1,
+            },
+          },
+        })
+      : null;
 
   const tags = getAnimalTags(animal);
   const relatedAnimals = animal.relacionadosA.map((relation) => relation.animalRelacionado);
@@ -79,7 +96,13 @@ export default async function PublicAnimalPage({ params }: PublicAnimalPageProps
             ))}
           </div>
           {animal.descricao ? <p className="leading-7 text-[var(--muted-foreground)]">{animal.descricao}</p> : null}
-          <ProtectedActionButtons animalId={animal.id} available={available} />
+          <ProtectedActionButtons
+            animalId={animal.id}
+            animalStatus={animal.status}
+            isAuthenticated={Boolean(session?.user?.id)}
+            hasCompletedTriagem={Boolean(adopterState?.triagemConcluida)}
+            isFavorited={Boolean(adopterState?.favoritos.length)}
+          />
         </div>
       </section>
 

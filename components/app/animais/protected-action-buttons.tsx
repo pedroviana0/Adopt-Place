@@ -1,35 +1,110 @@
-import Link from "next/link";
+"use client";
+
 import { Heart, Send } from "lucide-react";
+import { useOptimistic, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { StatusAnimal } from "@prisma/client";
+
+import { Button } from "@/components/ui";
+import { createAdoptionRequest } from "@/lib/actions/solicitacoes";
+import { toggleFavorite } from "@/lib/actions/favoritos";
 
 type ProtectedActionButtonsProps = {
   animalId: string;
-  available: boolean;
+  animalStatus: StatusAnimal;
+  isAuthenticated: boolean;
+  hasCompletedTriagem: boolean;
+  isFavorited: boolean;
 };
 
-function loginHref(animalId: string, action: "solicitar" | "favoritar") {
-  const callbackUrl = `/animais/${animalId}`;
-  return `/login?callbackUrl=${encodeURIComponent(callbackUrl)}&action=${action}`;
+function loginHref(pathname: string) {
+  return `/login?callbackUrl=${encodeURIComponent(pathname)}`;
 }
 
-export function ProtectedActionButtons({ animalId, available }: ProtectedActionButtonsProps) {
+export function ProtectedActionButtons({
+  animalId,
+  animalStatus,
+  isAuthenticated,
+  hasCompletedTriagem,
+  isFavorited,
+}: ProtectedActionButtonsProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
+    isFavorited,
+    (_current: boolean, next: boolean) => next,
+  );
+  const canRequest = animalStatus === "DISPONIVEL";
+
+  function requireAuthenticated(): boolean {
+    if (isAuthenticated) {
+      return true;
+    }
+
+    router.push(loginHref(pathname));
+    return false;
+  }
+
+  function handleRequest() {
+    if (!requireAuthenticated()) {
+      return;
+    }
+
+    if (!hasCompletedTriagem) {
+      router.push("/dashboard/triagem");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await createAdoptionRequest(animalId);
+
+      if (!result.error) {
+        router.refresh();
+      }
+    });
+  }
+
+  function handleFavorite() {
+    if (!requireAuthenticated()) {
+      return;
+    }
+
+    startTransition(async () => {
+      setOptimisticFavorited(!optimisticFavorited);
+      const result = await toggleFavorite(animalId);
+
+      if (result.error) {
+        setOptimisticFavorited(optimisticFavorited);
+      }
+
+      router.refresh();
+    });
+  }
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
-      {available ? (
-        <Link
-          href={loginHref(animalId, "solicitar")}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] transition hover:opacity-90"
+      {canRequest ? (
+        <Button
+          onClick={handleRequest}
+          disabled={isPending}
+          title={!hasCompletedTriagem && isAuthenticated ? "Complete seu perfil de triagem primeiro" : undefined}
+          className="gap-2"
         >
           <Send aria-hidden="true" size={16} />
-          Solicitar adocao
-        </Link>
+          Solicitar Adoção
+        </Button>
       ) : null}
-      <Link
-        href={loginHref(animalId, "favoritar")}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-md border bg-transparent px-4 text-sm font-medium transition hover:bg-[var(--muted)]"
+      <Button
+        onClick={handleFavorite}
+        disabled={isPending}
+        variant={optimisticFavorited ? "secondary" : "outline"}
+        className="gap-2"
+        aria-pressed={optimisticFavorited}
       >
-        <Heart aria-hidden="true" size={16} />
-        Favoritar
-      </Link>
+        <Heart aria-hidden="true" size={16} fill={optimisticFavorited ? "currentColor" : "none"} />
+        {optimisticFavorited ? "Favoritado" : "Favoritar"}
+      </Button>
     </div>
   );
 }
