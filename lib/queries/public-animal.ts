@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export async function getPublicAnimal(id: string) {
+export async function getPublicAnimalById(id: string) {
   return prisma.animal.findUnique({
     where: { id },
     select: {
@@ -64,6 +64,8 @@ export async function getPublicAnimal(id: string) {
     },
   });
 }
+
+export const getPublicAnimal = getPublicAnimalById;
 
 export type PublicAnimal = NonNullable<Awaited<ReturnType<typeof getPublicAnimal>>>;
 export type RelatedPublicAnimal = PublicAnimal["relacionadosA"][number]["animalRelacionado"];

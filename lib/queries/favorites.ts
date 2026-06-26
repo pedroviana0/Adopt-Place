@@ -16,11 +16,13 @@ export async function getAdopterFavorites(adotanteId: string) {
           id: true,
           nome: true,
           status: true,
+          idadeEstimada: true,
           especie: { select: { nome: true } },
           raca: { select: { nome: true } },
           porte: true,
           sexo: true,
           castrado: true,
+          registrosSaude: { select: { tipo: true } },
           fotos: {
             orderBy: [{ principal: "desc" }, { ordem: "asc" }],
             take: 1,

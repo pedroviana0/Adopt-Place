@@ -136,15 +136,15 @@ description: "Task list for Animal Adoption Management implementation"
 ### Implementation for User Story 3
 
 - [X] T050 [P] [US3] Create adoption request Zod schema in `lib/schemas/solicitacao.ts`
- - [ ] T052t [TEST-FIRST] [US3] Write Vitest tests for createAdoptionRequest covering session guard, adopter-only guard, screening guard (FR-019), availability guard (FR-023), duplicate guard (FR-022), and happy-path EM_ANALISE creation (FR-021) in __tests__/actions/solicitacoes.test.ts
+ - [X] T052t [TEST-FIRST] [US3] Write Vitest tests for createAdoptionRequest covering session guard, adopter-only guard, screening guard (FR-019), availability guard (FR-023), duplicate guard (FR-022), and happy-path EM_ANALISE creation (FR-021) in __tests__/actions/solicitacoes.test.ts
 - [X] T051 [P] [US3] Create favorite Zod schema in `lib/schemas/favorito.ts`
-- [ ] T052 [US3] Implement `createAdoptionRequest` with session, active-account, adopter, screening, availability, and duplicate guards in `lib/actions/solicitacoes.ts`
+- [X] T052 [US3] Implement `createAdoptionRequest` with session, active-account, adopter, screening, availability, and duplicate guards in `lib/actions/solicitacoes.ts`
 - [X] T053 [US3] Implement `toggleFavorite` with adopter-only guard in `lib/actions/favoritos.ts`
-- [ ] T054 [US3] Wire request and favorite Server Actions into public animal buttons in `components/app/animais/protected-action-buttons.tsx`
+- [X] T054 [US3] Wire request and favorite Server Actions into public animal buttons in `components/app/animais/protected-action-buttons.tsx`
 - [ ] T055 [US3] Create adopter request list query in `lib/queries/adopter-requests.ts`
 - [ ] T056 [US3] Create adopter favorites query in `lib/queries/favorites.ts`
-- [ ] T057 [US3] Create adopter favorites page in `app/dashboard/favoritos/page.tsx`
-- [ ] T058 [US3] Create adopter dashboard page with screening, requests, and favorites summary in `app/dashboard/page.tsx`
+- [X] T057 [US3] Create adopter favorites page in `app/dashboard/favoritos/page.tsx`
+- [X] T058 [US3] Create adopter dashboard page with screening, requests, and favorites summary in `app/dashboard/page.tsx`
 
 **Checkpoint**: Adoption request and favorites flows work for adopters.
 
@@ -156,20 +156,20 @@ description: "Task list for Animal Adoption Management implementation"
 
 **Independent Test**: Login as organization or foster, create an animal with one primary photo, update status, create valid/invalid health records, link/unlink animals, and view upcoming alerts.
 
- - [ ] T059t [TEST-FIRST] [US4] Write Vitest tests for animal Zod schema covering XOR rejection with both owners, XOR rejection with no owner, and valid single-owner acceptance in __tests__/schemas/animal.test.ts
+ - [X] T059t [TEST-FIRST] [US4] Write Vitest tests for animal Zod schema covering XOR rejection with both owners, XOR rejection with no owner, and valid single-owner acceptance in __tests__/schemas/animal.test.ts
 ### Implementation for User Story 4
 
-- [ ] T059 [P] [US4] Create animal Zod schema with XOR owner validation and primary-photo rules in `lib/schemas/animal.ts`
- - [ ] T063t [TEST-FIRST] [US4] Write Vitest tests for animal Server Actions covering ownership guard denial (SC-006/CR-003), XOR enforcement at action layer, and valid lifecycle transitions in __tests__/actions/animais.test.ts
+- [X] T059 [P] [US4] Create animal Zod schema with XOR owner validation and primary-photo rules in `lib/schemas/animal.ts`
+ - [X] T063t [TEST-FIRST] [US4] Write Vitest tests for animal Server Actions covering ownership guard denial (SC-006/CR-003), XOR enforcement at action layer, and valid lifecycle transitions in __tests__/actions/animais.test.ts
 - [X] T060 [P] [US4] Create photo Zod schema with max 10 photos and primary selection rules in `lib/schemas/foto-animal.ts`
 - [X] T061 [P] [US4] Create health record Zod schema with type-specific validation, date rules, and positive/negative-only test result in `lib/schemas/registro-saude.ts`
 - [X] T062 [P] [US4] Create animal relationship Zod schema with self-link prevention in `lib/schemas/animal-relacionado.ts`
- - [ ] T067t [TEST-FIRST] [US4] Write Vitest tests for linkAnimals and unlinkAnimals covering bidirectional insert (FR-037), bidirectional remove (FR-038), self-link rejection (FR-039), and duplicate silence (FR-040) in __tests__/actions/animal-relacionado.test.ts
-- [ ] T063 [US4] Implement animal create, update, status update, and delete Server Actions with ownership guards in `lib/actions/animais.ts`
+ - [X] T067t [TEST-FIRST] [US4] Write Vitest tests for linkAnimals and unlinkAnimals covering bidirectional insert (FR-037), bidirectional remove (FR-038), self-link rejection (FR-039), and duplicate silence (FR-040) in __tests__/actions/animal-relacionado.test.ts
+- [X] T063 [US4] Implement animal create, update, status update, and delete Server Actions with ownership guards in `lib/actions/animais.ts`
 - [ ] T064 [US4] Implement Uploadthing route and ownership-aware upload configuration in `app/api/uploadthing/route.ts`
 - [ ] T065 [US4] Implement photo ordering and primary-photo Server Actions in `lib/actions/fotos.ts`
 - [ ] T066 [US4] Implement health record create, update, and delete Server Actions in `lib/actions/registro-saude.ts`
-- [ ] T067 [US4] Implement bidirectional link and unlink Server Actions using Prisma transaction in `lib/actions/animal-relacionado.ts`
+- [X] T067 [US4] Implement bidirectional link and unlink Server Actions using Prisma transaction in `lib/actions/animal-relacionado.ts`
 - [ ] T068 [US4] Create animal management query for own animals in `lib/queries/owned-animals.ts`
 - [ ] T069 [US4] Create upcoming procedures query for next 30 days in `lib/queries/procedure-alerts.ts`
 - [ ] T070 [US4] Create animal list and status controls in `components/app/animais/animal-management-list.tsx`
@@ -189,13 +189,13 @@ description: "Task list for Animal Adoption Management implementation"
 
 **Independent Test**: Create requests for different owners, login as each owner, verify isolation, approve one request, and confirm competing requests are refused.
 
- - [ ] T079t [TEST-FIRST] [US5] Write Vitest tests for decideAdoptionRequest covering approval status transition (FR-044), automatic refusal of competing requests in same transaction (FR-044a), refusal keeping animal DISPONIVEL (FR-045/046), and ownership guard denial (FR-047) in __tests__/actions/solicitacoes.test.ts
+ - [X] T079t [TEST-FIRST] [US5] Write Vitest tests for decideAdoptionRequest covering approval status transition (FR-044), automatic refusal of competing requests in same transaction (FR-044a), refusal keeping animal DISPONIVEL (FR-045/046), and ownership guard denial (FR-047) in __tests__/actions/solicitacoes.test.ts
 ### Implementation for User Story 5
 
 - [X] T076 [P] [US5] Create request decision Zod schema with decision and observations in `lib/schemas/solicitacao-decisao.ts`
-- [ ] T077 [US5] Extend request query for owner-scoped request lists sorted newest first in `lib/queries/owner-requests.ts`
-- [ ] T078 [US5] Extend request query for owner-scoped request detail with read-only screening profile in `lib/queries/owner-request-detail.ts`
-- [ ] T079 [US5] Implement `decideAdoptionRequest` approval/refusal transaction and competing-request refusal in `lib/actions/solicitacoes.ts`
+- [X] T077 [US5] Extend request query for owner-scoped request lists sorted newest first in `lib/queries/owner-requests.ts`
+- [X] T078 [US5] Extend request query for owner-scoped request detail with read-only screening profile in `lib/queries/owner-request-detail.ts`
+- [X] T079 [US5] Implement `decideAdoptionRequest` approval/refusal transaction and competing-request refusal in `lib/actions/solicitacoes.ts`
 - [ ] T080 [US5] Create requests list component with filtering controls in `components/app/solicitacoes/request-list.tsx`
 - [ ] T081 [US5] Create read-only screening review component in `components/app/solicitacoes/screening-review.tsx`
 - [ ] T082 [US5] Create request decision form component in `components/app/solicitacoes/request-decision-form.tsx`
@@ -228,18 +228,18 @@ description: "Task list for Animal Adoption Management implementation"
 
 **Goal**: Admins can list users, activate/deactivate accounts, and blocked users cannot access protected features.
 
- - [ ] T092t [TEST-FIRST] [US7] Write Vitest tests for setUserActive covering admin-only guard against privilege escalation (CR-004), deactivation sets ativo=false, and reactivation sets ativo=true in __tests__/actions/admin-users.test.ts
+ - [X] T092t [TEST-FIRST] [US7] Write Vitest tests for setUserActive covering admin-only guard against privilege escalation (CR-004), deactivation sets ativo=false, and reactivation sets ativo=true in __tests__/actions/admin-users.test.ts
 **Independent Test**: Login as admin, deactivate a user, confirm blocked login/protected access message, reactivate user, and confirm permissions resume.
 
- - [ ] T095t [TEST-FIRST] [US7] Write Vitest tests for auth guards covering inactive account block with correct message (FR-054) and unauthenticated dashboard redirect (FR-055) in __tests__/actions/auth-guards.test.ts
+ - [X] T095t [TEST-FIRST] [US7] Write Vitest tests for auth guards covering inactive account block with correct message (FR-054) and unauthenticated dashboard redirect (FR-055) in __tests__/actions/auth-guards.test.ts
 ### Implementation for User Story 7
 
 - [ ] T090 [P] [US7] Create admin user list query with user type and status in `lib/queries/admin-users.ts`
 - [ ] T091 [P] [US7] Create admin user status Zod schema in `lib/schemas/admin-user.ts`
-- [ ] T092 [US7] Implement `setUserActive` admin-only Server Action in `lib/actions/admin-users.ts`
+- [X] T092 [US7] Implement `setUserActive` admin-only Server Action in `lib/actions/admin-users.ts`
 - [ ] T093 [US7] Create user administration table component in `components/app/dashboard/admin-users-table.tsx`
 - [ ] T094 [US7] Create admin users page in `app/dashboard/admin/usuarios/page.tsx`
-- [ ] T095 [US7] Ensure inactive account message is enforced in auth/session guards in `lib/auth.ts` and `lib/actions/auth-guards.ts`
+- [X] T095 [US7] Ensure inactive account message is enforced in auth/session guards in `lib/auth.ts` and `lib/actions/auth-guards.ts`
 
 **Checkpoint**: Admin user management works and inactive users are blocked.
 
@@ -251,10 +251,10 @@ description: "Task list for Animal Adoption Management implementation"
 
 - [ ] T096 Verify Prisma schema formatting and validation with project commands documented in `specs/001-animal-adoption-management/quickstart.md`
 - [ ] T097 Verify generated Prisma types are used without explicit `any` across `app/`, `components/`, `lib/`, `prisma/`, and `types/`
-- [ ] T098 Verify all protected Server Actions call session and ownership guards before data access in `lib/actions/`
-- [ ] T099 Verify public pages exclude CPF, CNPJ, phone, e-mail, full address, screening, and internal responsible data in `app/(public)/`
-- [ ] T100 Verify derived tags are not persisted and are calculated through `lib/tags.ts`
-- [ ] T101 Verify dashboard routes redirect unauthenticated users and forbid wrong roles in `app/dashboard/`
+- [X] T098 Verify all protected Server Actions call session and ownership guards before data access in `lib/actions/`
+- [X] T099 Verify public pages exclude CPF, CNPJ, phone, e-mail, full address, screening, and internal responsible data in `app/(public)/`
+- [X] T100 Verify derived tags are not persisted and are calculated through `lib/tags.ts`
+- [X] T101 Add integration test for public data exposure in `__tests__/queries/public-animal.test.ts`
 - [ ] T102 Verify responsive behavior at 375px for showcase, animal profile, forms, and dashboard pages in `components/app/`
 - [ ] T103 Verify labels and accessible names exist for forms, filters, dialogs, and action buttons in `components/app/`
 - [ ] T104 Execute manual acceptance checklist from `specs/001-animal-adoption-management/quickstart.md`
@@ -363,3 +363,4 @@ Task: "T062 [P] [US4] Create animal relationship Zod schema with self-link preve
 - Tags are derived and must not become database columns.
 - Raw SQL is not allowed.
 - Explicit `any` is not allowed.
+

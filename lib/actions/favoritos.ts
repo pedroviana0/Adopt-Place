@@ -5,34 +5,34 @@ import { prisma } from "@/lib/prisma";
 import { toggleFavoriteSchema } from "@/lib/schemas/favorito";
 
 export async function toggleFavorite(
-  animalId: string
+  animalId: string,
 ): Promise<{ favorited?: boolean; error?: string }> {
-  // Validate input on server side
-  const parsed = toggleFavoriteSchema.safeParse({ animalId });
-  if (!parsed.success) {
-    return { error: "Identificador do animal inválido." };
-  }
-
-  // Guard 1: Check authentication
   const session = await getServerSession();
+
   if (!session?.user?.id) {
-    return { error: "Não autenticado" };
+    return { error: "Nao autenticado" };
   }
 
-  // Guard 2: Role check - only ADOTANTE can favorite animals
+  if (!session.user.ativo) {
+    return { error: "Conta desativada" };
+  }
+
   if (session.user.tipoPerfil !== "ADOTANTE") {
     return { error: "Apenas adotantes podem favoritar animais" };
   }
 
-  // Guard: Ensure adotanteId exists
   if (!session.user.adotanteId) {
-    return { error: "Perfil de adotante não encontrado." };
+    return { error: "Perfil de adotante nao encontrado." };
+  }
+
+  const parsed = toggleFavoriteSchema.safeParse({ animalId });
+  if (!parsed.success) {
+    return { error: "Identificador do animal invalido." };
   }
 
   const adotanteId = session.user.adotanteId;
   const validatedAnimalId = parsed.data.animalId;
 
-  // Check if Favorito exists
   const existingFavorito = await prisma.favorito.findUnique({
     where: {
       adotanteId_animalId: {
@@ -43,7 +43,6 @@ export async function toggleFavorite(
   });
 
   if (existingFavorito) {
-    // Exists: delete it
     await prisma.favorito.delete({
       where: {
         adotanteId_animalId: {
@@ -52,15 +51,16 @@ export async function toggleFavorite(
         },
       },
     });
+
     return { favorited: false };
-  } else {
-    // Not exists: create it
-    await prisma.favorito.create({
-      data: {
-        adotanteId,
-        animalId: validatedAnimalId,
-      },
-    });
-    return { favorited: true };
   }
+
+  await prisma.favorito.create({
+    data: {
+      adotanteId,
+      animalId: validatedAnimalId,
+    },
+  });
+
+  return { favorited: true };
 }

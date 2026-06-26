@@ -8,6 +8,9 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 
+export const INACTIVE_ACCOUNT_MESSAGE =
+  "Conta desativada. Entre em contato com o administrador";
+
 const credentialsSchema = z.object({
   email: z.string().email().trim().toLowerCase(),
   password: z.string().min(1),
@@ -57,8 +60,12 @@ export const {
           },
         });
 
-        if (!usuario?.ativo) {
+        if (!usuario) {
           return null;
+        }
+
+        if (!usuario.ativo) {
+          throw new Error(INACTIVE_ACCOUNT_MESSAGE);
         }
 
         const passwordMatches = await compare(parsed.data.password, usuario.senhaHash);
