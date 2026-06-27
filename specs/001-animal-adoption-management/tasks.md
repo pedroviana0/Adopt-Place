@@ -1,4 +1,4 @@
----
+﻿---
 
 description: "Task list for Animal Adoption Management implementation"
 ---
@@ -172,10 +172,10 @@ description: "Task list for Animal Adoption Management implementation"
 - [X] T067 [US4] Implement bidirectional link and unlink Server Actions using Prisma transaction in `lib/actions/animal-relacionado.ts`
 - [ ] T068 [US4] Create animal management query for own animals in `lib/queries/owned-animals.ts`
 - [ ] T069 [US4] Create upcoming procedures query for next 30 days in `lib/queries/procedure-alerts.ts`
-- [ ] T070 [US4] Create animal list and status controls in `components/app/animais/animal-management-list.tsx`
-- [ ] T071 [US4] Create animal form component with photo primary selection in `components/app/animais/animal-form.tsx`
-- [ ] T072 [US4] Create health record panel with vaccine, parasite, and disease-test categories in `components/app/saude/health-record-panel.tsx`
-- [ ] T073 [US4] Create related animal management component with search and unlink controls in `components/app/animais/related-animal-manager.tsx`
+- [X] T070 [US4] Create animal list and status controls in `components/app/animais/animal-management-list.tsx`
+- [X] T071 [US4] Create animal form component with photo primary selection in `components/app/animais/animal-form.tsx`
+- [X] T072 [US4] Create health record panel with vaccine, parasite, and disease-test categories in `components/app/saude/health-record-panel.tsx`
+- [X] T073 [US4] Create related animal management component with search and unlink controls in `components/app/animais/related-animal-manager.tsx`
 - [ ] T074 [US4] Create animal management pages in `app/dashboard/animais/page.tsx`, `app/dashboard/animais/[id]/fotos/page.tsx`, `app/dashboard/animais/[id]/saude/page.tsx`, and `app/dashboard/animais/[id]/relacionados/page.tsx`
 - [ ] T075 [US4] Add organization/foster dashboard metrics and procedure alerts to `app/dashboard/page.tsx`
 
@@ -363,4 +363,5 @@ Task: "T062 [P] [US4] Create animal relationship Zod schema with self-link preve
 - Tags are derived and must not become database columns.
 - Raw SQL is not allowed.
 - Explicit `any` is not allowed.
+
 
