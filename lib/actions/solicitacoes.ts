@@ -218,6 +218,51 @@ export async function decideAdoptionRequest(
 export async function completeAdoption(
   solicitacaoId: string,
 ): Promise<{ success?: boolean; error?: string }> {
-  void solicitacaoId;
-  throw new Error("[STUB] T085 - pending implementation");
+  const sessionResult = await requireResponsibleSession();
+
+  if ("error" in sessionResult) {
+    return { error: sessionResult.error };
+  }
+
+  const solicitacao = await prisma.solicitacaoAdocao.findUnique({
+    where: { id: solicitacaoId },
+    select: {
+      id: true,
+      animalId: true,
+      status: true,
+      animal: {
+        select: {
+          id: true,
+          organizacaoId: true,
+          acolhedorId: true,
+        },
+      },
+    },
+  });
+
+  if (!solicitacao) {
+    return { error: "Solicitacao nao encontrada" };
+  }
+
+  if (!ownsAnimal(sessionResult.session, solicitacao.animal)) {
+    return { error: "Acesso negado" };
+  }
+
+  if (solicitacao.status !== StatusSolicitacao.APROVADA) {
+    return { error: "Apenas solicitacoes aprovadas podem ser concluidas" };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.solicitacaoAdocao.update({
+      where: { id: solicitacaoId },
+      data: { status: StatusSolicitacao.CONCLUIDA },
+    });
+
+    await tx.animal.update({
+      where: { id: solicitacao.animalId },
+      data: { status: StatusAnimal.ADOTADO },
+    });
+  });
+
+  return { success: true };
 }

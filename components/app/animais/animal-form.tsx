@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { StatusAnimal } from "@prisma/client"
@@ -19,8 +19,8 @@ interface AnimalFormProps {
 const statusOptions: { value: StatusAnimal; label: string }[] = [
   { value: StatusAnimal.RESGATADO, label: "Resgatado" },
   { value: StatusAnimal.EM_CUIDADOS, label: "Em cuidados" },
-  { value: StatusAnimal.DISPONIVEL, label: "Disponível" },
-  { value: StatusAnimal.EM_PROCESSO_ADOCAO, label: "Em processo de adoção" },
+  { value: StatusAnimal.DISPONIVEL, label: "Disponivel" },
+  { value: StatusAnimal.EM_PROCESSO_ADOCAO, label: "Em processo de adocao" },
   { value: StatusAnimal.ADOTADO, label: "Adotado" },
 ]
 
@@ -71,7 +71,7 @@ export function AnimalForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" aria-label="Formulario do animal">
       <div>
         <label htmlFor="nome" className="mb-1 block text-sm font-medium">
           Nome
@@ -81,10 +81,10 @@ export function AnimalForm({
 
       <div>
         <label htmlFor="especieId" className="mb-1 block text-sm font-medium">
-          Espécie
+          Especie
         </label>
         <Select id="especieId" value={especieId} onChange={(e) => { setEspecieId(e.target.value); setRacaId("") }}>
-          <option value="">Selecione a espécie</option>
+          <option value="">Selecione a especie</option>
           {speciesList.map((s) => (
             <option key={s.id} value={s.id}>
               {s.nome}
@@ -95,10 +95,10 @@ export function AnimalForm({
 
       <div>
         <label htmlFor="racaId" className="mb-1 block text-sm font-medium">
-          Raça
+          Raca
         </label>
         <Select id="racaId" value={racaId} onChange={(e) => setRacaId(e.target.value)}>
-          <option value="">Selecione a raça</option>
+          <option value="">Selecione a raca</option>
           {filteredRacas.map((r) => (
             <option key={r.id} value={r.id}>
               {r.nome}
@@ -113,7 +113,7 @@ export function AnimalForm({
         </label>
         <Select id="porte" value={porte} onChange={(e) => setPorte(e.target.value as "P" | "M" | "G")}>
           <option value="P">Pequeno</option>
-          <option value="M">Médio</option>
+          <option value="M">Medio</option>
           <option value="G">Grande</option>
         </Select>
       </div>
@@ -124,7 +124,7 @@ export function AnimalForm({
         </label>
         <Select id="sexo" value={sexo} onChange={(e) => setSexo(e.target.value as "M" | "F")}>
           <option value="M">Macho</option>
-          <option value="F">Fêmea</option>
+          <option value="F">Femea</option>
         </Select>
       </div>
 
@@ -150,7 +150,7 @@ export function AnimalForm({
 
       <div>
         <label htmlFor="descricao" className="mb-1 block text-sm font-medium">
-          Descrição
+          Descricao
         </label>
         <textarea
           id="descricao"
@@ -186,7 +186,7 @@ export function AnimalForm({
         />
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "Salvando..." : "Salvar"}

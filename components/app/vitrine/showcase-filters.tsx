@@ -1,4 +1,4 @@
-import { Search, X } from "lucide-react";
+﻿import { Search, X } from "lucide-react";
 import Link from "next/link";
 
 import { Button, Form, FormItem, FormLabel, Input, Select } from "@/components/ui";
@@ -28,8 +28,8 @@ export function ShowcaseFilters({ filters, options }: ShowcaseFiltersProps) {
   const breedOptions = selectedSpecies?.racas ?? options.especies.flatMap((especie) => especie.racas);
 
   return (
-    <Form action="/" className="rounded-md border bg-white p-4">
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+    <Form action="/" className="rounded-md border bg-white p-3 sm:p-4" aria-label="Filtros da vitrine">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <FormItem>
           <FormLabel htmlFor="especieId">Especie</FormLabel>
           <Select id="especieId" name="especieId" defaultValue={filters.especieId ?? ""}>
@@ -71,7 +71,7 @@ export function ShowcaseFilters({ filters, options }: ShowcaseFiltersProps) {
         </FormItem>
         <FormItem>
           <FormLabel htmlFor="cidade">Cidade</FormLabel>
-          <Input id="cidade" name="cidade" list="cidades" defaultValue={filters.cidade ?? ""} />
+          <Input id="cidade" name="cidade" list="cidades" defaultValue={filters.cidade ?? ""} aria-label="Filtrar por cidade" />
           <datalist id="cidades">
             {options.cities.map((city) => (
               <option key={city} value={city} />
@@ -92,15 +92,16 @@ export function ShowcaseFilters({ filters, options }: ShowcaseFiltersProps) {
           </Link>
         </div>
       </div>
-      <fieldset className="mt-4 flex flex-wrap gap-3">
+      <fieldset className="mt-4 flex flex-wrap gap-2 sm:gap-3">
         <legend className="sr-only">Tags</legend>
         {tagOptions.map((tag) => (
-          <label key={tag.value} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+          <label key={tag.value} className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm sm:px-3 sm:py-2">
             <input
               type="checkbox"
               name="tags"
               value={tag.value}
               defaultChecked={filters.tags.includes(tag.value)}
+              aria-label={tag.label}
             />
             {tag.label}
           </label>

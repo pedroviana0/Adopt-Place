@@ -60,12 +60,12 @@ enum ResultadoTeste {
 }
 
 model Usuario {
-  id          String                  @id @default(cuid())
-  email       String                  @unique
+  id          String                 @id @default(cuid())
+  email       String                 @unique
   senhaHash   String
   tipoPerfil  TipoPerfil
-  ativo       Boolean                 @default(true)
-  criadoEm    DateTime                @default(now())
+  ativo       Boolean                @default(true)
+  criadoEm    DateTime               @default(now())
   adotante    Adotante?
   organizacao Organizacao?
   acolhedor   AcolhedorIndependente?
@@ -120,18 +120,18 @@ model Adotante {
 }
 
 model Organizacao {
-  id                String    @id @default(cuid())
-  usuarioId         String    @unique
-  usuario           Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  razaoSocial       String
-  cnpj              String    @unique
-  telefone          String
-  endereco          String
-  cidade            String
-  estado            String
-  responsavelNome   String
-  capacidadeMaxima  Int?
-  animais           Animal[]
+  id               String   @id @default(cuid())
+  usuarioId        String   @unique
+  usuario          Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  razaoSocial      String
+  cnpj             String   @unique
+  telefone         String
+  endereco         String
+  cidade           String
+  estado           String
+  responsavelNome  String
+  capacidadeMaxima Int?
+  animais          Animal[]
 }
 
 model AcolhedorIndependente {
@@ -156,9 +156,9 @@ model Especie {
 }
 
 model Raca {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   especieId String
-  especie   Especie @relation(fields: [especieId], references: [id], onDelete: Cascade)
+  especie   Especie  @relation(fields: [especieId], references: [id], onDelete: Cascade)
   nome      String
   animais   Animal[]
 
@@ -166,30 +166,30 @@ model Raca {
 }
 
 model Animal {
-  id              String                  @id @default(cuid())
-  nome            String
-  especieId       String
-  especie         Especie                 @relation(fields: [especieId], references: [id])
-  racaId          String?
-  raca            Raca?                   @relation(fields: [racaId], references: [id])
-  porte           Porte
-  sexo            Sexo
-  cor             String
-  idadeEstimada   String?
-  castrado        Boolean                 @default(false)
-  descricao       String?
-  status          StatusAnimal            @default(RESGATADO)
-  organizacaoId   String?
-  organizacao     Organizacao?            @relation(fields: [organizacaoId], references: [id])
-  acolhedorId     String?
-  acolhedor       AcolhedorIndependente?  @relation(fields: [acolhedorId], references: [id])
-  criadoEm        DateTime                @default(now())
-  fotos           FotoAnimal[]
-  registrosSaude  RegistroSaude[]
-  solicitacoes    SolicitacaoAdocao[]
-  favoritos       Favorito[]
-  relacionadosA   AnimalRelacionado[]     @relation("AnimalPrincipal")
-  relacionadosB   AnimalRelacionado[]     @relation("AnimalRelacionado")
+  id             String                 @id @default(cuid())
+  nome           String
+  especieId      String
+  especie        Especie                @relation(fields: [especieId], references: [id])
+  racaId         String?
+  raca           Raca?                  @relation(fields: [racaId], references: [id])
+  porte          Porte
+  sexo           Sexo
+  cor            String
+  idadeEstimada  String?
+  castrado       Boolean                @default(false)
+  descricao      String?
+  status         StatusAnimal           @default(RESGATADO)
+  organizacaoId  String?
+  organizacao    Organizacao?           @relation(fields: [organizacaoId], references: [id])
+  acolhedorId    String?
+  acolhedor      AcolhedorIndependente? @relation(fields: [acolhedorId], references: [id])
+  criadoEm       DateTime               @default(now())
+  fotos          FotoAnimal[]
+  registrosSaude RegistroSaude[]
+  solicitacoes   SolicitacaoAdocao[]
+  favoritos      Favorito[]
+  relacionadosA  AnimalRelacionado[]    @relation("AnimalPrincipal")
+  relacionadosB  AnimalRelacionado[]    @relation("AnimalRelacionado")
 
   @@index([status], map: "idx_animal_status")
   @@index([especieId], map: "idx_animal_especie_id")
@@ -200,10 +200,10 @@ model Animal {
 }
 
 model AnimalRelacionado {
-  animalId             String
+  animalId            String
   animalRelacionadoId String
-  animal               Animal @relation("AnimalPrincipal", fields: [animalId], references: [id], onDelete: Cascade)
-  animalRelacionado    Animal @relation("AnimalRelacionado", fields: [animalRelacionadoId], references: [id], onDelete: Cascade)
+  animal              Animal @relation("AnimalPrincipal", fields: [animalId], references: [id], onDelete: Cascade)
+  animalRelacionado   Animal @relation("AnimalRelacionado", fields: [animalRelacionadoId], references: [id], onDelete: Cascade)
 
   @@id([animalId, animalRelacionadoId])
 }
@@ -229,9 +229,9 @@ model DoencaCatalogo {
 }
 
 model RegistroSaude {
-  id                  String              @id @default(cuid())
+  id                  String            @id @default(cuid())
   animalId            String
-  animal              Animal              @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  animal              Animal            @relation(fields: [animalId], references: [id], onDelete: Cascade)
   tipo                TipoRegistroSaude
   dataRegistro        DateTime
   dataProxima         DateTime?
@@ -259,14 +259,14 @@ model Favorito {
 }
 
 model SolicitacaoAdocao {
-  id              String             @id @default(cuid())
+  id              String            @id @default(cuid())
   animalId        String
-  animal          Animal             @relation(fields: [animalId], references: [id])
+  animal          Animal            @relation(fields: [animalId], references: [id])
   adotanteId      String
-  adotante        Adotante           @relation(fields: [adotanteId], references: [id])
-  status          StatusSolicitacao  @default(EM_ANALISE)
-  dataSolicitacao DateTime           @default(now())
-  dataAtualizacao DateTime           @updatedAt
+  adotante        Adotante          @relation(fields: [adotanteId], references: [id])
+  status          StatusSolicitacao @default(EM_ANALISE)
+  dataSolicitacao DateTime          @default(now())
+  dataAtualizacao DateTime          @updatedAt
   observacoes     String?
 
   @@unique([animalId, adotanteId])

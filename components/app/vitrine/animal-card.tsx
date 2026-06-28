@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { Badge, Card, CardContent } from "@/components/ui";
 import { getAnimalTags } from "@/lib/tags";
@@ -27,12 +27,12 @@ export function AnimalCard({ animal, showRequestHint = false }: AnimalCardProps)
 
   return (
     <Card className="overflow-hidden">
-      <Link href={`/animais/${animal.id}`} className="block">
+      <Link href={`/animais/${animal.id}`} className="block" aria-label={`Ver detalhes de ${animal.nome}`}>
         <div className="aspect-[4/3] bg-[var(--muted)]">
           {photoUrl ? (
             <img src={photoUrl} alt={`Foto de ${animal.nome}`} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-[var(--muted-foreground)]">
+            <div className="flex h-full items-center justify-center text-sm text-[var(--muted-foreground)]" aria-hidden="true">
               Sem foto
             </div>
           )}
@@ -46,7 +46,7 @@ export function AnimalCard({ animal, showRequestHint = false }: AnimalCardProps)
             </p>
           </div>
           <p className="text-sm text-[var(--muted-foreground)]">{responsibleLabel(animal)}</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {tags.map((tag) => (
               <Badge key={tag.key} variant="outline">
                 {tag.label}

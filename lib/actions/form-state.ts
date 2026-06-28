@@ -1,6 +1,4 @@
-"use server";
-
-import type { ZodError } from "zod";
+﻿import type { ZodError } from "zod";
 
 import type { FormState } from "@/lib/schemas/common";
 
