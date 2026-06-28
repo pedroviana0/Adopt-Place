@@ -1,7 +1,7 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { idSchema, requiredTextSchema, pastOrTodayDateSchema } from "./common";
 
-const tipoRegistroSchema = z.enum(["VACINA", "CONTROLE_PARASITAS", "TESTE_DOENCA"]);
+
 
 export const vacinaRegistroSchema = z.object({
   tipoRegistro: z.literal("VACINA"),
@@ -42,14 +42,14 @@ export const registroSaudeSchema = z.discriminatedUnion("tipoRegistro", [
     if (data.vacinaId === undefined && data.nomeCustom === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Informe uma vacina do cat�logo ou um nome customizado.",
+        message: "Informe uma vacina do catálogo ou um nome customizado.",
         path: ["nomeCustom"],
       });
     }
     if (data.dataProximaDose && data.dataProximaDose <= data.dataAplicacao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Data pr�xima deve ser posterior ao registro.",
+        message: "Data próxima deve ser posterior ao registro.",
         path: ["dataProximaDose"],
       });
     }
@@ -59,7 +59,7 @@ export const registroSaudeSchema = z.discriminatedUnion("tipoRegistro", [
     if (data.dataProxima && data.dataProxima <= data.dataAplicacao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Data pr�xima deve ser posterior ao registro.",
+        message: "Data próxima deve ser posterior ao registro.",
         path: ["dataProxima"],
       });
     }
@@ -69,7 +69,7 @@ export const registroSaudeSchema = z.discriminatedUnion("tipoRegistro", [
     if (data.doencaId === undefined && data.nomeCustom === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Informe uma doen�a do cat�logo ou um nome customizado.",
+        message: "Informe uma doença do catálogo ou um nome customizado.",
         path: ["nomeCustom"],
       });
     }

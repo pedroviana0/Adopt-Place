@@ -12,3 +12,7 @@ export async function getAllUsers() {
     orderBy: { criadoEm: "desc" },
   });
 }
+
+
+export type User = NonNullable<Awaited<ReturnType<typeof getAllUsers>>>[number];
+

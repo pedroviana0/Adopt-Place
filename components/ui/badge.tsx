@@ -1,13 +1,14 @@
 import type { HTMLAttributes } from "react";
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
-  variant?: "default" | "secondary" | "outline";
+  variant?: "default" | "secondary" | "outline" | "destructive";
 };
 
 const variants: Record<NonNullable<BadgeProps["variant"]>, string> = {
   default: "bg-[var(--primary)] text-[var(--primary-foreground)]",
   secondary: "bg-[var(--secondary)] text-[var(--secondary-foreground)]",
   outline: "border bg-transparent",
+  destructive: "bg-[var(--destructive)] text-[var(--destructive-foreground)]",
 };
 
 export function Badge({ className = "", variant = "secondary", ...props }: BadgeProps) {

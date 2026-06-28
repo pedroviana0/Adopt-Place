@@ -1,6 +1,4 @@
-"use server";
-
-import type { TipoPerfil } from "@prisma/client";
+﻿import type { TipoPerfil } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 import { getServerSession, INACTIVE_ACCOUNT_MESSAGE } from "@/lib/auth";

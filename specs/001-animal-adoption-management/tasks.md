@@ -166,7 +166,7 @@ description: "Task list for Animal Adoption Management implementation"
 - [X] T062 [P] [US4] Create animal relationship Zod schema with self-link prevention in `lib/schemas/animal-relacionado.ts`
  - [X] T067t [TEST-FIRST] [US4] Write Vitest tests for linkAnimals and unlinkAnimals covering bidirectional insert (FR-037), bidirectional remove (FR-038), self-link rejection (FR-039), and duplicate silence (FR-040) in __tests__/actions/animal-relacionado.test.ts
 - [X] T063 [US4] Implement animal create, update, status update, and delete Server Actions with ownership guards in `lib/actions/animais.ts`
-- [ ] T064 [US4] Implement Uploadthing route and ownership-aware upload configuration in `app/api/uploadthing/route.ts`
+- [X] T064 [US4] Implement Uploadthing route and ownership-aware upload configuration in `app/api/uploadthing/route.ts`
 - [ ] T065 [US4] Implement photo ordering and primary-photo Server Actions in `lib/actions/fotos.ts`
 - [ ] T066 [US4] Implement health record create, update, and delete Server Actions in `lib/actions/registro-saude.ts`
 - [X] T067 [US4] Implement bidirectional link and unlink Server Actions using Prisma transaction in `lib/actions/animal-relacionado.ts`
@@ -249,17 +249,17 @@ description: "Task list for Animal Adoption Management implementation"
 
 **Purpose**: Validate quality, security, seed data, responsive behavior, and acceptance criteria across all stories.
 
-- [ ] T096 Verify Prisma schema formatting and validation with project commands documented in `specs/001-animal-adoption-management/quickstart.md`
-- [ ] T097 Verify generated Prisma types are used without explicit `any` across `app/`, `components/`, `lib/`, `prisma/`, and `types/`
+- [X] T096 Verify Prisma schema formatting and validation with project commands documented in `specs/001-animal-adoption-management/quickstart.md`
+- [X] T097 Verify generated Prisma types are used without explicit `any` across `app/`, `components/`, `lib/`, `prisma/`, and `types/`
 - [X] T098 Verify all protected Server Actions call session and ownership guards before data access in `lib/actions/`
 - [X] T099 Verify public pages exclude CPF, CNPJ, phone, e-mail, full address, screening, and internal responsible data in `app/(public)/`
 - [X] T100 Verify derived tags are not persisted and are calculated through `lib/tags.ts`
 - [X] T101 Add integration test for public data exposure in `__tests__/queries/public-animal.test.ts`
-- [ ] T102 Verify responsive behavior at 375px for showcase, animal profile, forms, and dashboard pages in `components/app/`
-- [ ] T103 Verify labels and accessible names exist for forms, filters, dialogs, and action buttons in `components/app/`
+- [X] T102 Verify responsive behavior at 375px for showcase, animal profile, forms, and dashboard pages in `components/app/`
+- [X] T103 Verify labels and accessible names exist for forms, filters, dialogs, and action buttons in `components/app/`
 - [ ] T104 Execute manual acceptance checklist from `specs/001-animal-adoption-management/quickstart.md`
-- [ ] T105 Update `README.md` with setup, environment, seed users, and quickstart commands
-- [ ] T106 Run final TypeScript, lint, Prisma validation, and build checks using scripts in `package.json`
+- [X] T105 Update `README.md` with setup, environment, seed users, and quickstart commands
+- [X] T106 Run final TypeScript, lint, Prisma validation, and build checks using scripts in `package.json`
 
 ---
 
@@ -363,5 +363,6 @@ Task: "T062 [P] [US4] Create animal relationship Zod schema with self-link preve
 - Tags are derived and must not become database columns.
 - Raw SQL is not allowed.
 - Explicit `any` is not allowed.
+
 
 

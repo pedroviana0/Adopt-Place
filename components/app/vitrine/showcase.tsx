@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { Alert } from "@/components/ui";
 import type { getShowcaseAnimals } from "@/lib/queries/animal-showcase";
@@ -47,23 +47,23 @@ export function Showcase({ animals, pagination, filters }: ShowcaseProps) {
         ))}
       </div>
       {pagination.totalPages > 1 ? (
-        <nav className="flex items-center justify-center gap-3" aria-label="Paginacao da vitrine">
+        <nav className="flex flex-wrap items-center justify-center gap-2 sm:gap-3" aria-label="Paginacao da vitrine">
           {pagination.page > 1 ? (
-            <Link href={pageHref(filters, pagination.page - 1)} className={linkButtonClass}>
+            <Link href={pageHref(filters, pagination.page - 1)} className={linkButtonClass} aria-label="Pagina anterior">
               Anterior
             </Link>
           ) : (
-            <span className={`${linkButtonClass} pointer-events-none opacity-50`}>Anterior</span>
+            <span className={`${linkButtonClass} pointer-events-none opacity-50`} aria-label="Pagina anterior desabilitada">Anterior</span>
           )}
-          <span className="text-sm text-[var(--muted-foreground)]">
+          <span className="text-xs sm:text-sm text-[var(--muted-foreground)]" aria-live="polite">
             Pagina {pagination.page} de {pagination.totalPages}
           </span>
           {pagination.page < pagination.totalPages ? (
-            <Link href={pageHref(filters, pagination.page + 1)} className={linkButtonClass}>
+            <Link href={pageHref(filters, pagination.page + 1)} className={linkButtonClass} aria-label="Proxima pagina">
               Proxima
             </Link>
           ) : (
-            <span className={`${linkButtonClass} pointer-events-none opacity-50`}>Proxima</span>
+            <span className={`${linkButtonClass} pointer-events-none opacity-50`} aria-label="Proxima pagina desabilitada">Proxima</span>
           )}
         </nav>
       ) : null}
