@@ -156,6 +156,7 @@ export async function decideAdoptionRequest(
     select: {
       id: true,
       animalId: true,
+      adotante: { select: { usuarioId: true } },
       animal: {
         select: {
           id: true,
@@ -196,6 +197,26 @@ export async function decideAdoptionRequest(
           id: { not: solicitacaoId },
         },
         data: { status: StatusSolicitacao.RECUSADA },
+      });
+
+      const conversation = await tx.conversaAdocao.upsert({
+        where: { solicitacaoId },
+        create: { solicitacaoId, status: "ATIVA" },
+        update: {},
+        select: { id: true },
+      });
+      await tx.conversaParticipante.createMany({
+        data: [
+          {
+            conversaId: conversation.id,
+            usuarioId: solicitacao.adotante.usuarioId,
+          },
+          {
+            conversaId: conversation.id,
+            usuarioId: sessionResult.session.user.id,
+          },
+        ],
+        skipDuplicates: true,
       });
     });
 
@@ -261,6 +282,11 @@ export async function completeAdoption(
     await tx.animal.update({
       where: { id: solicitacao.animalId },
       data: { status: StatusAnimal.ADOTADO },
+    });
+
+    await tx.conversaAdocao.updateMany({
+      where: { solicitacaoId },
+      data: { status: "ARQUIVADA", arquivadaEm: new Date() },
     });
   });
 

@@ -52,6 +52,8 @@ enum TipoRegistroSaude {
   VACINA
   CONTROLE_PARASITAS
   TESTE_DOENCA
+  MEDICAMENTO_TRATAMENTO
+  PROCEDIMENTO
 }
 
 enum ResultadoTeste {
@@ -59,18 +61,48 @@ enum ResultadoTeste {
   NEGATIVO
 }
 
+enum TipoCuidadoPlanejado {
+  VACINA
+  CONTROLE_PARASITAS
+  TESTE_DOENCA
+  MEDICAMENTO_TRATAMENTO
+  PROCEDIMENTO
+  CONSULTA
+}
+
+enum StatusCuidadoPlanejado {
+  PENDENTE
+  CONCLUIDO
+  CANCELADO
+}
+
+enum TipoDocumentoSaude {
+  EXAME
+  RECEITA
+  LAUDO
+  COMPROVANTE_VACINACAO
+  OUTRO
+}
+
+enum StatusConversaAdocao {
+  ATIVA
+  ARQUIVADA
+}
+
 model Usuario {
-  id          String                 @id @default(cuid())
-  email       String                 @unique
-  senhaHash   String
-  tipoPerfil  TipoPerfil
-  ativo       Boolean                @default(true)
-  criadoEm    DateTime               @default(now())
-  adotante    Adotante?
-  organizacao Organizacao?
-  acolhedor   AcolhedorIndependente?
-  accounts    Account[]
-  sessions    Session[]
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  senhaHash             String
+  tipoPerfil            TipoPerfil
+  ativo                 Boolean                @default(true)
+  criadoEm              DateTime               @default(now())
+  adotante              Adotante?
+  organizacao           Organizacao?
+  acolhedor             AcolhedorIndependente?
+  conversasParticipante ConversaParticipante[]
+  mensagensAdocao       MensagemAdocao[]
+  accounts              Account[]
+  sessions              Session[]
 }
 
 model Adotante {
@@ -186,6 +218,8 @@ model Animal {
   criadoEm       DateTime               @default(now())
   fotos          FotoAnimal[]
   registrosSaude RegistroSaude[]
+  cuidadosPlanejados CuidadoPlanejado[]
+  documentosSaude DocumentoSaude[]
   solicitacoes   SolicitacaoAdocao[]
   favoritos      Favorito[]
   relacionadosA  AnimalRelacionado[]    @relation("AnimalPrincipal")
@@ -243,9 +277,63 @@ model RegistroSaude {
   nomeDoenca          String?
   ehDoencaCustomizada Boolean?
   resultado           ResultadoTeste?
+  titulo              String?
+  procedimento        String?
+  medicamentoTratamento String?
+  observacoes         String?
+  profissionalClinica String?
+  criadoEm            DateTime          @default(now())
+  atualizadoEm        DateTime          @default(now()) @updatedAt
+  documentos          DocumentoSaude[]
+  cuidadoOriginado    CuidadoPlanejado? @relation("OrigemRegistroSaude")
+  cuidadoRealizado    CuidadoPlanejado? @relation("RegistroRealizado")
 
   @@index([animalId], map: "idx_registro_saude_animal_id")
   @@index([tipo], map: "idx_registro_saude_tipo")
+  @@index([animalId, dataRegistro])
+  @@index([tipo, resultado])
+}
+
+model CuidadoPlanejado {
+  id                      String                  @id @default(cuid())
+  animalId                String
+  animal                  Animal                  @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  tipo                    TipoCuidadoPlanejado
+  status                  StatusCuidadoPlanejado @default(PENDENTE)
+  dataHoraPlanejada       DateTime
+  titulo                  String
+  observacoes             String?
+  localProfissional       String?
+  origemRegistroSaudeId   String?                 @unique
+  origemRegistroSaude     RegistroSaude?          @relation("OrigemRegistroSaude", fields: [origemRegistroSaudeId], references: [id], onDelete: Cascade)
+  registroRealizadoId     String?                 @unique
+  registroRealizado       RegistroSaude?          @relation("RegistroRealizado", fields: [registroRealizadoId], references: [id], onDelete: SetNull)
+  canceladoEm             DateTime?
+  concluidoEm             DateTime?
+  criadoEm                DateTime                @default(now())
+  atualizadoEm            DateTime                @default(now()) @updatedAt
+
+  @@index([animalId])
+  @@index([status, dataHoraPlanejada])
+  @@index([tipo, status, dataHoraPlanejada])
+}
+
+model DocumentoSaude {
+  id                String             @id @default(cuid())
+  animalId          String
+  animal            Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  registroSaudeId   String?
+  registroSaude     RegistroSaude?     @relation(fields: [registroSaudeId], references: [id], onDelete: SetNull)
+  tipo              TipoDocumentoSaude
+  nomeArquivo       String
+  mimeType          String
+  tamanhoBytes      Int
+  urlArquivo        String
+  chaveArquivo      String?
+  criadoEm          DateTime           @default(now())
+
+  @@index([animalId, criadoEm])
+  @@index([registroSaudeId])
 }
 
 model Favorito {
@@ -268,10 +356,51 @@ model SolicitacaoAdocao {
   dataSolicitacao DateTime          @default(now())
   dataAtualizacao DateTime          @updatedAt
   observacoes     String?
+  conversa        ConversaAdocao?
 
   @@unique([animalId, adotanteId])
   @@index([adotanteId], map: "idx_solicitacao_adocao_adotante_id")
   @@index([animalId], map: "idx_solicitacao_adocao_animal_id")
+}
+
+model ConversaAdocao {
+  id            String                 @id @default(cuid())
+  solicitacaoId String                 @unique
+  solicitacao   SolicitacaoAdocao      @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  status        StatusConversaAdocao   @default(ATIVA)
+  criadaEm      DateTime               @default(now())
+  arquivadaEm   DateTime?
+  atualizadaEm  DateTime               @default(now()) @updatedAt
+  participantes ConversaParticipante[]
+  mensagens     MensagemAdocao[]
+
+  @@index([status, atualizadaEm])
+}
+
+model ConversaParticipante {
+  id               String          @id @default(cuid())
+  conversaId       String
+  conversa         ConversaAdocao  @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  usuarioId        String
+  usuario          Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  ultimaLeituraEm  DateTime?
+  criadoEm         DateTime        @default(now())
+
+  @@unique([conversaId, usuarioId])
+  @@index([usuarioId])
+}
+
+model MensagemAdocao {
+  id              String         @id @default(cuid())
+  conversaId      String
+  conversa        ConversaAdocao @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  autorUsuarioId  String
+  autor           Usuario        @relation(fields: [autorUsuarioId], references: [id], onDelete: Cascade)
+  texto           String
+  criadaEm        DateTime       @default(now())
+
+  @@index([conversaId, criadaEm])
+  @@index([autorUsuarioId])
 }
 
 model Account {

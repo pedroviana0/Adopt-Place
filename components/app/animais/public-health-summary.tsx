@@ -12,6 +12,9 @@ type HealthRecord = {
   frequencia: string | null;
   nomeDoenca: string | null;
   resultado: "POSITIVO" | "NEGATIVO" | null;
+  titulo: string | null;
+  procedimento: string | null;
+  medicamentoTratamento: string | null;
 };
 
 type PublicHealthSummaryProps = {
@@ -22,6 +25,8 @@ const sectionLabels: Record<TipoRegistroSaude, string> = {
   VACINA: "Vacinas",
   CONTROLE_PARASITAS: "Controle de parasitas",
   TESTE_DOENCA: "Testes de doencas",
+  MEDICAMENTO_TRATAMENTO: "Medicamentos e tratamentos",
+  PROCEDIMENTO: "Procedimentos",
 };
 
 function formatDate(date: Date) {
@@ -37,7 +42,15 @@ function recordLabel(record: HealthRecord) {
     return [record.tipoMedicamento, record.frequencia].filter(Boolean).join(" - ") || "Controle registrado";
   }
 
-  return `${record.nomeDoenca ?? "Doenca testada"}: ${record.resultado === "POSITIVO" ? "positivo" : "negativo"}`;
+  if (record.tipo === "TESTE_DOENCA") {
+    return `${record.nomeDoenca ?? "Doenca testada"}: ${record.resultado === "POSITIVO" ? "positivo" : "negativo"}`;
+  }
+
+  if (record.tipo === "MEDICAMENTO_TRATAMENTO") {
+    return record.titulo ?? record.medicamentoTratamento ?? "Tratamento registrado";
+  }
+
+  return record.titulo ?? record.procedimento ?? "Procedimento registrado";
 }
 
 export function PublicHealthSummary({ records }: PublicHealthSummaryProps) {

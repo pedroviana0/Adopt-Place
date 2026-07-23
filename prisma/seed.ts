@@ -1,9 +1,26 @@
-import { PrismaClient, ResultadoTeste, StatusAnimal, StatusSolicitacao, TipoPerfil, TipoRegistroSaude } from "@prisma/client";
+import {
+  PrismaClient,
+  ResultadoTeste,
+  StatusAnimal,
+  StatusConversaAdocao,
+  StatusSolicitacao,
+  TipoCuidadoPlanejado,
+  TipoDocumentoSaude,
+  TipoPerfil,
+  TipoRegistroSaude,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
+
+import { getApplicationDayBounds } from "../lib/date-utils";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.mensagemAdocao.deleteMany();
+  await prisma.conversaParticipante.deleteMany();
+  await prisma.conversaAdocao.deleteMany();
+  await prisma.documentoSaude.deleteMany();
+  await prisma.cuidadoPlanejado.deleteMany();
   await prisma.favorito.deleteMany();
   await prisma.solicitacaoAdocao.deleteMany();
   await prisma.animalRelacionado.deleteMany();
@@ -234,36 +251,137 @@ async function main() {
     ],
   });
 
-  await prisma.registroSaude.createMany({
+  const today = scheduledDate(0);
+  const overdue = scheduledDate(-1);
+  const next7Days = scheduledDate(3);
+  const next30Days = scheduledDate(14);
+
+  const [vaccineRecord, parasiteRecord, procedureRecord, treatmentRecord] =
+    await Promise.all([
+      prisma.registroSaude.create({
+        data: {
+          animalId: animals[0].id,
+          tipo: TipoRegistroSaude.VACINA,
+          dataRegistro: scheduledDate(-365),
+          dataProxima: today,
+          responsavelRegistro: "Cia Animal VR",
+          nomeVacina: "V10",
+          ehVacinaCustomizada: false,
+        },
+      }),
+      prisma.registroSaude.create({
+        data: {
+          animalId: animals[1].id,
+          tipo: TipoRegistroSaude.CONTROLE_PARASITAS,
+          dataRegistro: scheduledDate(-91),
+          dataProxima: overdue,
+          responsavelRegistro: "Cia Animal VR",
+          tipoMedicamento: "Vermifugo oral",
+          frequencia: "A cada 3 meses",
+        },
+      }),
+      prisma.registroSaude.create({
+        data: {
+          animalId: animals[2].id,
+          tipo: TipoRegistroSaude.PROCEDIMENTO,
+          dataRegistro: scheduledDate(-30),
+          dataProxima: next7Days,
+          responsavelRegistro: "Cia Animal VR",
+          procedimento: "Revisao de curativo",
+          titulo: "Acompanhamento de procedimento",
+        },
+      }),
+      prisma.registroSaude.create({
+        data: {
+          animalId: animals[3].id,
+          tipo: TipoRegistroSaude.MEDICAMENTO_TRATAMENTO,
+          dataRegistro: scheduledDate(-14),
+          dataProxima: next30Days,
+          responsavelRegistro: "Cia Animal VR",
+          medicamentoTratamento: "Reavaliacao do tratamento dermatologico",
+          titulo: "Tratamento dermatologico",
+        },
+      }),
+    ]);
+
+  await prisma.registroSaude.create({
+    data: {
+      animalId: animals[4].id,
+      tipo: TipoRegistroSaude.TESTE_DOENCA,
+      dataRegistro: scheduledDate(-5),
+      responsavelRegistro: "SPA-VR",
+      nomeDoenca: "Leishmaniose",
+      ehDoencaCustomizada: false,
+      resultado: ResultadoTeste.POSITIVO,
+      observacoes: "Resultado positivo demonstrativo para acompanhamento.",
+      profissionalClinica: "Clinica Veterinaria Central",
+    },
+  });
+
+  const negativeTest = await prisma.registroSaude.create({
+    data: {
+      animalId: animals[5].id,
+      tipo: TipoRegistroSaude.TESTE_DOENCA,
+      dataRegistro: scheduledDate(-20),
+      responsavelRegistro: "SPA-VR",
+      nomeDoenca: "FIV",
+      ehDoencaCustomizada: false,
+      resultado: ResultadoTeste.NEGATIVO,
+    },
+  });
+
+  await prisma.cuidadoPlanejado.createMany({
     data: [
       {
         animalId: animals[0].id,
-        tipo: TipoRegistroSaude.VACINA,
-        dataRegistro: new Date("2026-01-10"),
-        dataProxima: new Date("2027-01-10"),
-        responsavelRegistro: "Cia Animal VR",
-        nomeVacina: "V10",
-        ehVacinaCustomizada: false,
+        tipo: TipoCuidadoPlanejado.VACINA,
+        dataHoraPlanejada: today,
+        titulo: "Proxima dose V10",
+        origemRegistroSaudeId: vaccineRecord.id,
       },
       {
         animalId: animals[1].id,
-        tipo: TipoRegistroSaude.CONTROLE_PARASITAS,
-        dataRegistro: new Date("2026-02-15"),
-        dataProxima: new Date("2026-05-15"),
-        responsavelRegistro: "Cia Animal VR",
-        tipoMedicamento: "Vermifugo oral",
-        frequencia: "A cada 3 meses",
+        tipo: TipoCuidadoPlanejado.CONTROLE_PARASITAS,
+        dataHoraPlanejada: overdue,
+        titulo: "Vermifugo oral",
+        origemRegistroSaudeId: parasiteRecord.id,
       },
       {
-        animalId: animals[5].id,
-        tipo: TipoRegistroSaude.TESTE_DOENCA,
-        dataRegistro: new Date("2026-03-20"),
-        responsavelRegistro: "SPA-VR",
-        nomeDoenca: "FIV",
-        ehDoencaCustomizada: false,
-        resultado: ResultadoTeste.NEGATIVO,
+        animalId: animals[2].id,
+        tipo: TipoCuidadoPlanejado.PROCEDIMENTO,
+        dataHoraPlanejada: next7Days,
+        titulo: "Revisao de curativo",
+        origemRegistroSaudeId: procedureRecord.id,
+      },
+      {
+        animalId: animals[3].id,
+        tipo: TipoCuidadoPlanejado.MEDICAMENTO_TRATAMENTO,
+        dataHoraPlanejada: next30Days,
+        titulo: "Reavaliar tratamento dermatologico",
+        origemRegistroSaudeId: treatmentRecord.id,
+      },
+      {
+        animalId: animals[0].id,
+        tipo: TipoCuidadoPlanejado.CONSULTA,
+        dataHoraPlanejada: scheduledDate(2),
+        titulo: "Consulta de retorno",
+        observacoes: "Levar resultados dos exames.",
+        localProfissional: "Clinica Veterinaria Central",
       },
     ],
+  });
+
+  await prisma.documentoSaude.create({
+    data: {
+      animalId: animals[5].id,
+      registroSaudeId: negativeTest.id,
+      tipo: TipoDocumentoSaude.EXAME,
+      nomeArquivo: "resultado-fiv-seed.pdf",
+      mimeType: "application/pdf",
+      tamanhoBytes: 128_000,
+      urlArquivo: "https://utfs.io/f/seed-health-document.pdf",
+      chaveArquivo: "seed-health-document",
+    },
   });
 
   await prisma.solicitacaoAdocao.create({
@@ -275,12 +393,74 @@ async function main() {
     },
   });
 
+  const activeRequest = await prisma.solicitacaoAdocao.create({
+    data: {
+      animalId: animals[1].id,
+      adotanteId,
+      status: StatusSolicitacao.APROVADA,
+      observacoes: "Solicitacao aprovada para demonstrar chat ativo.",
+    },
+  });
+  const completedRequest = await prisma.solicitacaoAdocao.create({
+    data: {
+      animalId: animals[2].id,
+      adotanteId,
+      status: StatusSolicitacao.CONCLUIDA,
+      observacoes: "Adocao concluida para demonstrar chat arquivado.",
+    },
+  });
+
+  await prisma.animal.update({
+    where: { id: animals[1].id },
+    data: { status: StatusAnimal.EM_PROCESSO_ADOCAO },
+  });
+  await prisma.animal.update({
+    where: { id: animals[2].id },
+    data: { status: StatusAnimal.ADOTADO },
+  });
+
+  await prisma.conversaAdocao.create({
+    data: {
+      solicitacaoId: activeRequest.id,
+      participantes: {
+        create: [{ usuarioId: adotante.id }, { usuarioId: cia.id }],
+      },
+      mensagens: {
+        create: {
+          autorUsuarioId: cia.id,
+          texto: "A solicitacao foi aprovada. Vamos combinar a entrega.",
+        },
+      },
+    },
+  });
+  await prisma.conversaAdocao.create({
+    data: {
+      solicitacaoId: completedRequest.id,
+      status: StatusConversaAdocao.ARQUIVADA,
+      arquivadaEm: new Date(),
+      participantes: {
+        create: [{ usuarioId: adotante.id }, { usuarioId: cia.id }],
+      },
+      mensagens: {
+        create: {
+          autorUsuarioId: adotante.id,
+          texto: "Entrega concluida. Obrigado pelo acompanhamento.",
+        },
+      },
+    },
+  });
+
   await prisma.favorito.createMany({
     data: [
       { animalId: animals[2].id, adotanteId },
       { animalId: animals[5].id, adotanteId },
     ],
   });
+}
+
+function scheduledDate(dayOffset: number): Date {
+  const { start } = getApplicationDayBounds();
+  return new Date(start.getTime() + dayOffset * 86_400_000 + 12 * 60 * 60 * 1000);
 }
 
 function animalData(

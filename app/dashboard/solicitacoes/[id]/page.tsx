@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { StatusSolicitacao } from "@prisma/client";
+import { MessageCircle } from "lucide-react";
+import Link from "next/link";
 
 import { RequestDecisionForm } from "@/components/app/solicitacoes/request-decision-form"
 import { ScreeningReview as ScreeningReviewView } from "@/components/app/solicitacoes/screening-review";
@@ -7,6 +9,7 @@ import { Button, Card, CardContent, CardHeader } from "@/components/ui";
 import { completeAdoption } from "@/lib/actions/solicitacoes";
 import { requireResponsible } from "@/lib/actions/auth-guards";
 import { getOwnerRequestDetail } from "@/lib/queries/owner-request-detail";
+import { prisma } from "@/lib/prisma";
 
 export default async function SolicitacaoDetailPage({
   params,
@@ -31,6 +34,12 @@ export default async function SolicitacaoDetailPage({
   if (!detail) {
     notFound();
   }
+  const conversation = detail.status === StatusSolicitacao.APROVADA || detail.status === StatusSolicitacao.CONCLUIDA
+    ? await prisma.conversaAdocao.findUnique({
+        where: { solicitacaoId },
+        select: { id: true, status: true },
+      })
+    : null;
 
   return (
     <div className="space-y-6">
@@ -72,6 +81,11 @@ export default async function SolicitacaoDetailPage({
             <h2 className="text-lg font-semibold">Adocao Aprovada</h2>
           </CardHeader>
           <CardContent>
+            {conversation ? (
+              <Link className="mb-4 inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium" href={`/dashboard/mensagens/${conversation.id}`}>
+                <MessageCircle className="size-4" /> Abrir conversa
+              </Link>
+            ) : null}
             <form
               action={async () => {
                 "use server";
@@ -85,6 +99,13 @@ export default async function SolicitacaoDetailPage({
           </CardContent>
         </Card>
       )}
+
+      {detail.status === StatusSolicitacao.CONCLUIDA && conversation ? (
+        <Card>
+          <CardHeader><h2 className="text-lg font-semibold">Adocao concluida</h2></CardHeader>
+          <CardContent><Link className="inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium" href={`/dashboard/mensagens/${conversation.id}`}><MessageCircle className="size-4" />Ver historico da conversa</Link></CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -1,308 +1,143 @@
-"use client"
+"use client";
 
-import { useState, useTransition } from "react"
-import { TipoRegistroSaude } from "@prisma/client"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
-import { deleteRegistroSaude, createRegistroSaude } from "@/lib/actions/registro-saude"
-import type { RegistroSaudeInput } from "@/lib/schemas/registro-saude"
+import { Plus, Save, Trash2, X } from "lucide-react";
+import { TipoRegistroSaude } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
-interface HealthRecord {
-  id: string
-  tipo: TipoRegistroSaude
-  dataAplicacao: Date
-  dataProximaDose: Date | null
-  resultado: string | null
-  nomeCustom: string | null
-  tipoMedicacao: string | null
-  frequencia: string | null
-  vacinaId: string | null
+import { Button, Input, Select, Textarea } from "@/components/ui";
+import { completeCuidadoPlanejado } from "@/lib/actions/cuidados-planejados";
+import { createRegistroSaude, deleteRegistroSaude } from "@/lib/actions/registro-saude";
+import { registroSaudeSchema, type RegistroSaudeInput } from "@/lib/schemas/registro-saude";
+
+type HealthRecord = {
+  id: string;
+  tipo: TipoRegistroSaude;
+  dataAplicacao: Date;
+  dataProximaDose: Date | null;
+  resultado: string | null;
+  nomeCustom: string | null;
+  tipoMedicacao: string | null;
+  frequencia: string | null;
+  vacinaId: string | null;
+};
+
+type FormState = {
+  tipo: TipoRegistroSaude;
+  detalhe: string;
+  frequencia: string;
+  resultado: "" | "POSITIVO" | "NEGATIVO";
+  dataAplicacao: string;
+  dataProxima: string;
+  titulo: string;
+  observacoes: string;
+  profissionalClinica: string;
+};
+
+const labels: Record<TipoRegistroSaude, string> = {
+  VACINA: "Vacina",
+  CONTROLE_PARASITAS: "Controle de parasitas",
+  TESTE_DOENCA: "Teste de doenca",
+  MEDICAMENTO_TRATAMENTO: "Medicamento ou tratamento",
+  PROCEDIMENTO: "Procedimento ou cirurgia",
+};
+
+function emptyForm(initialType?: TipoRegistroSaude): FormState {
+  return {
+    tipo: initialType ?? TipoRegistroSaude.VACINA,
+    detalhe: "",
+    frequencia: "",
+    resultado: "",
+    dataAplicacao: "",
+    dataProxima: "",
+    titulo: "",
+    observacoes: "",
+    profissionalClinica: "",
+  };
 }
 
-interface HealthRecordPanelProps {
-  records: HealthRecord[]
-  animalId: string
-  canEdit: boolean
+function optional(value: string): string | undefined {
+  const trimmed = value.trim();
+  return trimmed || undefined;
 }
 
-interface VacinaFormState {
-  nomeCustom: string
-  dataAplicacao: string
-  dataProximaDose: string
+function toDate(value: string): Date {
+  return new Date(`${value}T12:00:00`);
 }
 
-interface ParasitaFormState {
-  tipoMedicacao: string
-  frequencia: string
-  dataAplicacao: string
-  dataProxima: string
+function payload(form: FormState): RegistroSaudeInput {
+  const common = {
+    dataAplicacao: toDate(form.dataAplicacao),
+    titulo: optional(form.titulo),
+    observacoes: optional(form.observacoes),
+    profissionalClinica: optional(form.profissionalClinica),
+  };
+  const nextDate = form.dataProxima ? toDate(form.dataProxima) : undefined;
+
+  if (form.tipo === TipoRegistroSaude.VACINA) {
+    return { ...common, tipoRegistro: "VACINA", nomeCustom: form.detalhe, dataProximaDose: nextDate };
+  }
+  if (form.tipo === TipoRegistroSaude.CONTROLE_PARASITAS) {
+    return { ...common, tipoRegistro: "CONTROLE_PARASITAS", tipoMedicacao: form.detalhe, frequencia: form.frequencia, dataProxima: nextDate };
+  }
+  if (form.tipo === TipoRegistroSaude.TESTE_DOENCA) {
+    return { ...common, tipoRegistro: "TESTE_DOENCA", nomeCustom: form.detalhe, resultado: form.resultado as "POSITIVO" | "NEGATIVO", dataProxima: nextDate };
+  }
+  if (form.tipo === TipoRegistroSaude.MEDICAMENTO_TRATAMENTO) {
+    return { ...common, tipoRegistro: "MEDICAMENTO_TRATAMENTO", medicamentoTratamento: form.detalhe, dataProxima: nextDate };
+  }
+  return { ...common, tipoRegistro: "PROCEDIMENTO", procedimento: form.detalhe, dataProxima: nextDate };
 }
 
-interface TesteFormState {
-  nomeCustom: string
-  dataAplicacao: string
-  resultado: string
-}
+export function HealthRecordPanel({ records, animalId, canEdit, plannedCareId, initialType }: { records: HealthRecord[]; animalId: string; canEdit: boolean; plannedCareId?: string; initialType?: TipoRegistroSaude }) {
+  const router = useRouter();
+  const [showForm, setShowForm] = useState(Boolean(plannedCareId));
+  const [form, setForm] = useState(() => emptyForm(initialType));
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-function RecordRow({
-  record,
-  canEdit,
-  onDelete,
-  isDeleting,
-}: {
-  record: HealthRecord
-  canEdit: boolean
-  onDelete: () => void
-  isDeleting: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-md border p-3">
-      <div className="space-y-1 text-sm">
-        {record.nomeCustom && <p className="font-medium">{record.nomeCustom}</p>}
-        {record.tipoMedicacao && <p>Medicação: {record.tipoMedicacao}</p>}
-        {record.frequencia && <p>Frequência: {record.frequencia}</p>}
-        {record.resultado && <p>Resultado: {record.resultado}</p>}
-        <p>Aplicação: {new Date(record.dataAplicacao).toLocaleDateString("pt-BR")}</p>
-        {record.dataProximaDose && (
-          <p>Próxima dose: {new Date(record.dataProximaDose).toLocaleDateString("pt-BR")}</p>
-        )}
-      </div>
-      {canEdit && (
-        <Button variant="destructive" onClick={onDelete} disabled={isDeleting}>
-          {isDeleting ? "Removendo..." : "Excluir"}
-        </Button>
-      )}
-    </div>
-  )
-}
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    const parsed = registroSaudeSchema.safeParse(payload(form));
+    if (!parsed.success) return setError(parsed.error.issues[0]?.message ?? "Dados invalidos.");
 
-function AddVacinaForm({ animalId, onSuccess }: { animalId: string; onSuccess: () => void }) {
-  const [form, setForm] = useState<VacinaFormState>({ nomeCustom: "", dataAplicacao: "", dataProximaDose: "" })
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    const payload: RegistroSaudeInput = {
-      tipoRegistro: "VACINA",
-      nomeCustom: form.nomeCustom,
-      dataAplicacao: new Date(form.dataAplicacao),
-      dataProximaDose: form.dataProximaDose ? new Date(form.dataProximaDose) : undefined,
-    }
     startTransition(async () => {
-      const result = await createRegistroSaude(animalId, payload)
-      if (result.error) { setError(result.error) } else { setForm({ nomeCustom: "", dataAplicacao: "", dataProximaDose: "" }); onSuccess() }
-    })
+      const result = plannedCareId
+        ? await completeCuidadoPlanejado(plannedCareId, parsed.data)
+        : await createRegistroSaude(animalId, parsed.data);
+      if (result.error) return setError(result.error);
+      setError(null); setForm(emptyForm()); setShowForm(false);
+      if (plannedCareId) router.replace(`/dashboard/animais/${animalId}/saude`);
+      router.refresh();
+    });
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-md border p-3">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Nome da vacina</label>
-        <Input value={form.nomeCustom} onChange={(e) => setForm((p) => ({ ...p, nomeCustom: e.target.value }))} required />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Data de aplicação</label>
-        <Input type="date" value={form.dataAplicacao} onChange={(e) => setForm((p) => ({ ...p, dataAplicacao: e.target.value }))} required />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Próxima dose</label>
-        <Input type="date" value={form.dataProximaDose} onChange={(e) => setForm((p) => ({ ...p, dataProximaDose: e.target.value }))} />
-      </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Adicionar"}
-      </Button>
-    </form>
-  )
-}
-
-function AddParasitaForm({ animalId, onSuccess }: { animalId: string; onSuccess: () => void }) {
-  const [form, setForm] = useState<ParasitaFormState>({ tipoMedicacao: "", frequencia: "", dataAplicacao: "", dataProxima: "" })
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    const payload: RegistroSaudeInput = {
-      tipoRegistro: "CONTROLE_PARASITAS",
-      tipoMedicacao: form.tipoMedicacao,
-      frequencia: form.frequencia,
-      dataAplicacao: new Date(form.dataAplicacao),
-      dataProxima: form.dataProxima ? new Date(form.dataProxima) : undefined,
-    }
+  function remove(id: string) {
+    if (!window.confirm("Excluir este registro de saude?")) return;
     startTransition(async () => {
-      const result = await createRegistroSaude(animalId, payload)
-      if (result.error) { setError(result.error) } else { setForm({ tipoMedicacao: "", frequencia: "", dataAplicacao: "", dataProxima: "" }); onSuccess() }
-    })
+      const result = await deleteRegistroSaude(id);
+      if (result.error) return setError(result.error);
+      router.refresh();
+    });
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-md border p-3">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Tipo de medicação</label>
-        <Input value={form.tipoMedicacao} onChange={(e) => setForm((p) => ({ ...p, tipoMedicacao: e.target.value }))} required />
+  return <div className="space-y-4">
+    {canEdit && !showForm ? <Button onClick={() => setShowForm(true)}><Plus className="mr-2 size-4" />Novo registro</Button> : null}
+    {showForm ? <form onSubmit={submit} className="space-y-4 rounded-md border p-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="space-y-1 text-sm font-medium">Categoria<Select value={form.tipo} disabled={Boolean(initialType)} onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value as TipoRegistroSaude }))}>{Object.values(TipoRegistroSaude).map((type) => <option key={type} value={type}>{labels[type]}</option>)}</Select></label>
+        <label className="space-y-1 text-sm font-medium">Data de realizacao<Input type="date" value={form.dataAplicacao} onChange={(event) => setForm((current) => ({ ...current, dataAplicacao: event.target.value }))} /></label>
+        <label className="space-y-1 text-sm font-medium">{labels[form.tipo]}<Input value={form.detalhe} onChange={(event) => setForm((current) => ({ ...current, detalhe: event.target.value }))} /></label>
+        {form.tipo === "CONTROLE_PARASITAS" ? <label className="space-y-1 text-sm font-medium">Frequencia<Input value={form.frequencia} onChange={(event) => setForm((current) => ({ ...current, frequencia: event.target.value }))} /></label> : null}
+        {form.tipo === "TESTE_DOENCA" ? <label className="space-y-1 text-sm font-medium">Resultado<Select value={form.resultado} onChange={(event) => setForm((current) => ({ ...current, resultado: event.target.value as FormState["resultado"] }))}><option value="">Selecione</option><option value="POSITIVO">Positivo</option><option value="NEGATIVO">Negativo</option></Select></label> : null}
+        <label className="space-y-1 text-sm font-medium">Proxima data<Input type="date" value={form.dataProxima} onChange={(event) => setForm((current) => ({ ...current, dataProxima: event.target.value }))} /></label>
+        <label className="space-y-1 text-sm font-medium">Titulo opcional<Input value={form.titulo} onChange={(event) => setForm((current) => ({ ...current, titulo: event.target.value }))} /></label>
+        <label className="space-y-1 text-sm font-medium">Profissional ou clinica<Input value={form.profissionalClinica} onChange={(event) => setForm((current) => ({ ...current, profissionalClinica: event.target.value }))} /></label>
       </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Frequência</label>
-        <Input value={form.frequencia} onChange={(e) => setForm((p) => ({ ...p, frequencia: e.target.value }))} required />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Data de aplicação</label>
-        <Input type="date" value={form.dataAplicacao} onChange={(e) => setForm((p) => ({ ...p, dataAplicacao: e.target.value }))} required />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Próxima dose</label>
-        <Input type="date" value={form.dataProxima} onChange={(e) => setForm((p) => ({ ...p, dataProxima: e.target.value }))} />
-      </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Adicionar"}
-      </Button>
-    </form>
-  )
-}
-
-function AddTesteForm({ animalId, onSuccess }: { animalId: string; onSuccess: () => void }) {
-  const [form, setForm] = useState<TesteFormState>({ nomeCustom: "", dataAplicacao: "", resultado: "" })
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    const payload: RegistroSaudeInput = {
-      tipoRegistro: "TESTE_DOENCA",
-      nomeCustom: form.nomeCustom,
-      resultado: form.resultado as "POSITIVO" | "NEGATIVO",
-      dataAplicacao: new Date(form.dataAplicacao),
-    }
-    startTransition(async () => {
-      const result = await createRegistroSaude(animalId, payload)
-      if (result.error) { setError(result.error) } else { setForm({ nomeCustom: "", dataAplicacao: "", resultado: "" }); onSuccess() }
-    })
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-md border p-3">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Nome do teste</label>
-        <Input value={form.nomeCustom} onChange={(e) => setForm((p) => ({ ...p, nomeCustom: e.target.value }))} required />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Resultado</label>
-        <Select value={form.resultado} onChange={(e) => setForm((p) => ({ ...p, resultado: e.target.value }))}>
-          <option value="">Selecione</option>
-          <option value="POSITIVO">Positivo</option>
-          <option value="NEGATIVO">Negativo</option>
-        </Select>
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Data de aplicação</label>
-        <Input type="date" value={form.dataAplicacao} onChange={(e) => setForm((p) => ({ ...p, dataAplicacao: e.target.value }))} required />
-      </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Adicionar"}
-      </Button>
-    </form>
-  )
-}
-
-type TabKey = "vacinas" | "parasitas" | "testes"
-
-export function HealthRecordPanel({ records, animalId, canEdit }: HealthRecordPanelProps) {
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [showAddForm, setShowAddForm] = useState<TipoRegistroSaude | null>(null)
-
-  const vacinas = records.filter((r) => r.tipo === TipoRegistroSaude.VACINA)
-  const parasitas = records.filter((r) => r.tipo === TipoRegistroSaude.CONTROLE_PARASITAS)
-  const testes = records.filter((r) => r.tipo === TipoRegistroSaude.TESTE_DOENCA)
-
-  const hasVacinas = vacinas.length > 0
-  const hasParasitas = parasitas.length > 0
-  const hasTestes = testes.length > 0
-
-  const tabs: { key: TabKey; label: string; active: boolean }[] = [
-    { key: "vacinas", label: "Vacinas", active: hasVacinas },
-    { key: "parasitas", label: "Parasitas", active: hasParasitas },
-    { key: "testes", label: "Testes", active: hasTestes },
-  ].filter((t): t is { key: TabKey; label: string; active: boolean } => t.active)
-
-  const [activeTab, setActiveTab] = useState<TabKey>(tabs[0]?.key ?? "vacinas")
-
-  function handleDelete(id: string) {
-    setDeletingId(id)
-    deleteRegistroSaude(id).then(() => setDeletingId(null))
-  }
-
-  return (
-    <div>
-      <Tabs>
-        <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.key}
-              className={activeTab === tab.key ? "bg-white shadow-sm" : ""}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {activeTab === "vacinas" && hasVacinas && (
-          <TabsContent className="space-y-2">
-            {canEdit && (
-              <Button onClick={() => setShowAddForm(showAddForm === TipoRegistroSaude.VACINA ? null : TipoRegistroSaude.VACINA)}>
-                Adicionar
-              </Button>
-            )}
-            {showAddForm === TipoRegistroSaude.VACINA && (
-              <AddVacinaForm animalId={animalId} onSuccess={() => setShowAddForm(null)} />
-            )}
-            {vacinas.map((r) => (
-              <RecordRow key={r.id} record={r} canEdit={canEdit} onDelete={() => handleDelete(r.id)} isDeleting={deletingId === r.id} />
-            ))}
-          </TabsContent>
-        )}
-
-        {activeTab === "parasitas" && hasParasitas && (
-          <TabsContent className="space-y-2">
-            {canEdit && (
-              <Button onClick={() => setShowAddForm(showAddForm === TipoRegistroSaude.CONTROLE_PARASITAS ? null : TipoRegistroSaude.CONTROLE_PARASITAS)}>
-                Adicionar
-              </Button>
-            )}
-            {showAddForm === TipoRegistroSaude.CONTROLE_PARASITAS && (
-              <AddParasitaForm animalId={animalId} onSuccess={() => setShowAddForm(null)} />
-            )}
-            {parasitas.map((r) => (
-              <RecordRow key={r.id} record={r} canEdit={canEdit} onDelete={() => handleDelete(r.id)} isDeleting={deletingId === r.id} />
-            ))}
-          </TabsContent>
-        )}
-
-        {activeTab === "testes" && hasTestes && (
-          <TabsContent className="space-y-2">
-            {canEdit && (
-              <Button onClick={() => setShowAddForm(showAddForm === TipoRegistroSaude.TESTE_DOENCA ? null : TipoRegistroSaude.TESTE_DOENCA)}>
-                Adicionar
-              </Button>
-            )}
-            {showAddForm === TipoRegistroSaude.TESTE_DOENCA && (
-              <AddTesteForm animalId={animalId} onSuccess={() => setShowAddForm(null)} />
-            )}
-            {testes.map((r) => (
-              <RecordRow key={r.id} record={r} canEdit={canEdit} onDelete={() => handleDelete(r.id)} isDeleting={deletingId === r.id} />
-            ))}
-          </TabsContent>
-        )}
-      </Tabs>
-    </div>
-  )
+      <label className="block space-y-1 text-sm font-medium">Observacoes internas<Textarea value={form.observacoes} onChange={(event) => setForm((current) => ({ ...current, observacoes: event.target.value }))} /></label>
+      {error ? <p role="alert" className="text-sm text-[var(--destructive)]">{error}</p> : null}
+      <div className="flex gap-2"><Button type="submit" disabled={isPending}><Save className="mr-2 size-4" />{plannedCareId ? "Concluir cuidado" : "Salvar registro"}</Button><Button variant="ghost" onClick={() => setShowForm(false)}><X className="mr-2 size-4" />Fechar</Button></div>
+    </form> : null}
+    {records.length > 0 ? <ul className="divide-y rounded-md border">{records.map((record) => <li key={record.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-sm font-medium">{record.nomeCustom ?? record.tipoMedicacao ?? labels[record.tipo]}</p><p className="text-xs text-[var(--muted-foreground)]">{labels[record.tipo]} | {record.dataAplicacao.toLocaleDateString("pt-BR")}</p></div>{canEdit ? <Button variant="ghost" className="size-10 p-0" title="Excluir registro" disabled={isPending} onClick={() => remove(record.id)}><Trash2 className="size-4" /></Button> : null}</li>)}</ul> : null}
+  </div>;
 }

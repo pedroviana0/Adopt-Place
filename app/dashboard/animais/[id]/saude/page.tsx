@@ -1,93 +1,100 @@
+import type { TipoRegistroSaude } from "@prisma/client";
 import { notFound } from "next/navigation";
 
+import { HealthAgendaList } from "@/components/app/saude/health-agenda-list";
+import { HealthDocumentList } from "@/components/app/saude/health-document-list";
+import { HealthHistoryTimeline } from "@/components/app/saude/health-history-timeline";
 import { HealthRecordPanel } from "@/components/app/saude/health-record-panel";
-import { Card, CardContent, CardHeader } from "@/components/ui";
 import { requireResponsible } from "@/lib/actions/auth-guards";
+import { getHealthDocuments } from "@/lib/queries/documentos-saude";
+import {
+  getAnimalHealthTimeline,
+  getHealthAgenda,
+} from "@/lib/queries/health-dashboard";
 import { prisma } from "@/lib/prisma";
 
 export default async function AnimalSaudePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ completeCare?: string }>;
 }) {
   const session = await requireResponsible();
-
-  const responsavelId =
-    session.user.tipoPerfil === "ORGANIZACAO"
-      ? session.user.organizacaoId
-      : session.user.acolhedorId;
-
   const { id: animalId } = await params;
-
-  const animal = await prisma.animal.findUnique({
-    where: { id: animalId },
-    select: {
-      id: true,
-      nome: true,
-      organizacaoId: true,
-      acolhedorId: true,
-      registrosSaude: {
-        orderBy: { dataRegistro: "desc" },
-        select: {
-          id: true,
-          tipo: true,
-          dataRegistro: true,
-          dataProxima: true,
-          resultado: true,
-          nomeVacina: true,
-          tipoMedicamento: true,
-          frequencia: true,
-          ehVacinaCustomizada: true,
-          nomeDoenca: true,
-          ehDoencaCustomizada: true,
-        },
-      },
-    },
+  const { completeCare } = await searchParams;
+  const ownerWhere =
+    session.user.tipoPerfil === "ORGANIZACAO"
+      ? { organizacaoId: session.user.organizacaoId! }
+      : { acolhedorId: session.user.acolhedorId! };
+  const animal = await prisma.animal.findFirst({
+    where: { id: animalId, ...ownerWhere },
+    select: { id: true, nome: true },
   });
 
-  if (!animal) {
-    notFound();
-  }
+  if (!animal) notFound();
 
-  const isOwner =
-    (session.user.tipoPerfil === "ORGANIZACAO" && animal.organizacaoId === responsavelId) ||
-    (session.user.tipoPerfil === "ACOLHEDOR" && animal.acolhedorId === responsavelId);
-
-  if (!isOwner) {
-    notFound();
-  }
+  const [timeline, agenda, documents] = await Promise.all([
+    getAnimalHealthTimeline(animalId),
+    getHealthAgenda({ animalId }),
+    getHealthDocuments({ animalId }),
+  ]);
+  const plannedCare = agenda.find(
+    (item) => item.id === completeCare && item.status === "PENDENTE" && item.tipo !== "CONSULTA",
+  );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold">Saude: {animal.nome}</h1>
         <p className="text-sm text-[var(--muted-foreground)]">
-          Registros de vacinas, parasitas e testes.
+          Historico realizado, agenda e documentos internos.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">Registros de Saude</h2>
-        </CardHeader>
-        <CardContent>
-          <HealthRecordPanel
-            records={animal.registrosSaude.map((r) => ({
-              id: r.id,
-              tipo: r.tipo,
-              dataAplicacao: r.dataRegistro,
-              dataProximaDose: r.dataProxima,
-              resultado: r.resultado,
-              nomeCustom: r.nomeVacina,
-              tipoMedicacao: r.tipoMedicamento,
-              frequencia: r.frequencia,
-              vacinaId: r.ehVacinaCustomizada ? r.id : null,
-            }))}
-            animalId={animalId}
-            canEdit={true}
-          />
-        </CardContent>
-      </Card>
+      <section className="space-y-4">
+        <h2 className="border-b pb-2 text-lg font-semibold">Registrar cuidado</h2>
+        <HealthRecordPanel
+          records={timeline.map((record) => ({
+            id: record.id,
+            tipo: record.tipo,
+            dataAplicacao: record.dataRegistro,
+            dataProximaDose: record.dataProxima,
+            resultado: record.resultado,
+            nomeCustom: record.nomeVacina ?? record.nomeDoenca ?? record.titulo,
+            tipoMedicacao: record.tipoMedicamento,
+            frequencia: record.frequencia,
+            vacinaId: record.ehVacinaCustomizada ? record.id : null,
+          }))}
+          animalId={animalId}
+          canEdit
+          plannedCareId={plannedCare?.id}
+          initialType={plannedCare?.tipo as TipoRegistroSaude | undefined}
+        />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="border-b pb-2 text-lg font-semibold">Historico</h2>
+        <HealthHistoryTimeline records={timeline} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="border-b pb-2 text-lg font-semibold">Agenda deste animal</h2>
+        <HealthAgendaList
+          items={agenda}
+          filters={{ animalId }}
+          animals={[{ id: animal.id, nome: animal.nome }]}
+        />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="border-b pb-2 text-lg font-semibold">Documentos internos</h2>
+        <HealthDocumentList
+          documents={documents}
+          animals={[{ id: animal.id, nome: animal.nome }]}
+          defaultAnimalId={animalId}
+        />
+      </section>
     </div>
   );
 }

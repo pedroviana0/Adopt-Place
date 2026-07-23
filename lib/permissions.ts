@@ -37,6 +37,18 @@ export function isResponsibleUser(session: AppSession): boolean {
   );
 }
 
+function matchesResponsibleOwner(
+  session: AppSession,
+  owner: { organizacaoId: string | null; acolhedorId: string | null },
+): boolean {
+  return Boolean(
+    (session.user.organizacaoId &&
+      owner.organizacaoId === session.user.organizacaoId) ||
+      (session.user.acolhedorId &&
+        owner.acolhedorId === session.user.acolhedorId),
+  );
+}
+
 export async function ownsAnimal(session: AppSession, animalId: string): Promise<boolean> {
   if (!isResponsibleUser(session)) {
     return false;
@@ -51,10 +63,7 @@ export async function ownsAnimal(session: AppSession, animalId: string): Promise
     return false;
   }
 
-  return (
-    animal.organizacaoId === session.user.organizacaoId ||
-    animal.acolhedorId === session.user.acolhedorId
-  );
+  return matchesResponsibleOwner(session, animal);
 }
 
 export async function ownsHealthRecord(session: AppSession, recordId: string): Promise<boolean> {
@@ -68,4 +77,61 @@ export async function ownsHealthRecord(session: AppSession, recordId: string): P
   });
 
   return record ? ownsAnimal(session, record.animalId) : false;
+}
+
+export async function ownsPlannedCare(
+  session: AppSession,
+  careId: string,
+): Promise<boolean> {
+  if (!isResponsibleUser(session)) {
+    return false;
+  }
+
+  const care = await prisma.cuidadoPlanejado.findUnique({
+    where: { id: careId },
+    select: {
+      animal: {
+        select: { organizacaoId: true, acolhedorId: true },
+      },
+    },
+  });
+
+  return Boolean(care && matchesResponsibleOwner(session, care.animal));
+}
+
+export async function ownsHealthDocument(
+  session: AppSession,
+  documentId: string,
+): Promise<boolean> {
+  if (!isResponsibleUser(session)) {
+    return false;
+  }
+
+  const document = await prisma.documentoSaude.findUnique({
+    where: { id: documentId },
+    select: {
+      animal: {
+        select: { organizacaoId: true, acolhedorId: true },
+      },
+    },
+  });
+
+  return Boolean(document && matchesResponsibleOwner(session, document.animal));
+}
+
+export async function canAccessConversation(
+  session: AppSession,
+  conversationId: string,
+): Promise<boolean> {
+  const participant = await prisma.conversaParticipante.findUnique({
+    where: {
+      conversaId_usuarioId: {
+        conversaId: conversationId,
+        usuarioId: session.user.id,
+      },
+    },
+    select: { id: true },
+  });
+
+  return Boolean(participant);
 }

@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "TipoPerfil" AS ENUM ('ADOTANTE', 'ORGANIZACAO', 'ACOLHEDOR', 'ADMIN');
 
 -- CreateEnum

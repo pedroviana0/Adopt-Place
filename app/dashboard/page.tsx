@@ -1,23 +1,17 @@
 ﻿import Link from "next/link";
 import { redirect } from "next/navigation";
-import { StatusAnimal, StatusSolicitacao } from "@prisma/client";
+import { StatusSolicitacao } from "@prisma/client";
 
+import { DashboardEmptyState } from "@/components/app/dashboard/dashboard-empty-state";
+import { DashboardErrorState } from "@/components/app/dashboard/dashboard-error-state";
+import { OperationalDashboard } from "@/components/app/dashboard/operational-dashboard";
 import { Badge, Card, CardContent, CardHeader } from "@/components/ui";
 import { getServerSession } from "@/lib/auth";
 import { getAdopterDashboard } from "@/lib/queries/adotante-dashboard";
 import { getAdopterFavorites } from "@/lib/queries/favorites";
 import { getAdopterRequests } from "@/lib/queries/adopter-requests";
-import { getOwnedAnimals } from "@/lib/queries/owned-animals";
-import { getOwnerRequests } from "@/lib/queries/owner-requests";
-import { getUpcomingAlerts } from "@/lib/queries/procedure-alerts";
-
-const statusLabels: Record<StatusAnimal, string> = {
-  RESGATADO: "Resgatado",
-  EM_CUIDADOS: "Em cuidados",
-  DISPONIVEL: "Disponivel",
-  EM_PROCESSO_ADOCAO: "Em processo",
-  ADOTADO: "Adotado",
-};
+import { getOperationalDashboard } from "@/lib/queries/operational-dashboard";
+import { getUnreadMessageCount } from "@/lib/queries/mensagens";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(date);
@@ -35,10 +29,11 @@ export default async function DashboardPage() {
       redirect("/dashboard/triagem");
     }
 
-    const [adotante, requests, favorites] = await Promise.all([
+    const [adotante, requests, favorites, unreadMessages] = await Promise.all([
       getAdopterDashboard(session.user.adotanteId),
       getAdopterRequests(session.user.adotanteId),
       getAdopterFavorites(session.user.adotanteId),
+      getUnreadMessageCount(),
     ]);
 
     if (!adotante) {
@@ -69,9 +64,11 @@ export default async function DashboardPage() {
           </Card>
         ) : null}
 
-        <div>
-          <h1 className="text-xl font-semibold sm:text-2xl">Dashboard</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h1 className="text-xl font-semibold sm:text-2xl">Dashboard</h1>
           <p className="text-sm text-[var(--muted-foreground)]">Acompanhe suas solicitacoes e favoritos.</p>
+          </div>
+          {unreadMessages > 0 ? <Link className="text-sm font-medium underline-offset-4 hover:underline" href="/dashboard/mensagens">{unreadMessages} mensagens nao lidas</Link> : null}
         </div>
 
         <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3">
@@ -126,95 +123,32 @@ export default async function DashboardPage() {
   }
 
   if (session.user.tipoPerfil === "ORGANIZACAO" || session.user.tipoPerfil === "ACOLHEDOR") {
-    const responsavelId = session.user.organizacaoId ?? session.user.acolhedorId;
-
-    if (!responsavelId) {
-      redirect("/dashboard");
+    let dashboard;
+    try {
+      const [operationalData, unreadMessages] = await Promise.all([
+        getOperationalDashboard(),
+        getUnreadMessageCount(),
+      ]);
+      dashboard = { ...operationalData, unreadMessages };
+    } catch {
+      return <DashboardErrorState />;
     }
-
-    const [animals, requests, alerts] = await Promise.all([
-      getOwnedAnimals(responsavelId, session.user.tipoPerfil),
-      getOwnerRequests(responsavelId, session.user.tipoPerfil),
-      getUpcomingAlerts(responsavelId, session.user.tipoPerfil),
-    ]);
-    const statusCounts = animals.reduce<Record<StatusAnimal, number>>(
-      (acc, animal) => ({ ...acc, [animal.status]: acc[animal.status] + 1 }),
-      {
-        RESGATADO: 0,
-        EM_CUIDADOS: 0,
-        DISPONIVEL: 0,
-        EM_PROCESSO_ADOCAO: 0,
-        ADOTADO: 0,
-      },
-    );
-    const pendingRequests = requests.filter((request) => request.status === StatusSolicitacao.EM_ANALISE).length;
+    const isEmpty =
+      Object.values(dashboard.animalStatusCounts).every((count) => count === 0) &&
+      dashboard.adoptionFunnel.inAnalysis === 0 &&
+      dashboard.adoptionFunnel.approvedOrInProcess === 0 &&
+      dashboard.adoptionFunnel.completedInPeriod === 0 &&
+      dashboard.priorityItems.length === 0;
 
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-semibold sm:text-2xl">Dashboard</h1>
           <p className="text-sm text-[var(--muted-foreground)]">
-            Visao operacional dos seus animais, solicitacoes e alertas.
+            O que precisa da sua atencao agora.
           </p>
         </div>
-
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3">
-          <Card>
-            <CardContent className="p-4 sm:p-6">
-              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">Animais</p>
-              <p className="mt-1 text-xl sm:text-2xl font-semibold">{animals.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 sm:p-6">
-              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">Solicitacoes pendentes</p>
-              <p className="mt-1 text-xl sm:text-2xl font-semibold">{pendingRequests}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 sm:p-6">
-              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">Alertas proximos</p>
-              <p className="mt-1 text-xl sm:text-2xl font-semibold">{alerts.length}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold">Animais por status</h2>
-          </CardHeader>
-          <CardContent className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-            {Object.entries(statusCounts).map(([status, count]) => (
-              <div key={status} className="rounded-md border p-2.5 sm:p-3">
-                <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">{statusLabels[status as StatusAnimal]}</p>
-                <p className="mt-1 text-lg sm:text-xl font-semibold">{count}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold">Proximos alertas</h2>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {alerts.length === 0 ? (
-              <p className="text-sm text-[var(--muted-foreground)]">Nenhum procedimento previsto para os proximos 30 dias.</p>
-            ) : (
-              alerts.slice(0, 5).map((alert) => (
-                <div key={alert.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3">
-                  <div>
-                    <p className="font-medium">{alert.animal.nome}</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">{alert.tipo.replaceAll("_", " ")}</p>
-                  </div>
-                  <span className="text-sm font-medium">
-                    {alert.dataProxima ? formatDate(alert.dataProxima) : ""}
-                  </span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+        {isEmpty ? <DashboardEmptyState /> : <OperationalDashboard data={dashboard} />}
       </div>
     );
   }

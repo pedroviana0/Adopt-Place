@@ -1,7 +1,10 @@
 ﻿"use client"
 
 import Link from "next/link"
+import { StatusAnimal } from "@prisma/client"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
+import { Select } from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -16,6 +19,15 @@ type AnimalItem = Awaited<ReturnType<typeof getOwnedAnimals>>[number]
 
 interface AnimalManagementListProps {
   animals: AnimalItem[]
+  activeStatus?: StatusAnimal
+}
+
+const statusLabels: Record<StatusAnimal, string> = {
+  RESGATADO: "Resgatado",
+  EM_CUIDADOS: "Em cuidados",
+  DISPONIVEL: "Disponivel",
+  EM_PROCESSO_ADOCAO: "Em processo de adocao",
+  ADOTADO: "Adotado",
 }
 
 function AnimalPhoto({ animal }: { animal: AnimalItem }) {
@@ -36,13 +48,22 @@ function AnimalPhoto({ animal }: { animal: AnimalItem }) {
   )
 }
 
-export function AnimalManagementList({ animals }: AnimalManagementListProps) {
-  if (animals.length === 0) {
-    return <p className="text-muted-foreground">Nenhum animal cadastrado ainda.</p>
-  }
+export function AnimalManagementList({ animals, activeStatus }: AnimalManagementListProps) {
+  const router = useRouter()
 
   return (
-    <div className="overflow-x-auto">
+    <div className="space-y-4">
+      <div className="max-w-xs">
+        <label htmlFor="animal-status-filter" className="mb-1 block text-sm font-medium">Filtrar por status</label>
+        <Select id="animal-status-filter" value={activeStatus ?? "ALL"} onChange={(event) => {
+          const status = event.target.value
+          router.push(status === "ALL" ? "/dashboard/animais" : `/dashboard/animais?status=${status}`)
+        }}>
+          <option value="ALL">Todos</option>
+          {Object.values(StatusAnimal).map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+        </Select>
+      </div>
+      {animals.length === 0 ? <p className="text-muted-foreground">Nenhum animal encontrado para este filtro.</p> : <div className="overflow-x-auto">
       <Table aria-label="Lista de animais gerenciados">
         <TableHeader>
           <TableRow>
@@ -102,6 +123,7 @@ export function AnimalManagementList({ animals }: AnimalManagementListProps) {
           ))}
         </TableBody>
       </Table>
+      </div>}
     </div>
   )
 }
