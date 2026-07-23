@@ -12,8 +12,12 @@ const compat = new FlatCompat({
 const eslintConfig = [
   {
     ignores: [
-      "node_modules/**",
+      "**/node_modules/**",
       ".next/**",
+      "frontend/**",
+      "legacy/frontend-antigo/**",
+      "**/.output/**",
+      "**/.wrangler/**",
       "dist/**",
       "build/**",
       "coverage/**",

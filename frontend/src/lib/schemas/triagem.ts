@@ -1,0 +1,36 @@
+import { z } from "zod";
+import { TipoMoradia } from "../domain/enums";
+
+export const triagemSchema = z.object({
+  motivoAdocao: z.string().min(10, "Descreva com pelo menos 10 caracteres"),
+  tipoAnimalDesejado: z.string().min(1),
+  podeArcarCustosVet: z.boolean(),
+  adocaoParaPresente: z.boolean(),
+  adocaoParaPresenteDetalhe: z.string().optional(),
+  tipoMoradia: z.enum([TipoMoradia.CASA, TipoMoradia.APARTAMENTO, TipoMoradia.SITIO_FAZENDA]),
+  moradiaPropria: z.boolean(),
+  numAdultosCasa: z.number().int().min(1),
+  temCriancas: z.boolean(),
+  criancasFaixaEtaria: z.string().optional(),
+  todosConcordamAdocao: z.boolean(),
+  condominioPermiteAnimal: z.string().optional(),
+  janelasTeladas: z.boolean(),
+  acessoRua: z.string().min(1),
+  murosSeguros: z.boolean(),
+  horasSozinho: z.string().min(1),
+  responsavelViagem: z.string().min(1),
+  planoEmGravidez: z.string().min(1),
+  alergicosNaCasa: z.boolean(),
+  alergicosNaCasaDetalhe: z.string().optional(),
+  planoMudanca: z.string().min(1),
+  historicoDevolucao: z.string().optional(),
+  historicoPercaDescuido: z.string().optional(),
+  cienteLongevidade: z.boolean(),
+  permiteVisitaProtetor: z.boolean(),
+  cienteNaoRepassar: z.boolean(),
+  teveAnimaisAntes: z.boolean(),
+  animaisAnterioresDescricao: z.string().optional(),
+  temOutrosAnimais: z.boolean(),
+  outrosAnimaisDescricao: z.string().optional(),
+});
+export type TriagemInput = z.infer<typeof triagemSchema>;
