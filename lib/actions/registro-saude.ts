@@ -1,7 +1,13 @@
 "use server";
 
 import type { ZodError } from "zod";
-import { TipoRegistroSaude, ResultadoTeste } from "@prisma/client";
+import {
+  Prisma,
+  ResultadoTeste,
+  StatusCuidadoPlanejado,
+  TipoCuidadoPlanejado,
+  TipoRegistroSaude,
+} from "@prisma/client";
 
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -53,63 +59,119 @@ function ownsAnimal(session: ResponsibleSession, animal: { organizacaoId: string
   );
 }
 
-function mapToPrisma(data: RegistroSaudeInput): {
-  tipo: TipoRegistroSaude;
-  dataRegistro: Date;
-  dataProxima: Date | null;
-  responsavelRegistro: string;
-  nomeVacina: string | null;
-  ehVacinaCustomizada: boolean | null;
-  tipoMedicamento: string | null;
-  frequencia: string | null;
-  nomeDoenca: string | null;
-  ehDoencaCustomizada: boolean | null;
-  resultado: ResultadoTeste | null;
-} {
+function mapToPrisma(data: RegistroSaudeInput) {
+  const common = {
+    dataRegistro: data.dataAplicacao,
+    responsavelRegistro: "Sistema",
+    titulo: data.titulo ?? null,
+    observacoes: data.observacoes ?? null,
+    profissionalClinica: data.profissionalClinica ?? null,
+    nomeVacina: null,
+    ehVacinaCustomizada: null,
+    tipoMedicamento: null,
+    frequencia: null,
+    nomeDoenca: null,
+    ehDoencaCustomizada: null,
+    resultado: null,
+    procedimento: null,
+    medicamentoTratamento: null,
+  };
+
   switch (data.tipoRegistro) {
     case "VACINA":
       return {
+        ...common,
         tipo: TipoRegistroSaude.VACINA,
-        dataRegistro: data.dataAplicacao,
         dataProxima: data.dataProximaDose ?? null,
-        responsavelRegistro: "Sistema",
         nomeVacina: data.nomeCustom ?? null,
         ehVacinaCustomizada: data.nomeCustom !== undefined,
-        tipoMedicamento: null,
-        frequencia: null,
-        nomeDoenca: null,
-        ehDoencaCustomizada: null,
-        resultado: null,
       };
     case "CONTROLE_PARASITAS":
       return {
+        ...common,
         tipo: TipoRegistroSaude.CONTROLE_PARASITAS,
-        dataRegistro: data.dataAplicacao,
         dataProxima: data.dataProxima ?? null,
-        responsavelRegistro: "Sistema",
-        nomeVacina: null,
-        ehVacinaCustomizada: null,
         tipoMedicamento: data.tipoMedicacao,
         frequencia: data.frequencia,
-        nomeDoenca: null,
-        ehDoencaCustomizada: null,
-        resultado: null,
       };
     case "TESTE_DOENCA":
       return {
+        ...common,
         tipo: TipoRegistroSaude.TESTE_DOENCA,
-        dataRegistro: data.dataAplicacao,
-        dataProxima: null,
-        responsavelRegistro: "Sistema",
-        nomeVacina: null,
-        ehVacinaCustomizada: null,
-        tipoMedicamento: null,
-        frequencia: null,
+        dataProxima: data.dataProxima ?? null,
         nomeDoenca: data.nomeCustom ?? null,
         ehDoencaCustomizada: data.nomeCustom !== undefined,
         resultado: data.resultado === "POSITIVO" ? ResultadoTeste.POSITIVO : ResultadoTeste.NEGATIVO,
       };
+    case "MEDICAMENTO_TRATAMENTO":
+      return {
+        ...common,
+        tipo: TipoRegistroSaude.MEDICAMENTO_TRATAMENTO,
+        dataProxima: data.dataProxima ?? null,
+        medicamentoTratamento: data.medicamentoTratamento,
+      };
+    case "PROCEDIMENTO":
+      return {
+        ...common,
+        tipo: TipoRegistroSaude.PROCEDIMENTO,
+        dataProxima: data.dataProxima ?? null,
+        procedimento: data.procedimento,
+      };
   }
+}
+
+function plannedCareTitle(data: RegistroSaudeInput): string {
+  if (data.titulo) return data.titulo;
+
+  switch (data.tipoRegistro) {
+    case "VACINA":
+      return data.nomeCustom ?? "Proxima vacina";
+    case "CONTROLE_PARASITAS":
+      return data.tipoMedicacao;
+    case "TESTE_DOENCA":
+      return data.nomeCustom ?? "Proximo teste de doenca";
+    case "MEDICAMENTO_TRATAMENTO":
+      return data.medicamentoTratamento;
+    case "PROCEDIMENTO":
+      return data.procedimento;
+  }
+}
+
+async function syncPlannedCare(
+  tx: Prisma.TransactionClient,
+  recordId: string,
+  animalId: string,
+  data: RegistroSaudeInput,
+): Promise<void> {
+  const mapped = mapToPrisma(data);
+
+  if (!mapped.dataProxima) {
+    await tx.cuidadoPlanejado.deleteMany({
+      where: {
+        origemRegistroSaudeId: recordId,
+        status: StatusCuidadoPlanejado.PENDENTE,
+      },
+    });
+    return;
+  }
+
+  const planned = {
+    animalId,
+    tipo: data.tipoRegistro as TipoCuidadoPlanejado,
+    status: StatusCuidadoPlanejado.PENDENTE,
+    dataHoraPlanejada: mapped.dataProxima,
+    titulo: plannedCareTitle(data),
+    observacoes: data.observacoes ?? null,
+    localProfissional: data.profissionalClinica ?? null,
+    canceladoEm: null,
+    concluidoEm: null,
+  };
+
+  await tx.cuidadoPlanejado.upsert({
+    where: { origemRegistroSaudeId: recordId },
+    create: { ...planned, origemRegistroSaudeId: recordId },
+    update: planned,
+  });
 }
 
 export async function createRegistroSaude(
@@ -141,11 +203,15 @@ export async function createRegistroSaude(
     return { error: "Acesso negado" };
   }
 
-  await prisma.registroSaude.create({
-    data: {
-      animalId,
-      ...mapToPrisma(parsed.data),
-    },
+  await prisma.$transaction(async (tx) => {
+    const record = await tx.registroSaude.create({
+      data: {
+        animalId,
+        ...mapToPrisma(parsed.data),
+      },
+      select: { id: true },
+    });
+    await syncPlannedCare(tx, record.id, animalId, parsed.data);
   });
 
   return { success: true };
@@ -170,6 +236,7 @@ export async function updateRegistroSaude(
   const registro = await prisma.registroSaude.findUnique({
     where: { id },
     select: {
+      animalId: true,
       animal: {
         select: { organizacaoId: true, acolhedorId: true },
       },
@@ -184,9 +251,12 @@ export async function updateRegistroSaude(
     return { error: "Acesso negado" };
   }
 
-  await prisma.registroSaude.update({
-    where: { id },
-    data: mapToPrisma(parsed.data),
+  await prisma.$transaction(async (tx) => {
+    await tx.registroSaude.update({
+      where: { id },
+      data: mapToPrisma(parsed.data),
+    });
+    await syncPlannedCare(tx, id, registro.animalId, parsed.data);
   });
 
   return { success: true };
@@ -216,8 +286,14 @@ export async function deleteRegistroSaude(id: string): Promise<ActionResult> {
     return { error: "Acesso negado" };
   }
 
-  await prisma.registroSaude.delete({
-    where: { id },
+  await prisma.$transaction(async (tx) => {
+    await tx.cuidadoPlanejado.deleteMany({
+      where: {
+        origemRegistroSaudeId: id,
+        status: StatusCuidadoPlanejado.PENDENTE,
+      },
+    });
+    await tx.registroSaude.delete({ where: { id } });
   });
 
   return { success: true };

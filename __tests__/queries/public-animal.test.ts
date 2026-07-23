@@ -19,6 +19,17 @@ const sensitiveKeys = [
   "temOutrosAnimais",
   "horasSozinho",
   "triagemConcluida",
+  "documentosSaude",
+  "cuidadosPlanejados",
+  "observacoes",
+  "profissionalClinica",
+  "localProfissional",
+  "urlArquivo",
+  "chaveArquivo",
+  "conversa",
+  "conversasParticipante",
+  "mensagens",
+  "mensagensAdocao",
 ] as const;
 
 const publicAnimalResult = {

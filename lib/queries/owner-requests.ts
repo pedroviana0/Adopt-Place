@@ -1,6 +1,7 @@
 ﻿import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import type { OwnerRequestFilters } from "@/lib/schemas/dashboard-filters";
 
 type TipoPerfil = "ORGANIZACAO" | "ACOLHEDOR";
 
@@ -21,9 +22,13 @@ function buildOwnershipFilter(
 export async function getOwnerRequests(
   responsavelId: string,
   tipoPerfil: TipoPerfil,
+  filters: OwnerRequestFilters = {},
 ) {
   // Ownership enforced at query level (FR-047)
-  const where = buildOwnershipFilter(responsavelId, tipoPerfil);
+  const where: Prisma.SolicitacaoAdocaoWhereInput = {
+    ...buildOwnershipFilter(responsavelId, tipoPerfil),
+    ...(filters.status ? { status: filters.status } : {}),
+  };
 
   return prisma.solicitacaoAdocao.findMany({
     where,

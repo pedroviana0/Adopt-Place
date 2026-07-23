@@ -2,7 +2,7 @@ import { StatusAnimal, StatusSolicitacao, TipoPerfil } from "@prisma/client";
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createAdoptionRequest, decideAdoptionRequest } from "@/lib/actions/solicitacoes";
+import { completeAdoption, createAdoptionRequest, decideAdoptionRequest } from "@/lib/actions/solicitacoes";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,6 +11,8 @@ const adotanteId = "cm00000000000000000000002";
 const solicitacaoId = "cm00000000000000000000007";
 const organizacaoId = "cm00000000000000000000008";
 const otherOrganizacaoId = "cm00000000000000000000009";
+const adopterUserId = "cm00000000000000000000010";
+const conversationId = "cm00000000000000000000011";
 
 function session(overrides: Partial<Session["user"]> = {}): Session {
   return {
@@ -58,6 +60,8 @@ const transactionMock = prisma.$transaction as unknown as {
 type DecisionRequest = {
   id: string;
   animalId: string;
+  status?: StatusSolicitacao;
+  adotante: { usuarioId: string };
   animal: {
     id: string;
     organizacaoId: string | null;
@@ -73,12 +77,21 @@ type DecisionTransactionClient = {
   animal: {
     update: ReturnType<typeof vi.fn>;
   };
+  conversaAdocao: {
+    upsert: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
+  };
+  conversaParticipante: {
+    createMany: ReturnType<typeof vi.fn>;
+  };
 };
 
 function decisionRequest(ownerId = organizacaoId): DecisionRequest {
   return {
     id: solicitacaoId,
     animalId,
+    status: StatusSolicitacao.APROVADA,
+    adotante: { usuarioId: adopterUserId },
     animal: {
       id: animalId,
       organizacaoId: ownerId,
@@ -95,6 +108,13 @@ function decisionTransactionClient(): DecisionTransactionClient {
     },
     animal: {
       update: vi.fn().mockResolvedValue({ id: animalId }),
+    },
+    conversaAdocao: {
+      upsert: vi.fn().mockResolvedValue({ id: conversationId }),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
+    conversaParticipante: {
+      createMany: vi.fn().mockResolvedValue({ count: 2 }),
     },
   };
 }
@@ -324,6 +344,19 @@ describe("decideAdoptionRequest", () => {
         },
         data: { status: StatusSolicitacao.RECUSADA },
       });
+      expect(tx.conversaAdocao.upsert).toHaveBeenCalledWith({
+        where: { solicitacaoId },
+        create: { solicitacaoId, status: "ATIVA" },
+        update: {},
+        select: { id: true },
+      });
+      expect(tx.conversaParticipante.createMany).toHaveBeenCalledWith({
+        data: [
+          { conversaId: conversationId, usuarioId: adopterUserId },
+          { conversaId: conversationId, usuarioId: "cm00000000000000000000003" },
+        ],
+        skipDuplicates: true,
+      });
       expect(result).toEqual({ success: true });
     });
   });
@@ -358,5 +391,34 @@ describe("decideAdoptionRequest", () => {
       expect(tx.solicitacaoAdocao.updateMany).not.toHaveBeenCalled();
       expect(result).toEqual({ success: true });
     });
+  });
+});
+
+describe("chat lifecycle in adoption transaction", () => {
+  it("archives the conversation when the approved adoption is completed", async () => {
+    const tx = decisionTransactionClient();
+    mockedGetServerSession.mockResolvedValue(session({ tipoPerfil: TipoPerfil.ORGANIZACAO, adotanteId: null, organizacaoId }));
+    findSolicitacaoById.mockResolvedValue(decisionRequest());
+    mockDecisionTransaction(tx);
+
+    await expect(completeAdoption(solicitacaoId)).resolves.toEqual({ success: true });
+    expect(tx.conversaAdocao.updateMany).toHaveBeenCalledWith({
+      where: { solicitacaoId },
+      data: { status: "ARQUIVADA", arquivadaEm: expect.any(Date) },
+    });
+  });
+
+  it("uses conversation upsert and duplicate-safe participants on repeated approval", async () => {
+    const tx = decisionTransactionClient();
+    mockedGetServerSession.mockResolvedValue(session({ tipoPerfil: TipoPerfil.ORGANIZACAO, adotanteId: null, organizacaoId }));
+    findSolicitacaoById.mockResolvedValue(decisionRequest());
+    mockDecisionTransaction(tx);
+
+    await decideAdoptionRequest(solicitacaoId, { decision: "APROVADA" });
+    await decideAdoptionRequest(solicitacaoId, { decision: "APROVADA" });
+
+    expect(tx.conversaAdocao.upsert).toHaveBeenCalledTimes(2);
+    expect(tx.conversaParticipante.createMany).toHaveBeenCalledTimes(2);
+    expect(tx.conversaParticipante.createMany).toHaveBeenLastCalledWith(expect.objectContaining({ skipDuplicates: true }));
   });
 });

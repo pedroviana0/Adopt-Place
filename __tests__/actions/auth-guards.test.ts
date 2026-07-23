@@ -18,6 +18,13 @@ import {
   requireSession,
 } from "@/lib/actions/auth-guards";
 import { getServerSession } from "@/lib/auth";
+import {
+  canAccessConversation,
+  isActiveSession,
+  ownsHealthDocument,
+  ownsPlannedCare,
+} from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
 
 function session(overrides: Partial<Session["user"]> = {}): Session {
   return {
@@ -38,6 +45,31 @@ function session(overrides: Partial<Session["user"]> = {}): Session {
 }
 
 const mockedGetServerSession = vi.mocked(getServerSession);
+const findPlannedCare = prisma.cuidadoPlanejado.findUnique as unknown as {
+  mockResolvedValue(
+    value: {
+      animal: { organizacaoId: string | null; acolhedorId: string | null };
+    } | null,
+  ): void;
+};
+const findHealthDocument = prisma.documentoSaude.findUnique as unknown as {
+  mockResolvedValue(
+    value: {
+      animal: { organizacaoId: string | null; acolhedorId: string | null };
+    } | null,
+  ): void;
+};
+const findParticipant = prisma.conversaParticipante.findUnique as unknown as {
+  mockResolvedValue(value: { id: string } | null): void;
+};
+
+function activeSession(overrides: Partial<Session["user"]> = {}) {
+  const value = session(overrides);
+  if (!isActiveSession(value)) {
+    throw new Error("Expected active test session");
+  }
+  return value;
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -80,6 +112,47 @@ describe("auth guard helpers", () => {
       const activeSession = session({ tipoPerfil: TipoPerfil.ORGANIZACAO });
 
       expect(requireRole(activeSession, "ORGANIZACAO")).toBe(activeSession);
+    });
+  });
+
+  describe("resource authorization", () => {
+    it("authorizes planned care and documents only for the animal owner", async () => {
+      const currentSession = activeSession();
+      findPlannedCare.mockResolvedValue({
+        animal: {
+          organizacaoId: currentSession.user.organizacaoId,
+          acolhedorId: null,
+        },
+      });
+      findHealthDocument.mockResolvedValue({
+        animal: {
+          organizacaoId: "cm00000000000000000000999",
+          acolhedorId: null,
+        },
+      });
+
+      await expect(ownsPlannedCare(currentSession, "care-1")).resolves.toBe(true);
+      await expect(
+        ownsHealthDocument(currentSession, "document-1"),
+      ).resolves.toBe(false);
+    });
+
+    it("authorizes conversation access only through the participant row", async () => {
+      const currentSession = activeSession();
+      findParticipant.mockResolvedValue({ id: "participant-1" });
+
+      await expect(
+        canAccessConversation(currentSession, "conversation-1"),
+      ).resolves.toBe(true);
+      expect(prisma.conversaParticipante.findUnique).toHaveBeenCalledWith({
+        where: {
+          conversaId_usuarioId: {
+            conversaId: "conversation-1",
+            usuarioId: currentSession.user.id,
+          },
+        },
+        select: { id: true },
+      });
     });
   });
 });

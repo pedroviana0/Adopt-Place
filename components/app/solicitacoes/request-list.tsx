@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 import { Badge, Button, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui";
 import type { OwnerRequest } from "@/lib/queries/owner-requests";
@@ -9,6 +9,7 @@ import { StatusSolicitacao } from "@prisma/client";
 
 type RequestListProps = {
   requests: OwnerRequest[];
+  activeStatus?: StatusSolicitacao;
 };
 
 const statusOptions: StatusSolicitacao[] = ["EM_ANALISE", "APROVADA", "RECUSADA", "CONCLUIDA"];
@@ -27,13 +28,8 @@ const statusVariant: Record<StatusSolicitacao, "default" | "secondary" | "outlin
   CONCLUIDA: "secondary",
 };
 
-export function RequestList({ requests }: RequestListProps) {
-  const [statusFilter, setStatusFilter] = useState<StatusSolicitacao | "ALL">("ALL");
-
-  const filteredRequests = useMemo(() => {
-    if (statusFilter === "ALL") return requests;
-    return requests.filter((r) => r.status === statusFilter);
-  }, [requests, statusFilter]);
+export function RequestList({ requests, activeStatus }: RequestListProps) {
+  const router = useRouter();
 
   if (requests.length === 0) {
     return (
@@ -51,8 +47,15 @@ export function RequestList({ requests }: RequestListProps) {
         </label>
         <Select
           id="status-filter"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusSolicitacao | "ALL")}
+          value={activeStatus ?? "ALL"}
+          onChange={(event) => {
+            const status = event.target.value;
+            router.push(
+              status === "ALL"
+                ? "/dashboard/solicitacoes"
+                : `/dashboard/solicitacoes?status=${status}`,
+            );
+          }}
         >
           <option value="ALL">Todas</option>
           {statusOptions.map((status) => (
@@ -75,7 +78,7 @@ export function RequestList({ requests }: RequestListProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRequests.map((request) => (
+            {requests.map((request) => (
               <TableRow key={request.id}>
                 <TableCell>{request.animal.nome}</TableCell>
                 <TableCell>{request.adotante.nomeCompleto}</TableCell>

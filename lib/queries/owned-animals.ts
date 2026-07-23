@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import type { OwnedAnimalFilters } from "@/lib/schemas/dashboard-filters";
 
 type ResponsavelTipo = "ORGANIZACAO" | "ACOLHEDOR";
 
@@ -14,8 +15,15 @@ function buildOwnedAnimalsWhere(
   return { acolhedorId: responsavelId };
 }
 
-export async function getOwnedAnimals(responsavelId: string, tipoPerfil: ResponsavelTipo) {
-  const where = buildOwnedAnimalsWhere(responsavelId, tipoPerfil);
+export async function getOwnedAnimals(
+  responsavelId: string,
+  tipoPerfil: ResponsavelTipo,
+  filters: OwnedAnimalFilters = {},
+) {
+  const where: Prisma.AnimalWhereInput = {
+    ...buildOwnedAnimalsWhere(responsavelId, tipoPerfil),
+    ...(filters.status ? { status: filters.status } : {}),
+  };
 
   return prisma.animal.findMany({
     where,

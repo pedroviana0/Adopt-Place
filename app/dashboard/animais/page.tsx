@@ -7,11 +7,12 @@ import { requireResponsible } from "@/lib/actions/auth-guards";
 import { createAnimal } from "@/lib/actions/animais";
 import { getOwnedAnimals } from "@/lib/queries/owned-animals";
 import { prisma } from "@/lib/prisma";
+import { ownedAnimalFilterSchema } from "@/lib/schemas/dashboard-filters";
 
 export default async function AnimaisPage({
   searchParams,
 }: {
-  searchParams: Promise<{ modo?: string }>;
+  searchParams: Promise<{ modo?: string; status?: string | string[] }>;
 }) {
   const session = await requireResponsible();
 
@@ -24,10 +25,17 @@ export default async function AnimaisPage({
     notFound();
   }
 
-  const { modo } = await searchParams;
+  const params = await searchParams;
+  const { modo } = params;
+  const parsedFilters = ownedAnimalFilterSchema.safeParse(params);
+  const filters = parsedFilters.success ? parsedFilters.data : {};
   const isCreating = modo === "criar";
 
-  const animals = await getOwnedAnimals(responsavelId, session.user.tipoPerfil as "ORGANIZACAO" | "ACOLHEDOR");
+  const animals = await getOwnedAnimals(
+    responsavelId,
+    session.user.tipoPerfil as "ORGANIZACAO" | "ACOLHEDOR",
+    filters,
+  );
 
   const [speciesList, racasList] = await Promise.all([
     prisma.especie.findMany({ select: { id: true, nome: true }, orderBy: { nome: "asc" } }),
@@ -72,7 +80,7 @@ export default async function AnimaisPage({
           </CardContent>
         </Card>
       ) : (
-        <AnimalManagementList animals={animals} />
+        <AnimalManagementList animals={animals} activeStatus={filters.status} />
       )}
     </div>
   );
