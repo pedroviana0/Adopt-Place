@@ -24,13 +24,13 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 **Purpose**: Produce the initial audit baseline without implementation.
 
-- [ ] T001 Confirm branch, working tree, `.specify/feature.json`, and existing stash state; record result in `specs/003-backend-frontend-integration/quickstart.md` (Owner: Pedro)
-- [ ] T002 Create `specs/003-backend-frontend-integration/integration-matrix.md` with the required audit fields and statuses `audited`, `contract defined`, `backend ready`, `frontend integrated`, and `flow complete` before any task writes audit evidence (Owner: Pedro; depends on T001)
-- [ ] T003 Audit backend real surfaces in `app/api/`, `lib/auth.ts`, `lib/permissions.ts`, `lib/actions/`, `lib/queries/`, `lib/schemas/`, `lib/upload-router.ts`, `prisma/schema.prisma`, and `__tests__/`; record evidence in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T002)
+- [X] T001 Confirm branch, working tree, `.specify/feature.json`, and existing stash state; record result in `specs/003-backend-frontend-integration/quickstart.md` (Owner: Pedro)
+- [X] T002 Create `specs/003-backend-frontend-integration/integration-matrix.md` with the required audit fields and statuses `audited`, `contract defined`, `backend ready`, `frontend integrated`, and `flow complete` before any task writes audit evidence (Owner: Pedro; depends on T001)
+- [X] T003 Audit backend real surfaces in `app/api/`, `lib/auth.ts`, `lib/permissions.ts`, `lib/actions/`, `lib/queries/`, `lib/schemas/`, `lib/upload-router.ts`, `prisma/schema.prisma`, and `__tests__/`; record evidence in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T002)
 - [ ] T004 Audit frontend mock/localStorage modules in `frontend/src/lib/data/` and route usage in `frontend/src/routes/`; record evidence in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Arthur; depends on T002)
 - [ ] T005 Audit route rendering problems where `frontend/src/routes/` changes URL without rendering the expected screen; record route, trigger, expected screen, and observed behavior in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Arthur; depends on T004)
-- [ ] T006 Audit feature 001 T104 status in `specs/001-animal-adoption-management/tasks.md` and record only that it remains pending in `specs/003-backend-frontend-integration/integration-matrix.md` without editing feature 001 (Owner: Pedro; depends on T002)
-- [ ] T007 Audit that `legacy/frontend-antigo/` remains historical only and record no-new-functionality rule in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T002)
+- [X] T006 Audit feature 001 T104 status in `specs/001-animal-adoption-management/tasks.md` and record only that it remains pending in `specs/003-backend-frontend-integration/integration-matrix.md` without editing feature 001 (Owner: Pedro; depends on T002)
+- [X] T007 Audit that `legacy/frontend-antigo/` remains historical only and record no-new-functionality rule in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T002)
 
 **Checkpoint**: Initial audit evidence exists before any contract or implementation task starts.
 
