@@ -83,6 +83,12 @@ function mockTransaction(tx: TransactionClient): void {
 beforeEach(() => {
   vi.clearAllMocks();
   globalCreateMany.mockResolvedValue({ count: 2 });
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ORGANIZACAO,
+    organizacao: { id: organizacaoId },
+    acolhedor: null,
+  } as never);
 });
 
 describe("animal relationship actions", () => {
@@ -92,7 +98,7 @@ describe("animal relationship actions", () => {
 
       const result = await linkAnimals({ animalId: animalAId, animalRelacionadoId: animalBId });
 
-      expect(result.error).toBe("Não autenticado");
+      expect(result.error).toBe("Nao autenticado");
       expect(prisma.animal.findUnique).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
@@ -102,7 +108,7 @@ describe("animal relationship actions", () => {
 
       const result = await unlinkAnimals(animalAId, animalBId);
 
-      expect(result.error).toBe("Não autenticado");
+      expect(result.error).toBe("Nao autenticado");
       expect(prisma.animal.findUnique).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
@@ -115,10 +121,16 @@ describe("animal relationship actions", () => {
           organizacaoId: null,
         }),
       );
+      vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+        ativo: true,
+        tipoPerfil: TipoPerfil.ADOTANTE,
+        organizacao: null,
+        acolhedor: null,
+      } as never);
 
       const result = await linkAnimals({ animalId: animalAId, animalRelacionadoId: animalBId });
 
-      expect(result.error).toBe("Apenas organizações ou acolhedores podem gerenciar animais");
+      expect(result.error).toBe("Apenas organizacoes ou acolhedores podem gerenciar animais");
       expect(prisma.animal.findUnique).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
@@ -131,10 +143,16 @@ describe("animal relationship actions", () => {
           organizacaoId: null,
         }),
       );
+      vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+        ativo: true,
+        tipoPerfil: TipoPerfil.ADOTANTE,
+        organizacao: null,
+        acolhedor: null,
+      } as never);
 
       const result = await unlinkAnimals(animalAId, animalBId);
 
-      expect(result.error).toBe("Apenas organizações ou acolhedores podem gerenciar animais");
+      expect(result.error).toBe("Apenas organizacoes ou acolhedores podem gerenciar animais");
       expect(prisma.animal.findUnique).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
@@ -171,7 +189,7 @@ describe("animal relationship actions", () => {
 
       const result = await linkAnimals({ animalId: animalAId, animalRelacionadoId: animalAId });
 
-      expect(result.error).toBe("Um animal não pode ser relacionado a si mesmo");
+      expect(result.error).toBe("Um animal nao pode ser relacionado a si mesmo.");
       expect(prisma.animal.findUnique).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });

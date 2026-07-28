@@ -25,27 +25,27 @@ describe("animalSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects when neither organizacaoId nor acolhedorId is present", () => {
+  it("accepts input without owner identifiers", () => {
     const result = animalSchema.safeParse(baseAnimal);
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
-  it("accepts a single organization owner", () => {
+  it("rejects an organization owner supplied by the browser", () => {
     const result = animalSchema.safeParse({
       ...baseAnimal,
       organizacaoId: "cm00000000000000000000003",
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
-  it("accepts a single foster owner", () => {
+  it("rejects a foster owner supplied by the browser", () => {
     const result = animalSchema.safeParse({
       ...baseAnimal,
       acolhedorId: "cm00000000000000000000004",
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 });

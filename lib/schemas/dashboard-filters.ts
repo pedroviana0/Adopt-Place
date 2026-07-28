@@ -1,4 +1,6 @@
 import {
+  Porte,
+  Sexo,
   StatusAnimal,
   StatusSolicitacao,
 } from "@prisma/client";
@@ -16,13 +18,31 @@ function optionalEnumParam<T extends z.ZodTypeAny>(schema: T) {
   return z.preprocess((value) => firstValue(value) || undefined, schema.optional());
 }
 
-export const ownerRequestFilterSchema = z.object({
-  status: optionalEnumParam(z.nativeEnum(StatusSolicitacao)),
-});
+export const ownerRequestFilterSchema = z
+  .object({
+    status: optionalEnumParam(z.nativeEnum(StatusSolicitacao)),
+  })
+  .strict();
 
-export const ownedAnimalFilterSchema = z.object({
-  status: optionalEnumParam(z.nativeEnum(StatusAnimal)),
-});
+export const ownedAnimalFilterSchema = z
+  .object({
+    q: z.preprocess(
+      (value) => firstValue(value) || undefined,
+      z.string().trim().max(100).optional(),
+    ),
+    status: optionalEnumParam(z.nativeEnum(StatusAnimal)),
+    especieId: z.preprocess(
+      (value) => firstValue(value) || undefined,
+      z.string().cuid().optional(),
+    ),
+    racaId: z.preprocess(
+      (value) => firstValue(value) || undefined,
+      z.string().cuid().optional(),
+    ),
+    porte: optionalEnumParam(z.nativeEnum(Porte)),
+    sexo: optionalEnumParam(z.nativeEnum(Sexo)),
+  })
+  .strict();
 
 export const healthAgendaFilterSchema = z.preprocess((value) => {
   if (!value || typeof value !== "object") {

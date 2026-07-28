@@ -2,94 +2,123 @@
 
 import type { ZodError } from "zod";
 
-import { getServerSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import {
+  getResponsibleContext,
+  getResponsibleContextForUser,
+  ownsAnimal,
+  type ResponsibleContext,
+} from "@/lib/api/responsible-context";
+import { prisma } from "@/lib/prisma";
+import { idSchema } from "@/lib/schemas/common";
+import {
+  deletePhotoSchema,
   photoOrderSchema,
+  type DeletePhotoInput,
   type PhotoOrderInput,
 } from "@/lib/schemas/foto-animal";
 
-type ActionResult = { success?: boolean; error?: string };
+type ActionResult = {
+  success?: boolean;
+  error?: string;
+  code?: string;
+};
+
+type AnimalPhotoUploadMetadata = {
+  userId: string;
+  organizacaoId: string | null;
+  acolhedorId: string | null;
+  animalId: string;
+};
+
+type UploadedAnimalPhoto = {
+  url: string;
+};
 
 function firstValidationError(error: ZodError): string {
   return error.issues[0]?.message ?? "Dados invalidos.";
 }
 
-type ResponsibleSession = {
-  user: {
-    id: string;
-    tipoPerfil: "ORGANIZACAO" | "ACOLHEDOR";
-    ativo: boolean;
-    organizacaoId: string | null;
-    acolhedorId: string | null;
-  };
-};
+type OwnedAnimalResult =
+  | { context: ResponsibleContext }
+  | { error: { code: string; message: string } };
 
-async function requireResponsibleSession(): Promise<
-  { session: ResponsibleSession } | { error: string }
-> {
-  const session = await getServerSession();
-
-  if (!session?.user?.id) {
-    return { error: "Nao autenticado" };
+async function getOwnedAnimal(animalId: string): Promise<OwnedAnimalResult> {
+  const contextResult = await getResponsibleContext();
+  if ("error" in contextResult) {
+    return { error: contextResult.error } as const;
   }
 
-  if (!session.user.ativo) {
-    return { error: "Conta desativada" };
+  const animal = await prisma.animal.findUnique({
+    where: { id: animalId },
+    select: { organizacaoId: true, acolhedorId: true },
+  });
+
+  if (!animal) {
+    return {
+      error: {
+        code: "NOT_FOUND",
+        message: "Animal nao encontrado",
+      },
+    } as const;
+  }
+  if (!ownsAnimal(contextResult.context, animal)) {
+    return {
+      error: {
+        code: "FORBIDDEN",
+        message: "Acesso negado",
+      },
+    } as const;
   }
 
-  if (session.user.tipoPerfil !== "ORGANIZACAO" && session.user.tipoPerfil !== "ACOLHEDOR") {
-    return { error: "Apenas organizacoes ou acolhedores podem gerenciar fotos" };
-  }
-
-  return { session: session as ResponsibleSession };
-}
-
-function ownsAnimal(session: ResponsibleSession, animal: { organizacaoId: string | null; acolhedorId: string | null }): boolean {
-  return (
-    (Boolean(session.user.organizacaoId) && animal.organizacaoId === session.user.organizacaoId) ||
-    (Boolean(session.user.acolhedorId) && animal.acolhedorId === session.user.acolhedorId)
-  );
+  return { context: contextResult.context } as const;
 }
 
 export async function updatePhotoOrder(
+  animalId: string,
   photos: PhotoOrderInput,
 ): Promise<ActionResult> {
-  const sessionResult = await requireResponsibleSession();
-
-  if ("error" in sessionResult) {
-    return { error: sessionResult.error };
-  }
-
+  const parsedAnimalId = idSchema.safeParse(animalId);
   const parsed = photoOrderSchema.safeParse(photos);
 
-  if (!parsed.success) {
-    return { error: firstValidationError(parsed.error) };
+  if (!parsedAnimalId.success || !parsed.success) {
+    return {
+      error: !parsed.success
+        ? firstValidationError(parsed.error)
+        : "Identificador invalido.",
+      code: "INVALID_INPUT",
+    };
   }
 
-  const photoIds = parsed.data.map((item) => item.id);
+  const owned = await getOwnedAnimal(parsedAnimalId.data);
+  if ("error" in owned) {
+    return { error: owned.error.message, code: owned.error.code };
+  }
 
-  const fotos = await prisma.fotoAnimal.findMany({
-    where: { id: { in: photoIds } },
-    select: { animalId: true },
+  const currentPhotos = await prisma.fotoAnimal.findMany({
+    where: { animalId: parsedAnimalId.data },
+    select: { id: true, animalId: true },
   });
+  const receivedIds = parsed.data.map((photo) => photo.id);
+  const uniqueIds = new Set(receivedIds);
+  const orders = [...parsed.data.map((photo) => photo.ordem)].sort((a, b) => a - b);
+  const hasCompleteSet =
+    currentPhotos.length === parsed.data.length &&
+    uniqueIds.size === parsed.data.length &&
+    currentPhotos.every((photo) => uniqueIds.has(photo.id)) &&
+    orders.every((order, index) => order === index);
 
-  for (const foto of fotos) {
-    const animal = await prisma.animal.findUnique({
-      where: { id: foto.animalId },
-      select: { organizacaoId: true, acolhedorId: true },
-    });
-
-    if (!animal || !ownsAnimal(sessionResult.session, animal)) {
-      return { error: "Acesso negado" };
-    }
+  if (!hasCompleteSet) {
+    return {
+      error: "Informe todas as fotos do animal uma unica vez",
+      code: "INVALID_PHOTO_ORDER",
+    };
   }
 
   await prisma.$transaction(
-    parsed.data.map((item) =>
+    parsed.data.map((photo) =>
       prisma.fotoAnimal.update({
-        where: { id: item.id },
-        data: { ordem: item.order },
+        where: { id: photo.id },
+        data: { ordem: photo.ordem },
       }),
     ),
   );
@@ -97,41 +126,157 @@ export async function updatePhotoOrder(
   return { success: true };
 }
 
-export async function setPrimaryPhoto(fotoId: string): Promise<ActionResult> {
-  const sessionResult = await requireResponsibleSession();
-
-  if ("error" in sessionResult) {
-    return { error: sessionResult.error };
+export async function setPrimaryPhoto(
+  animalId: string,
+  fotoId: string,
+): Promise<ActionResult> {
+  const parsedAnimalId = idSchema.safeParse(animalId);
+  const parsedPhotoId = idSchema.safeParse(fotoId);
+  if (!parsedAnimalId.success || !parsedPhotoId.success) {
+    return { error: "Dados invalidos.", code: "INVALID_INPUT" };
   }
 
-  const foto = await prisma.fotoAnimal.findUnique({
-    where: { id: fotoId },
-    select: { animalId: true },
-  });
-
-  if (!foto) {
-    return { error: "Foto nao encontrada" };
+  const owned = await getOwnedAnimal(parsedAnimalId.data);
+  if ("error" in owned) {
+    return { error: owned.error.message, code: owned.error.code };
   }
 
-  const animal = await prisma.animal.findUnique({
-    where: { id: foto.animalId },
-    select: { organizacaoId: true, acolhedorId: true },
+  const photo = await prisma.fotoAnimal.findUnique({
+    where: { id: parsedPhotoId.data },
+    select: { id: true, animalId: true },
   });
-
-  if (!animal || !ownsAnimal(sessionResult.session, animal)) {
-    return { error: "Acesso negado" };
+  if (!photo || photo.animalId !== parsedAnimalId.data) {
+    return { error: "Foto nao encontrada", code: "NOT_FOUND" };
   }
 
   await prisma.$transaction([
     prisma.fotoAnimal.updateMany({
-      where: { animalId: foto.animalId },
+      where: { animalId: parsedAnimalId.data },
       data: { principal: false },
     }),
     prisma.fotoAnimal.update({
-      where: { id: fotoId },
+      where: { id: parsedPhotoId.data },
       data: { principal: true },
     }),
   ]);
 
   return { success: true };
+}
+
+export async function deleteAnimalPhoto(
+  animalId: string,
+  fotoId: string,
+  input: DeletePhotoInput = {},
+): Promise<ActionResult> {
+  const parsedAnimalId = idSchema.safeParse(animalId);
+  const parsedPhotoId = idSchema.safeParse(fotoId);
+  const parsedInput = deletePhotoSchema.safeParse(input);
+  if (!parsedAnimalId.success || !parsedPhotoId.success || !parsedInput.success) {
+    return { error: "Dados invalidos.", code: "INVALID_INPUT" };
+  }
+
+  const owned = await getOwnedAnimal(parsedAnimalId.data);
+  if ("error" in owned) {
+    return { error: owned.error.message, code: owned.error.code };
+  }
+
+  const photos = await prisma.fotoAnimal.findMany({
+    where: { animalId: parsedAnimalId.data },
+    select: { id: true, principal: true },
+  });
+  const target = photos.find((photo) => photo.id === parsedPhotoId.data);
+  if (!target) {
+    return { error: "Foto nao encontrada", code: "NOT_FOUND" };
+  }
+
+  const replacement = parsedInput.data.novaPrincipalId
+    ? photos.find(
+        (photo) =>
+          photo.id === parsedInput.data.novaPrincipalId &&
+          photo.id !== target.id,
+      )
+    : undefined;
+  if (parsedInput.data.novaPrincipalId && !replacement) {
+    return {
+      error: "Nova foto principal invalida",
+      code: "INVALID_PRIMARY_REPLACEMENT",
+    };
+  }
+  if (target.principal && photos.length > 1 && !replacement) {
+    return {
+      error: "Informe a nova foto principal",
+      code: "PRIMARY_REPLACEMENT_REQUIRED",
+    };
+  }
+
+  const operations = [];
+  if (target.principal && replacement) {
+    operations.push(
+      prisma.fotoAnimal.updateMany({
+        where: { animalId: parsedAnimalId.data },
+        data: { principal: false },
+      }),
+      prisma.fotoAnimal.update({
+        where: { id: replacement.id },
+        data: { principal: true },
+      }),
+    );
+  }
+  operations.push(prisma.fotoAnimal.delete({ where: { id: target.id } }));
+  await prisma.$transaction(operations);
+
+  return { success: true };
+}
+
+export async function persistAnimalPhotoUpload(
+  metadata: AnimalPhotoUploadMetadata,
+  file: UploadedAnimalPhoto,
+) {
+  const parsed = idSchema.safeParse(metadata.animalId);
+  const parsedUrl = new URL(file.url);
+  if (!parsed.success || !["http:", "https:"].includes(parsedUrl.protocol)) {
+    throw new Error("Bad Request");
+  }
+
+  const contextResult = await getResponsibleContextForUser(metadata.userId);
+  if ("error" in contextResult) {
+    throw new Error(contextResult.error.message);
+  }
+
+  const animal = await prisma.animal.findUnique({
+    where: { id: parsed.data },
+    select: { organizacaoId: true, acolhedorId: true },
+  });
+  if (!ownsAnimal(contextResult.context, animal)) {
+    throw new Error("Acesso negado");
+  }
+
+  const count = await prisma.fotoAnimal.count({
+    where: { animalId: parsed.data },
+  });
+  if (count >= 10) {
+    throw new Error("Maximo de 10 fotos permitidas");
+  }
+
+  const primary = await prisma.fotoAnimal.findFirst({
+    where: { animalId: parsed.data, principal: true },
+    select: { id: true },
+  });
+
+  return prisma.fotoAnimal.create({
+    data: {
+      animalId: parsed.data,
+      urlFoto: file.url,
+      principal: !primary,
+      ordem: count,
+    },
+    select: {
+      id: true,
+      animalId: true,
+      urlFoto: true,
+      principal: true,
+      ordem: true,
+      criadoEm: true,
+    },
+  });
 }

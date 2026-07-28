@@ -2,7 +2,12 @@ import { StatusAnimal, TipoPerfil } from "@prisma/client";
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createAnimal, updateAnimal, updateAnimalStatus } from "@/lib/actions/animais";
+import {
+  createAnimal,
+  deleteAnimal,
+  updateAnimal,
+  updateAnimalStatus,
+} from "@/lib/actions/animais";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { AnimalInput } from "@/lib/schemas/animal";
@@ -22,8 +27,6 @@ const baseAnimalInput: AnimalInput = {
   castrado: true,
   descricao: "Docil e brincalhona",
   status: "RESGATADO",
-  organizacaoId,
-  acolhedorId: null,
 };
 
 function session(overrides: Partial<Session["user"]> = {}): Session {
@@ -44,19 +47,22 @@ function session(overrides: Partial<Session["user"]> = {}): Session {
   };
 }
 
-const mockedGetServerSession = vi.mocked(getServerSession);
-const mockedPrisma = vi.mocked(prisma);
-const findAnimal = prisma.animal.findUnique as unknown as {
-  mockResolvedValue(
-    value: { id: string; organizacaoId: string | null; acolhedorId: string | null; status: StatusAnimal } | null,
-  ): void;
-};
-const createAnimalMock = prisma.animal.create as unknown as {
-  mockResolvedValue(value: { id: string }): void;
-};
-const updateAnimalMock = prisma.animal.update as unknown as {
-  mockResolvedValue(value: { id: string }): void;
-};
+function mockActiveOrganization() {
+  vi.mocked(getServerSession).mockResolvedValue(session());
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ORGANIZACAO,
+    organizacao: { id: organizacaoId },
+    acolhedor: null,
+  } as never);
+  vi.mocked(prisma.raca.findUnique).mockResolvedValue({
+    especieId: baseAnimalInput.especieId,
+  } as never);
+}
+
+const findAnimal = vi.mocked(prisma.animal.findUnique);
+const createAnimalMock = vi.mocked(prisma.animal.create);
+const updateAnimalMock = vi.mocked(prisma.animal.update);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -65,154 +71,184 @@ beforeEach(() => {
 describe("animal actions", () => {
   describe("createAnimal", () => {
     it("returns an error without session and does not access data", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(null);
+      vi.mocked(getServerSession).mockResolvedValue(null);
 
-      // When
       const result = await createAnimal(baseAnimalInput);
 
-      // Then
-      expect(result.error).toBe("Não autenticado");
-      expect(mockedPrisma.animal.create).not.toHaveBeenCalled();
-      expect(mockedPrisma.animal.findUnique).not.toHaveBeenCalled();
+      expect(result.error).toBe("Nao autenticado");
+      expect(prisma.usuario.findUnique).not.toHaveBeenCalled();
+      expect(prisma.animal.create).not.toHaveBeenCalled();
     });
 
     it("returns an error when an adopter tries to create an animal", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(
+      vi.mocked(getServerSession).mockResolvedValue(
         session({
           tipoPerfil: TipoPerfil.ADOTANTE,
           adotanteId: "cm00000000000000000000008",
           organizacaoId: null,
         }),
       );
+      vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+        ativo: true,
+        tipoPerfil: TipoPerfil.ADOTANTE,
+        organizacao: null,
+        acolhedor: null,
+      } as never);
 
-      // When
       const result = await createAnimal(baseAnimalInput);
 
-      // Then
-      expect(result.error).toBe("Apenas organizações ou acolhedores podem gerenciar animais");
-      expect(mockedPrisma.animal.create).not.toHaveBeenCalled();
+      expect(result.error).toBe(
+        "Apenas organizacoes ou acolhedores podem gerenciar animais",
+      );
+      expect(prisma.animal.create).not.toHaveBeenCalled();
     });
 
-    it("returns Conta desativada for inactive accounts", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session({ ativo: false }));
+    it("revalidates an account deactivated after session issuance", async () => {
+      vi.mocked(getServerSession).mockResolvedValue(session());
+      vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+        ativo: false,
+        tipoPerfil: TipoPerfil.ORGANIZACAO,
+        organizacao: { id: organizacaoId },
+        acolhedor: null,
+      } as never);
 
-      // When
       const result = await createAnimal(baseAnimalInput);
 
-      // Then
       expect(result.error).toBe("Conta desativada");
-      expect(mockedPrisma.animal.create).not.toHaveBeenCalled();
+      expect(prisma.animal.create).not.toHaveBeenCalled();
     });
 
-    it("returns XOR error when both organization and foster owners are present", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session());
+    it("derives exactly one organization owner from the current account", async () => {
+      mockActiveOrganization();
+      createAnimalMock.mockResolvedValue({ id: animalId } as never);
 
-      // When
-      const result = await createAnimal({
-        ...baseAnimalInput,
-        acolhedorId,
-      });
-
-      // Then
-      expect(result.error).toBe("Animal deve pertencer a exatamente um responsável (organização ou acolhedor)");
-      expect(mockedPrisma.animal.create).not.toHaveBeenCalled();
-    });
-
-    it("returns XOR error when no owner is present", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session());
-
-      // When
-      const result = await createAnimal({
-        ...baseAnimalInput,
-        organizacaoId: null,
-      });
-
-      // Then
-      expect(result.error).toBe("Animal deve pertencer a exatamente um responsável (organização ou acolhedor)");
-      expect(mockedPrisma.animal.create).not.toHaveBeenCalled();
-    });
-
-    it("creates an animal for a valid organization owner", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session());
-      createAnimalMock.mockResolvedValue({ id: animalId });
-
-      // When
       const result = await createAnimal(baseAnimalInput);
 
-      // Then
-      expect(mockedPrisma.animal.create).toHaveBeenCalledWith({
-        data: baseAnimalInput,
+      expect(prisma.animal.create).toHaveBeenCalledWith({
+        data: {
+          ...baseAnimalInput,
+          organizacaoId,
+          acolhedorId: null,
+        },
         select: { id: true },
       });
       expect(result).toEqual({ id: animalId });
     });
+
+    it("derives exactly one foster owner from the current account", async () => {
+      vi.mocked(getServerSession).mockResolvedValue(
+        session({
+          tipoPerfil: TipoPerfil.ACOLHEDOR,
+          organizacaoId: null,
+          acolhedorId,
+        }),
+      );
+      vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+        ativo: true,
+        tipoPerfil: TipoPerfil.ACOLHEDOR,
+        organizacao: null,
+        acolhedor: { id: acolhedorId },
+      } as never);
+      vi.mocked(prisma.raca.findUnique).mockResolvedValue({
+        especieId: baseAnimalInput.especieId,
+      } as never);
+      createAnimalMock.mockResolvedValue({ id: animalId } as never);
+
+      const result = await createAnimal(baseAnimalInput);
+
+      expect(prisma.animal.create).toHaveBeenCalledWith({
+        data: {
+          ...baseAnimalInput,
+          organizacaoId: null,
+          acolhedorId,
+        },
+        select: { id: true },
+      });
+      expect(result).toEqual({ id: animalId });
+    });
+
+    it("rejects browser-supplied owner identifiers before creating", async () => {
+      mockActiveOrganization();
+
+      const result = await createAnimal({
+        ...baseAnimalInput,
+        organizacaoId: otherOrganizacaoId,
+      } as AnimalInput);
+
+      expect(result.error).toBe("Revise os campos informados");
+      expect(prisma.animal.create).not.toHaveBeenCalled();
+    });
   });
 
   describe("updateAnimal", () => {
-    it("returns an error when the session user does not own the animal", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session());
+    it("returns an error when the current account does not own the animal", async () => {
+      mockActiveOrganization();
       findAnimal.mockResolvedValue({
-        id: animalId,
         organizacaoId: otherOrganizacaoId,
         acolhedorId: null,
         status: StatusAnimal.RESGATADO,
-      });
+      } as never);
 
-      // When
       const result = await updateAnimal(animalId, baseAnimalInput);
 
-      // Then
       expect(result.error).toBe("Acesso negado");
-      expect(mockedPrisma.animal.update).not.toHaveBeenCalled();
+      expect(prisma.animal.update).not.toHaveBeenCalled();
+    });
+
+    it("does not allow ownership transfer in an update payload", async () => {
+      mockActiveOrganization();
+      findAnimal.mockResolvedValue({
+        organizacaoId,
+        acolhedorId: null,
+        status: StatusAnimal.RESGATADO,
+      } as never);
+
+      const result = await updateAnimal(animalId, {
+        ...baseAnimalInput,
+        organizacaoId: otherOrganizacaoId,
+      } as AnimalInput);
+
+      expect(result.error).toBe("Revise os campos informados");
+      expect(prisma.animal.update).not.toHaveBeenCalled();
     });
   });
 
   describe("updateAnimalStatus", () => {
-    it("updates RESGATADO to EM_CUIDADOS for a valid owner", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session());
+    it("updates status for the current owner", async () => {
+      mockActiveOrganization();
       findAnimal.mockResolvedValue({
-        id: animalId,
         organizacaoId,
         acolhedorId: null,
         status: StatusAnimal.RESGATADO,
-      });
-      updateAnimalMock.mockResolvedValue({ id: animalId });
+      } as never);
+      updateAnimalMock.mockResolvedValue({ id: animalId } as never);
 
-      // When
-      const result = await updateAnimalStatus(animalId, StatusAnimal.EM_CUIDADOS);
+      const result = await updateAnimalStatus(
+        animalId,
+        StatusAnimal.EM_CUIDADOS,
+      );
 
-      // Then
-      expect(mockedPrisma.animal.update).toHaveBeenCalledWith({
+      expect(prisma.animal.update).toHaveBeenCalledWith({
         where: { id: animalId },
         data: { status: StatusAnimal.EM_CUIDADOS },
       });
       expect(result).toEqual({ success: true });
     });
+  });
 
-    it("returns an error for an invalid owner", async () => {
-      // Given
-      mockedGetServerSession.mockResolvedValue(session());
+  describe("deleteAnimal", () => {
+    it("does not delete an animal owned by another responsible account", async () => {
+      mockActiveOrganization();
       findAnimal.mockResolvedValue({
-        id: animalId,
         organizacaoId: otherOrganizacaoId,
         acolhedorId: null,
         status: StatusAnimal.RESGATADO,
-      });
+      } as never);
 
-      // When
-      const result = await updateAnimalStatus(animalId, StatusAnimal.EM_CUIDADOS);
+      const result = await deleteAnimal(animalId);
 
-      // Then
       expect(result.error).toBe("Acesso negado");
-      expect(mockedPrisma.animal.update).not.toHaveBeenCalled();
+      expect(prisma.animal.delete).not.toHaveBeenCalled();
     });
   });
 });

@@ -154,9 +154,9 @@ T001 through T019 MUST be completed and verified before any implementation task 
 - [X] T055 [US3] Define favorites, adopter requests and adopter dashboard HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark the corresponding matrix rows `contract defined` only with contract evidence (Owner: Pedro; depends on T052)
 - [X] T056 [US3] Implement backend adopter journey contracts using `lib/actions/favoritos.ts`, `lib/actions/solicitacoes.ts`, `lib/actions/request-guards.ts`, `lib/queries/favorites.ts`, `lib/queries/adopter-requests.ts`, `lib/queries/adotante-dashboard.ts`, `lib/schemas/favorito.ts`, and `lib/schemas/solicitacao.ts` or route handlers documented by T055 (Owner: Pedro; depends on T053-T055 and requires each implemented matrix row at `contract defined`)
 - [X] T057 [US3] Update matrix adopter journey rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T056)
-- [ ] T058 [US3] Integrate real favorites and adopter requests in `frontend/src/lib/data/favoritos.ts`, `frontend/src/lib/data/solicitacoes.ts`, `frontend/src/routes/_authenticated.meus-favoritos.tsx`, `frontend/src/routes/_authenticated.minhas-solicitacoes.tsx`, and adopter dashboard route (Owner: Arthur; depends on T057)
-- [ ] T059 [US3] Remove adopter journey mock/localStorage dependency from `frontend/src/lib/data/favoritos.ts` and relevant functions in `frontend/src/lib/data/solicitacoes.ts` (Owner: Arthur; depends on T058)
-- [ ] T060 [US3] Update matrix adopter journey rows to `flow complete` with validation evidence (Owner: Pedro; depends on T059)
+- [X] T058 [US3] Integrate real favorites and adopter requests in `frontend/src/lib/data/favoritos.ts`, `frontend/src/lib/data/solicitacoes.ts`, `frontend/src/routes/_authenticated.meus-favoritos.tsx`, `frontend/src/routes/_authenticated.minhas-solicitacoes.tsx`, and adopter dashboard route (Owner: Arthur; depends on T057)
+- [X] T059 [US3] Remove adopter journey mock/localStorage dependency from `frontend/src/lib/data/favoritos.ts` and relevant functions in `frontend/src/lib/data/solicitacoes.ts` (Owner: Arthur; depends on T058)
+- [X] T060 [US3] Update matrix adopter journey rows to `flow complete` with validation evidence (Owner: Pedro; depends on T059)
 
 ## Phase 9: Animal Management (User Story 3 - P2)
 
@@ -166,19 +166,19 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 ### Tests for User Story 3 Animal Management
 
-- [ ] T061 [US3] Add failing backend tests for animal ownership isolation and XOR responsible owner in `__tests__/actions/animais.test.ts` (Owner: Pedro)
-- [ ] T062 [US3] Add failing backend tests for photo primary/order behavior in `__tests__/actions/animais.test.ts` or `__tests__/actions/documento-upload.test.ts` as appropriate (Owner: Pedro; depends on T061)
-- [ ] T063 [P] [US3] Add failing backend tests for relationship self-link rejection and bidirectional link/unlink in `__tests__/actions/animal-relacionado.test.ts` (Owner: Pedro)
+- [X] T061 [US3] Add failing backend tests for animal ownership isolation and XOR responsible owner in `__tests__/actions/animais.test.ts` (Owner: Pedro)
+- [X] T062 [US3] Add failing backend tests for photo primary/order behavior in `__tests__/actions/animais.test.ts` or `__tests__/actions/documento-upload.test.ts` as appropriate (Owner: Pedro; depends on T061)
+- [X] T063 [P] [US3] Add failing backend tests for relationship self-link rejection and bidirectional link/unlink in `__tests__/actions/animal-relacionado.test.ts` (Owner: Pedro)
 
 ### Implementation for User Story 3 Animal Management
 
-- [ ] T064 [US3] Define owner animal CRUD, schema/validation, photo/upload, relationship, and search/filter HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`; mark each corresponding matrix row `contract defined` only with evidence (Owner: Pedro; depends on T060)
-- [ ] T065 [US3] Implement only the animal input schemas and server-side validation required by T064 in `lib/schemas/animal.ts`, `lib/schemas/foto-animal.ts`, and `lib/schemas/animal-relacionado.ts`, with validation tests passing and no unproven model or migration (Owner: Pedro; depends on T061-T064 and requires the schema/validation matrix row at `contract defined`)
-- [ ] T066 [US3] Implement only owner-scoped animal CRUD from T064 in `lib/actions/animais.ts` and `lib/queries/owned-animals.ts`, proving ownership isolation and XOR responsible owner (Owner: Pedro; depends on T061, T064-T065 and requires the animal CRUD matrix row at `contract defined`)
-- [ ] T067 [US3] Implement only animal photo ordering, primary-photo behavior, and authorized upload from T064 in `lib/actions/fotos.ts`, `lib/upload-router.ts`, and `app/api/uploadthing/route.ts` (Owner: Pedro; depends on T062, T064-T065 and requires the photo/upload matrix row at `contract defined`)
-- [ ] T068 [US3] Implement only animal relationship link/unlink behavior from T064 in `lib/actions/animal-relacionado.ts`, proving self-link rejection and bidirectional behavior (Owner: Pedro; depends on T063-T065 and requires the relationship matrix row at `contract defined`)
-- [ ] T069 [US3] Implement only owner animal search and filters from T064 in `lib/actions/animal-search.ts` and `lib/queries/owned-animals.ts`, with documented filter results verified (Owner: Pedro; depends on T064-T066 and requires the search/filter matrix row at `contract defined`)
-- [ ] T070 [US3] Update animal management matrix rows to `backend ready` only where T065-T069 tests and acceptance evidence pass (Owner: Pedro; depends on T065-T069)
+- [X] T064 [US3] Define owner animal CRUD, schema/validation, photo/upload, relationship, and search/filter HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`; mark each corresponding matrix row `contract defined` only with evidence (Owner: Pedro; depends on T060)
+- [X] T065 [US3] Implement only the animal input schemas and server-side validation required by T064 in `lib/schemas/animal.ts`, `lib/schemas/foto-animal.ts`, and `lib/schemas/animal-relacionado.ts`, with validation tests passing and no unproven model or migration (Owner: Pedro; depends on T061-T064 and requires the schema/validation matrix row at `contract defined`)
+- [X] T066 [US3] Implement only owner-scoped animal CRUD from T064 in `lib/actions/animais.ts` and `lib/queries/owned-animals.ts`, proving ownership isolation and XOR responsible owner (Owner: Pedro; depends on T061, T064-T065 and requires the animal CRUD matrix row at `contract defined`)
+- [X] T067 [US3] Implement only animal photo ordering, primary-photo behavior, and authorized upload from T064 in `lib/actions/fotos.ts`, `lib/upload-router.ts`, and `app/api/uploadthing/route.ts` (Owner: Pedro; depends on T062, T064-T065 and requires the photo/upload matrix row at `contract defined`)
+- [X] T068 [US3] Implement only animal relationship link/unlink behavior from T064 in `lib/actions/animal-relacionado.ts`, proving self-link rejection and bidirectional behavior (Owner: Pedro; depends on T063-T065 and requires the relationship matrix row at `contract defined`)
+- [X] T069 [US3] Implement only owner animal search and filters from T064 in `lib/actions/animal-search.ts` and `lib/queries/owned-animals.ts`, with documented filter results verified (Owner: Pedro; depends on T064-T066 and requires the search/filter matrix row at `contract defined`)
+- [X] T070 [US3] Update animal management matrix rows to `backend ready` only where T065-T069 tests and acceptance evidence pass (Owner: Pedro; depends on T065-T069)
 - [ ] T071 [US3] Integrate real owner animal management in `frontend/src/lib/data/animais.ts`, `frontend/src/routes/_authenticated.dashboard.animais.*.tsx`, `frontend/src/components/app/AnimalForm.tsx`, and `frontend/src/components/app/RelatedAnimalsPanel.tsx` (Owner: Arthur; depends on T070)
 - [ ] T072 [US3] Remove owner animal management mock/localStorage dependency from completed functions in `frontend/src/lib/data/animais.ts` (Owner: Arthur; depends on T071)
 - [ ] T073 [US3] Update matrix animal management rows to `flow complete` with validation evidence (Owner: Pedro; depends on T072)

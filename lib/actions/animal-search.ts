@@ -1,20 +1,24 @@
-"use server"
+"use server";
 
-import { prisma } from "@/lib/prisma"
+import { getResponsibleContext } from "@/lib/api/responsible-context";
+import { getOwnedAnimals, toOwnedAnimalDTO } from "@/lib/queries/owned-animals";
+import { ownedAnimalFilterSchema } from "@/lib/schemas/dashboard-filters";
 
 export async function searchAnimalsByName(term: string) {
-  return prisma.animal.findMany({
-    where: {
-      nome: { contains: term, mode: "insensitive" },
-    },
-    select: {
-      id: true,
-      nome: true,
-      fotos: {
-        where: { principal: true },
-        select: { urlFoto: true },
-      },
-    },
-    take: 5,
-  })
+  const contextResult = await getResponsibleContext();
+  if ("error" in contextResult) {
+    return [];
+  }
+
+  const filters = ownedAnimalFilterSchema.safeParse({ q: term });
+  if (!filters.success) {
+    return [];
+  }
+  const animals = await getOwnedAnimals(
+    contextResult.context.responsavelId,
+    contextResult.context.tipoPerfil,
+    filters.data,
+  );
+
+  return animals.slice(0, 5).map(toOwnedAnimalDTO);
 }
