@@ -104,18 +104,18 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 ### Tests for User Story 3 Public Flow
 
-- [ ] T035 [US3] Add failing public DTO exposure test for vitrine and animal detail in `__tests__/queries/public-animal.test.ts` (Owner: Pedro)
-- [ ] T036 [US3] Add failing public showcase filter/metrics contract test using `lib/queries/animal-showcase.ts` and `lib/queries/public-metrics.ts` in `__tests__/queries/public-animal.test.ts` or a new query test recorded in the matrix (Owner: Pedro; depends on T035)
+- [X] T035 [US3] Add failing public DTO exposure test for vitrine and animal detail in `__tests__/queries/public-animal.test.ts` (Owner: Pedro)
+- [X] T036 [US3] Add failing public showcase filter/metrics contract test using `lib/queries/animal-showcase.ts` and `lib/queries/public-metrics.ts` in `__tests__/queries/public-animal.test.ts` or a new query test recorded in the matrix (Owner: Pedro; depends on T035)
 
 ### Implementation for User Story 3 Public Flow
 
-- [ ] T037 [US3] Define exact public vitrine and animal detail HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark the corresponding matrix rows `contract defined` only with contract evidence (Owner: Pedro; depends on T016)
-- [ ] T038 [US3] Implement backend public DTO selection through existing `lib/queries/animal-showcase.ts`, `lib/queries/public-animal.ts`, `lib/queries/public-metrics.ts`, `lib/schemas/showcase.ts`, and `lib/tags.ts` (Owner: Pedro; depends on T035-T037 and requires the public showcase matrix rows at `contract defined`)
-- [ ] T039 [US3] Update matrix public showcase rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T038)
-- [ ] T040 [US3] Integrate public vitrine real data in `frontend/src/lib/data/animais.ts` and `frontend/src/lib/data/catalogos.ts` without removing unrelated mocks (Owner: Arthur; depends on T039)
-- [ ] T041 [US3] Validate public routes `frontend/src/routes/index.tsx`, `frontend/src/routes/vitrine.tsx`, and `frontend/src/routes/animais.$animalId.tsx` consume public DTOs and render empty/filter states (Owner: Arthur; depends on T040)
-- [ ] T042 [US3] Remove public-showcase mock/localStorage dependency from `frontend/src/lib/data/animais.ts` and `frontend/src/lib/data/catalogos.ts` only for completed public read flows (Owner: Arthur; depends on T041)
-- [ ] T043 [US3] Update matrix public showcase rows to `flow complete` with backend and frontend evidence (Owner: Pedro; depends on T042)
+- [X] T037 [US3] Define exact public vitrine and animal detail HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark the corresponding matrix rows `contract defined` only with contract evidence (Owner: Pedro; depends on T016)
+- [X] T038 [US3] Implement backend public DTO selection through existing `lib/queries/animal-showcase.ts`, `lib/queries/public-animal.ts`, `lib/queries/public-metrics.ts`, `lib/schemas/showcase.ts`, and `lib/tags.ts` (Owner: Pedro; depends on T035-T037 and requires the public showcase matrix rows at `contract defined`)
+- [X] T039 [US3] Update matrix public showcase rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T038)
+- [X] T040 [US3] Integrate public vitrine real data in `frontend/src/lib/data/animais.ts` and `frontend/src/lib/data/catalogos.ts` without removing unrelated mocks (Owner: Arthur; depends on T039)
+- [X] T041 [US3] Validate public routes `frontend/src/routes/index.tsx`, `frontend/src/routes/vitrine.tsx`, and `frontend/src/routes/animais.$animalId.tsx` consume public DTOs and render empty/filter states (Owner: Arthur; depends on T040)
+- [X] T042 [US3] Remove public-showcase mock/localStorage dependency from `frontend/src/lib/data/animais.ts` and `frontend/src/lib/data/catalogos.ts` only for completed public read flows (Owner: Arthur; depends on T041)
+- [X] T043 [US3] Update matrix public showcase rows to `flow complete` with backend and frontend evidence (Owner: Pedro; depends on T042)
 
 ## Phase 7: Profiles and Screening (User Story 2 - P1)
 
@@ -125,15 +125,15 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 ### Tests for User Story 2 Profiles
 
-- [ ] T044 [US2] Add failing backend tests for profile DTO sensitive-field exclusions and immutable CPF/CNPJ behavior in `__tests__/actions/auth-guards.test.ts` or a new profile test recorded in the matrix (Owner: Pedro)
-- [ ] T045 [US2] Add failing backend tests for screening save and screening-required behavior in `__tests__/actions/solicitacoes.test.ts` and `__tests__/actions/auth-guards.test.ts` (Owner: Pedro; depends on T044)
+- [X] T044 [US2] Add failing backend tests for profile DTO sensitive-field exclusions and immutable CPF/CNPJ behavior in `__tests__/actions/auth-guards.test.ts` or a new profile test recorded in the matrix (Owner: Pedro)
+- [X] T045 [US2] Add failing backend tests for screening save and screening-required behavior in `__tests__/actions/solicitacoes.test.ts` and `__tests__/actions/auth-guards.test.ts` (Owner: Pedro; depends on T044)
 
 ### Implementation for User Story 2 Profiles
 
-- [ ] T046 [US2] Audit profile field gaps between `frontend/INTEGRATION.md`, `frontend/src/lib/domain/types.ts`, and `prisma/schema.prisma`; record the unproven Organização/Acolhedor profile-photo expectation as `lacuna/decisão pendente`, not `contract defined`, and require an explicit product decision plus homologation validation before any schema change without creating a migration or changing the original database (Owner: Pedro; depends on T030)
-- [ ] T047 [US2] Define registration, profile and screening HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark only the corresponding evidence-backed matrix rows `contract defined`; leave the profile-photo row pending until the required decision exists (Owner: Pedro; depends on T046)
-- [ ] T048 [US2] Implement backend profile/screening contract behavior through existing `lib/actions/auth-register.ts`, `lib/actions/triagem.ts`, `lib/schemas/adotante.ts`, `lib/auth.ts`, and `lib/permissions.ts` or documented route handlers from T047 (Owner: Pedro; depends on T044-T047 and requires each implemented matrix row at `contract defined`)
-- [ ] T049 [US2] Update matrix profile/screening rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T048)
+- [X] T046 [US2] Audit profile field gaps between `frontend/INTEGRATION.md`, `frontend/src/lib/domain/types.ts`, and `prisma/schema.prisma`; record the unproven Organização/Acolhedor profile-photo expectation as `lacuna/decisão pendente`, not `contract defined`, and require an explicit product decision plus homologation validation before any schema change without creating a migration or changing the original database (Owner: Pedro; depends on T030)
+- [X] T047 [US2] Define registration, profile and screening HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark only the corresponding evidence-backed matrix rows `contract defined`; leave the profile-photo row pending until the required decision exists (Owner: Pedro; depends on T046)
+- [X] T048 [US2] Implement backend profile/screening contract behavior through existing `lib/actions/auth-register.ts`, `lib/actions/triagem.ts`, `lib/schemas/adotante.ts`, `lib/auth.ts`, and `lib/permissions.ts` or documented route handlers from T047 (Owner: Pedro; depends on T044-T047 and requires each implemented matrix row at `contract defined`)
+- [X] T049 [US2] Update matrix profile/screening rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T048)
 - [ ] T050 [US2] Integrate real registration/profile/screening calls in `frontend/src/lib/data/usuarios.ts` and affected routes `frontend/src/routes/cadastro.*.tsx`, `frontend/src/routes/_authenticated.triagem.tsx`, `frontend/src/routes/_authenticated.meu-perfil.tsx`, and `frontend/src/routes/_authenticated.dashboard.perfil.tsx` (Owner: Arthur; depends on T049)
 - [ ] T051 [US2] Remove profile and screening mock/localStorage dependency from `frontend/src/lib/data/usuarios.ts` only for completed profile/screening flows (Owner: Arthur; depends on T050)
 - [ ] T052 [US2] Update matrix profile/screening rows to `flow complete` with validation evidence (Owner: Pedro; depends on T051)

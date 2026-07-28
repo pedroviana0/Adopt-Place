@@ -3,7 +3,7 @@ import { vi } from "vitest";
 // Mock Prisma Client para testes de Server Actions
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    adotante: { findUnique: vi.fn() },
+    adotante: { findUnique: vi.fn(), update: vi.fn() },
     solicitacaoAdocao: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
@@ -81,11 +81,20 @@ vi.mock("@/lib/prisma", () => ({
       create: vi.fn(),
       count: vi.fn(),
     },
-    usuario: { findUnique: vi.fn(), update: vi.fn(), findMany: vi.fn() },
+    usuario: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+    },
     especie: { findMany: vi.fn() },
     raca: { findMany: vi.fn() },
-    organizacao: { findMany: vi.fn(), count: vi.fn() },
-    acolhedorIndependente: { findMany: vi.fn(), count: vi.fn() },
+    organizacao: { findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn() },
+    acolhedorIndependente: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
+    },
     // Support both the array form `$transaction([p1, p2])` (public queries) and
     // the callback form `$transaction(async (tx) => ...)` used elsewhere.
     $transaction: vi.fn((arg) => (Array.isArray(arg) ? Promise.all(arg) : arg())),

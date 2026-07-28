@@ -32,7 +32,7 @@ export const adopterRegistrationSchema = z.object({
   cidade: requiredTextSchema,
   estado: requiredTextSchema.length(2, "Use a UF com 2 letras.").transform((value) => value.toUpperCase()),
   password: passwordSchema,
-});
+}).strict();
 
 export const adopterScreeningSchema = z.object({
   motivoAdocao: requiredTextSchema,
@@ -65,7 +65,7 @@ export const adopterScreeningSchema = z.object({
   animaisAnterioresDescricao: optionalTextSchema,
   temOutrosAnimais: booleanSelectSchema,
   outrosAnimaisDescricao: optionalTextSchema,
-});
+}).strict();
 
 export const loginSchema = z.object({
   email: emailSchema,
