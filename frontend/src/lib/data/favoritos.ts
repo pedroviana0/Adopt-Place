@@ -1,22 +1,41 @@
-import type { Favorito } from "../domain/types";
-import { loadDB, mutate } from "./db";
+import type { StatusAnimal } from "../domain/enums";
+import type { PublicAnimalTag } from "./animais";
+import { apiRequest } from "./api";
 
-export function listFavoritos(adotanteId: string): Favorito[] {
-  return loadDB().favoritos.filter((f) => f.adotanteId === adotanteId);
+// Issue #33 (T058/T059): real adopter favorites over /api/favoritos. The mock
+// localStorage implementation was removed; identity comes from the session on
+// the backend (no browser-supplied adotanteId).
+
+// The nested `animal` matches the public animal summary shape, so the favorites
+// grid can reuse PublicAnimalCard.
+export interface FavoritoAnimal {
+  id: string;
+  nome: string;
+  status: StatusAnimal;
+  idadeEstimada: string | null;
+  especie: string | null;
+  raca: string | null;
+  porte: string;
+  sexo: string;
+  castrado: boolean;
+  fotoPrincipal: string | null;
+  responsavel: string | null;
+  cidade: string | null;
+  tags: PublicAnimalTag[];
 }
 
-export function isFavorito(adotanteId: string, animalId: string): boolean {
-  return loadDB().favoritos.some((f) => f.adotanteId === adotanteId && f.animalId === animalId);
+export interface FavoritoDTO {
+  animalId: string;
+  criadoEm: string;
+  animal: FavoritoAnimal;
 }
 
-export function toggleFavorito(adotanteId: string, animalId: string): boolean {
-  return mutate((db) => {
-    const idx = db.favoritos.findIndex((f) => f.adotanteId === adotanteId && f.animalId === animalId);
-    if (idx >= 0) {
-      db.favoritos.splice(idx, 1);
-      return false;
-    }
-    db.favoritos.push({ adotanteId, animalId, criadoEm: new Date().toISOString() });
-    return true;
-  });
+export async function fetchFavoritos(): Promise<FavoritoDTO[]> {
+  const data = await apiRequest<{ favorites: FavoritoDTO[] }>("/api/favoritos", { method: "GET" });
+  return data.favorites;
+}
+
+// PUT adds, DELETE removes (backend derives the adopter from the session).
+export async function setFavorito(animalId: string, favorited: boolean): Promise<void> {
+  await apiRequest(`/api/favoritos/${animalId}`, { method: favorited ? "PUT" : "DELETE" });
 }

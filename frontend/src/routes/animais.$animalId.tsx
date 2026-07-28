@@ -1,15 +1,15 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { Heart, Send, MapPin } from "lucide-react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { fetchPublicAnimal } from "@/lib/data/animais";
 import { StatusBadge } from "@/components/app/StatusBadge";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
-import { getAdotante } from "@/lib/data/usuarios";
 import { useSessao } from "@/lib/data/hooks";
-import { isFavorito, toggleFavorito } from "@/lib/data/favoritos";
-import { createSolicitacao } from "@/lib/data/solicitacoes";
+import { fetchFavoritos, setFavorito } from "@/lib/data/favoritos";
+import { criarSolicitacao } from "@/lib/data/solicitacoes";
+import type { ApiError } from "@/lib/data/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/animais/$animalId")({
@@ -42,6 +42,7 @@ function AnimalDetail() {
   const [favSaving, setFavSaving] = useState(false);
   const [solSaving, setSolSaving] = useState(false);
 
+  const queryClient = useQueryClient();
   const {
     data: animal,
     isLoading,
@@ -50,6 +51,13 @@ function AnimalDetail() {
     queryKey: ["animal", animalId],
     queryFn: () => fetchPublicAnimal(animalId),
   });
+  const isAdopter = sessao?.tipoPerfil === "ADOTANTE";
+  const favoritosQuery = useQuery({
+    queryKey: ["favoritos"],
+    queryFn: fetchFavoritos,
+    enabled: isAdopter,
+  });
+  const favorited = (favoritosQuery.data ?? []).some((f) => f.animalId === animalId);
 
   if (isLoading) {
     return (
@@ -74,45 +82,45 @@ function AnimalDetail() {
   const currentPath = router.state.location.pathname;
   const requireLogin = () => navigate({ to: "/login", search: { next: currentPath } });
 
-  // Favoritar / solicitar adoção pertencem à jornada do adotante (#33) e seguem
-  // usando o caminho mock até seu contrato real; #27 integra apenas a leitura
-  // pública da vitrine/detalhe.
-  const favorited = sessao?.adotanteId ? isFavorito(sessao.adotanteId, animal.id) : false;
-
-  const handleFavoritar = () => {
-    if (!sessao || sessao.tipoPerfil !== "ADOTANTE") {
-      if (sessao) toast.error("Apenas adotantes podem favoritar animais.");
-      else requireLogin();
+  // Favoritar / solicitar adoção consomem a jornada do adotante real (Issue #33).
+  const handleFavoritar = async () => {
+    if (!sessao) return requireLogin();
+    if (sessao.tipoPerfil !== "ADOTANTE") {
+      toast.error("Apenas adotantes podem favoritar animais.");
       return;
     }
     setFavSaving(true);
     try {
-      const now = toggleFavorito(sessao.adotanteId!, animal.id);
-      toast.success(now ? "Adicionado aos favoritos" : "Removido dos favoritos");
+      await setFavorito(animal.id, !favorited);
+      await queryClient.invalidateQueries({ queryKey: ["favoritos"] });
+      toast.success(!favorited ? "Adicionado aos favoritos" : "Removido dos favoritos");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao favoritar");
     } finally {
       setFavSaving(false);
     }
   };
 
-  const handleSolicitar = () => {
+  const handleSolicitar = async () => {
     if (!sessao) return requireLogin();
     if (sessao.tipoPerfil !== "ADOTANTE") {
       toast.error("Somente adotantes podem solicitar adoção.");
       return;
     }
-    const adot = sessao.adotanteId ? getAdotante(sessao.adotanteId) : undefined;
-    if (!adot?.triagemConcluida) {
-      toast.error("Você precisa concluir a triagem antes de solicitar uma adoção.");
-      navigate({ to: "/triagem" });
-      return;
-    }
     setSolSaving(true);
     try {
-      createSolicitacao(sessao.adotanteId!, animal.id);
+      await criarSolicitacao(animal.id);
+      await queryClient.invalidateQueries({ queryKey: ["minhas-solicitacoes"] });
       toast.success("Solicitação enviada! Acompanhe em Minhas solicitações.");
       navigate({ to: "/minhas-solicitacoes" });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao solicitar");
+      // Backend guards: screening required, unavailable animal, duplicate request.
+      if ((e as ApiError).code === "SCREENING_REQUIRED") {
+        toast.error("Você precisa concluir a triagem antes de solicitar uma adoção.");
+        navigate({ to: "/triagem" });
+      } else {
+        toast.error(e instanceof Error ? e.message : "Erro ao solicitar");
+      }
     } finally {
       setSolSaving(false);
     }
