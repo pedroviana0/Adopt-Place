@@ -23,8 +23,9 @@ export const triagemSchema = z.object({
   alergicosNaCasa: z.boolean(),
   alergicosNaCasaDetalhe: z.string().optional(),
   planoMudanca: z.string().min(1),
-  historicoDevolucao: z.string().optional(),
-  historicoPercaDescuido: z.string().optional(),
+  // Required by the backend contract (adopterScreeningSchema requiredTextSchema).
+  historicoDevolucao: z.string().min(1, "Campo obrigatório"),
+  historicoPercaDescuido: z.string().min(1, "Campo obrigatório"),
   cienteLongevidade: z.boolean(),
   permiteVisitaProtetor: z.boolean(),
   cienteNaoRepassar: z.boolean(),
