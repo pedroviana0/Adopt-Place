@@ -76,7 +76,7 @@ frontend audit in T004/T005 or the flow mappings in T008-T014.
 | Surface | Real evidence | Capability found | Gap or integration risk | Next verifiable step | Owner | Status |
 |---------|---------------|------------------|-------------------------|----------------------|-------|--------|
 | HTTP routes | `app/api/auth/[...nextauth]/route.ts`, `app/api/session/route.ts`, `app/api/mensagens/[id]/route.ts`, `app/api/uploadthing/route.ts` | NextAuth GET/POST, protected application session DTO, participant-scoped message polling, and authenticated uploads exist | Internal actions/queries are not automatically contracts for the separated frontend | Issue #21 implemented and validated protected `GET /api/session`; later flows still require their own contracts | Pedro | `backend ready` for AUTH-01 |
-| Authentication | `lib/auth.ts`, `lib/auth-credentials.ts`, `lib/actions/login.ts`, `lib/actions/auth-guards.ts` | Credentials login, NextAuth JWT session enrichment, current active-account revalidation, safe role/profile session DTO, and reusable session guards exist | Backend proof is complete, but root `/login` is not the public UI and `frontend/` still uses its mock session | Issue #22 must consume the real contract and prove cookie-backed reload/logout before AUTH-01 advances | Pedro | `backend ready` for AUTH-01 |
+| Authentication | `lib/auth.ts`, `lib/auth-credentials.ts`, `lib/actions/login.ts`, `lib/actions/auth-guards.ts`; `frontend/src/lib/data/sessao.ts`, `frontend/src/routes/_authenticated.tsx` | Credentials login, NextAuth JWT session enrichment, current active-account revalidation, safe role/profile session DTO, reusable session guards, and official-frontend consumption exist | Cookie-backed login/reload/logout, no-session 401, inactive-account 403, and protected-route redirect passed in isolated homologation; full frontend lint retains unrelated Prettier debt | Keep later protected flows on the proven session boundary and track repository-wide formatting separately | Pedro | `flow complete` for AUTH-01 |
 | Authorization and ownership | `lib/permissions.ts`, `lib/actions/auth-guards.ts` | Active session, role, adopter/responsible/admin, animal/health/planned-care/document ownership, and conversation participation helpers exist | Every future HTTP handler must invoke the appropriate guard before protected reads or writes; helper presence alone does not prove every flow | Record required guard and 401/403 tests per contract | Pedro | `audited` |
 | Mutations | `lib/actions/` (17 files) | Registration, screening, favorites, animal/photo/relationship management, adoption transitions, health, planned care, documents, chat, and admin activation are represented | Server Actions are root-internal boundaries and cannot be consumed directly by the separately published frontend | Map each action group before defining narrow HTTP mutations | Pedro | `audited` |
 | Queries | `lib/queries/` (16 files) | Public showcase/detail/metrics plus adopter, owner, animal, health, document, dashboard, chat, and admin reads exist | Some queries accept caller-provided profile IDs while others enforce guards internally; HTTP boundaries must derive protected identity from the session | Classify every query as public or session/role/owner scoped in later contract rows | Pedro | `audited` |
@@ -180,14 +180,14 @@ acceptance criteria. Together they contain every field required by FR-003.
 
 All rows except AUTH-01 remain `audited`. Existing Server Actions, queries,
 schemas, Prisma models, or GitHub Issues do not make an HTTP contract
-`contract defined`. AUTH-01 is `backend ready` because Issue #20 records the
-contract and Issue #21 implements and validates its backend boundary. It does
-not become `frontend integrated` or `flow complete` until the frontend work and
-acceptance evidence in Issues #22/#23 are complete.
+`contract defined`. AUTH-01 is `flow complete`: Issue #20 records the contract,
+Issue #21 implements and validates its backend boundary, Issue #22 consumes it
+without the previous session mock/localStorage path, and Issue #23 records the
+isolated homologation and validation evidence.
 
 | Flow ID | Flow and current frontend behavior | Current real backend capability | Source of truth | Known gap and risk | Smallest next flow and HTTP contract inventory | Status and evidence |
 |---------|------------------------------------|---------------------------------|-----------------|--------------------|------------------------------------------------|---------------------|
-| AUTH-01 | Login, session, reload, logout, and protected-route identity. `frontend/src/lib/data/sessao.ts` authenticates against plaintext seed passwords and persists `adoptplace:session:v1`; `_authenticated.tsx` depends on that client-only state. | `lib/auth.ts` preserves NextAuth Credentials and JWT enrichment; `lib/auth-credentials.ts` validates credentials and blocks inactive accounts; `app/api/auth/[...nextauth]/route.ts` exports the protocol handlers; `app/api/session/route.ts` returns the protected allowlisted DTO after revalidating `Usuario.ativo`; auth guards/permissions remain available. | `Usuario`, NextAuth `Account`/`Session` models, `TipoPerfil`, `Usuario.ativo`, and the clarified secure-cookie session rule. | **Critical frontend gap remains**: backend authentication is proven, but reload, logout, redirect behavior, and mock/localStorage removal still depend on Issues #22/#23. | Arthur consumes the backend-ready session contract in Issue #22 without changing the DTO or accessing Prisma. Inventory group: **Session/login/logout**. | `backend ready`. Evidence: contract inventory; `app/api/session/route.ts`; `lib/auth-credentials.ts`; `__tests__/actions/auth-credentials.test.ts`; `__tests__/api/session.test.ts` (6 passing tests); T020-T022 and T024-T026; Issues #20/#21. |
+| AUTH-01 | Login, session, reload, logout, and protected-route identity use relative NextAuth/API calls in `frontend/src/lib/data/sessao.ts`; session state is cached only in memory and `_authenticated.tsx` awaits the real session contract before allowing protected client navigation. | `lib/auth.ts` preserves NextAuth Credentials and JWT enrichment; `lib/auth-credentials.ts` validates credentials and blocks inactive accounts; `app/api/auth/[...nextauth]/route.ts` exports the protocol handlers; `app/api/session/route.ts` returns the protected allowlisted DTO after revalidating `Usuario.ativo`; auth guards/permissions remain available. | `Usuario`, NextAuth `Account`/`Session` models, `TipoPerfil`, `Usuario.ativo`, and the clarified secure-cookie session rule. | The flow-level acceptance checks passed against an isolated PostgreSQL 16 container. Repository-wide frontend Prettier findings remain an unrelated formatting debt; semantic lint of the auth files passes. SSR cookie forwarding remains outside AUTH-01 and tracked under ROUTES-01. | Keep later profile and protected-flow contracts dependent on this proven session boundary. Inventory group: **Session/login/logout**. | `flow complete`. Evidence: Issues #20-#23; PRs #77/#78; isolated homologation on 2026-07-28; active login/session/reload/logout; 401 without session; invalid-credential denial; 403 `INACTIVE_ACCOUNT`; protected-route redirect; no session localStorage; 31 backend test files/124 tests; backend typecheck, lint, Prisma validation and build; auth semantic lint and frontend production build. T023 and T027-T030 are complete. |
 | REG-01 | Adopter, organization, and foster registration routes call `cadastrar*` in `frontend/src/lib/data/usuarios.ts`, write users and plaintext passwords into the local DB, and set a fictitious session immediately. | `lib/actions/auth-register.ts` plus `lib/schemas/adotante.ts` implement only adopter registration with server validation, uniqueness checks, password hashing, and a Prisma transaction. | `Usuario`, `Adotante`, `Organizacao`, `AcolhedorIndependente`; unique e-mail, CPF, and CNPJ constraints. | **High**: organization and foster registration have no proven backend action or HTTP contract; frontend auto-login behavior is not a trusted rule. | Define separate evidence-backed registration DTOs without presuming missing organization/foster behavior. Inventory group: **Registration**. | `audited`. Evidence: `usuarios.ts`, registration routes, `auth-register.ts`, `adotante.ts`, and `schema.prisma`. |
 | PROFILE-01 | `meu-perfil.tsx` and `dashboard.perfil.tsx` read mock profiles; organization/foster edits call `atualizarOrganizacao`/`atualizarAcolhedor` and persist to localStorage. CPF/CNPJ are intended as read-only in `frontend/INTEGRATION.md`. | No profile-edit action, query, schema, or HTTP route is proven. Session enrichment exposes only scoped IDs. `frontend/INTEGRATION.md` is planning input, not backend capability. | `Usuario`, `Adotante`, `Organizacao`, and `AcolhedorIndependente`; FR-009/FR-010 immutable identifier rule. | **High**: editable-field DTOs and e-mail uniqueness behavior are undefined. `fotoUrl` exists in frontend organization/foster types but not in the Prisma profiles, so it is a **lacuna/decisao pendente** requiring an explicit product decision and homologation before any schema change. | Define role-specific profile read/update contracts while leaving the profile-photo row pending. Inventory group: **Profile and screening**. | `audited`. Evidence: frontend profile routes/types, `frontend/INTEGRATION.md:52-66`, `lib/auth.ts`, and absent `fotoUrl` in `schema.prisma`. |
 | SCREEN-01 | `_authenticated.triagem.tsx` calls `salvarTriagem` in `usuarios.ts`; answers and `triagemConcluida` persist in the local DB. | `lib/actions/triagem.ts`, `lib/schemas/adotante.ts`, and `lib/actions/request-guards.ts` save adopter screening and enforce completed screening before adoption requests. | Screening fields and `triagemConcluida` on `Adotante`; FR-013. | **High**: no authenticated HTTP DTO exists; request identity must come from the session, and screening answers are sensitive. | Define adopter-owned screening read/save plus owner request-review allowlists. Inventory group: **Profile and screening**. | `audited`. Evidence: `usuarios.ts:134-140`, triagem route, backend action/schema/guard, and request tests. |
@@ -261,9 +261,9 @@ earlier flow. No frontend code is modified by this T014 review.
 
 These are the frontend acceptance notes for the authentication proof (T023) plus
 the frontend integration evidence produced by T027–T029 (Issue #22). They record
-what the frontend now does and how to validate it; they **do not** promote the
-matrix status. The session row stays `backend ready` until Pedro/Codex records
-`flow complete` in T030 after reviewing this evidence and the homologation run.
+what the frontend now does and how it was validated. Pedro/Codex reviewed the
+merged evidence and completed the isolated homologation in Issue #23, promoting
+the session row to `flow complete` and completing T030.
 
 **Frontend integration done (Arthur, Issue #22):**
 
@@ -280,16 +280,22 @@ matrix status. The session row stays `backend ready` until Pedro/Codex records
   async `login`/`logout`; `frontend/vite.config.ts` adds a dev-only `/api` proxy
   to the local backend (sanctioned by the T019 decision).
 
-**Acceptance checks (manual, homologation — SC-006 login/session/logout):**
+**Acceptance checks (isolated homologation — 2026-07-28):**
 
-| # | Step | Expected result |
+Environment: local Docker PostgreSQL 16 container
+`adoptplace-issue23-pg`, disposable database `adoptplace_issue23` bound only to
+`127.0.0.1:55432`, backend at `localhost:3000`, and official frontend/proxy at
+`localhost:5173`. The two committed migrations and the existing seed were
+applied only to this disposable database. The original database was never used.
+
+| # | Step | Recorded result |
 |---|------|-----------------|
-| 1 | Login with a valid active account | `POST /api/auth/callback/credentials` sets the cookie; `GET /api/session` returns 200; UI navigates to `next` or `/`. |
-| 2 | Refresh/reload while logged in | `GET /api/session` returns 200 from the cookie; session persists with **no** localStorage entry. |
-| 3 | Logout | `POST /api/auth/signout` clears the cookie; `GET /api/session` then returns 401; UI returns to `/`. |
-| 4 | Open a protected route without a session | `_authenticated` guard redirects to `/login?next=<path>`. |
-| 5 | Invalid credentials | Generic `E-mail ou senha inválidos` (no account-existence leak). |
-| 6 | Inactive account | Blocked; `GET /api/session` returns 403 `INACTIVE_ACCOUNT` with `Conta desativada. Entre em contato com o administrador`. |
+| 1 | Login with a valid active account | Passed as `ADOTANTE`: credentials callback succeeded and `GET /api/session` returned 200 with the allowlisted DTO. |
+| 2 | Refresh/reload while logged in | Passed: a second session request with the same secure-cookie session returned 200; `sessao.ts` has no session localStorage access. |
+| 3 | Logout | Passed: signout completed and the next `GET /api/session` returned 401. Steps 1–3 plus the initial no-session check completed in 2.84 seconds. |
+| 4 | Open a protected route without a session | Passed by exercising the real route guard against the live API: redirect to `/login` with `next=/dashboard`. Browser automation was unavailable, so no visual screenshot is claimed. |
+| 5 | Invalid credentials | Passed in 0.71 second: callback returned `CredentialsSignin` and no session was created (`GET /api/session` returned 401). |
+| 6 | Inactive account | Passed as `ORGANIZACAO` in 1.40 second: an existing 200 session changed to 403 `INACTIVE_ACCOUNT` after deactivation in the disposable database; the test account was restored immediately. |
 
 **Known limitations recorded (not resolved by assumption):**
 
@@ -298,13 +304,33 @@ matrix status. The session row stays `backend ready` until Pedro/Codex records
 - Login-time inactive blocking relies on NextAuth error masking, so step 5/6 may
   both surface the generic message at login; the authoritative inactive block and
   exact message are proven by the `GET /api/session` 403 (Issue #21 tests).
-- SSR session (server-side cookie forwarding) is out of scope; the F1 SSR-flash
-  defect remains tracked under ROUTES-01 / T033.
+- True SSR session cookie forwarding remains out of scope. Issue #24/T033 added
+  the explicit loading state and real client-side guard used by this
+  certification; remaining wrong-role/ADMIN route behavior stays under
+  ROUTES-01.
 
-**Executed validation (this PR):** `npm --prefix frontend run lint` and
-`npm --prefix frontend run build`. Live login/refresh/logout require both servers
-plus a homologation database and are recorded here as manual acceptance steps,
-not run against the original database.
+**Issue #23 certification review:**
+
+- Runtime: all six AUTH-01 checks above passed through the official frontend
+  proxy and real backend against the isolated disposable database.
+- Backend: `npm test` (31 files, 124 tests), `npm run typecheck`,
+  `npm run lint`, `npm run prisma:validate`, and `npm run build` passed.
+- Frontend: auth-file semantic ESLint passed with only the repository's Prettier
+  rule disabled; `npm --prefix frontend run build` passed.
+- Known validation debt: the normal frontend lint still reports existing
+  Prettier formatting findings in Arthur-owned files. This certification does
+  not reformat unrelated frontend files; no semantic auth lint error remains.
+- Security/static checks: `sessao.ts` has no `SESSION_KEY`, session
+  `localStorage`, plaintext seed-password login, Prisma import, PostgreSQL
+  import, or database credential. It uses only relative authenticated HTTP
+  contracts, and the returned session DTO exposes no password or raw Prisma
+  model.
+- Database safety: migrations and seed ran only against
+  `adoptplace_issue23` in `adoptplace-issue23-pg`; no reset was used and the
+  original database was not contacted.
+
+Result: T023 and T027-T030 have merged or recorded verifiable evidence.
+AUTH-01 is `flow complete`.
 
 ## Route Tree Audit (T031) and Route Correction (T033) — Issue #24
 

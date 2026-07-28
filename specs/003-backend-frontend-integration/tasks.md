@@ -71,17 +71,17 @@ T001 through T019 MUST be completed and verified before any implementation task 
 - [X] T020 [US2] Add failing backend test for valid login/session DTO and no sensitive fields in `__tests__/actions/auth-guards.test.ts` or a new auth contract test file recorded in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
 - [X] T021 [US2] Add failing backend test for 401 without session on the selected protected auth-proof contract in `__tests__/actions/auth-guards.test.ts` or the contract test file from T020 (Owner: Pedro; depends on T020)
 - [X] T022 [US2] Add failing backend test for inactive user block with message `Conta desativada. Entre em contato com o administrador` in `__tests__/actions/auth-guards.test.ts` (Owner: Pedro; depends on T021)
-- [ ] T023 [P] [US2] Add frontend acceptance notes for login, refresh-session, logout, and protected-route redirect in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Arthur)
+- [X] T023 [P] [US2] Add frontend acceptance notes for login, refresh-session, logout, and protected-route redirect in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Arthur)
 
 ### Implementation for User Story 2
 
 - [X] T024 [US2] Implement the backend auth-proof contract selected in T018 using `lib/auth.ts`, `lib/permissions.ts`, and the existing `app/api/auth/[...nextauth]/route.ts` boundary or documented route from T018 (Owner: Pedro; depends on T018-T022 and requires the session matrix row at `contract defined`)
 - [X] T025 [US2] Validate the backend auth-proof contract returns DTOs and excludes password hash, CPF, CNPJ, full address, screening answers, and internal fields in the test file from T020 (Owner: Pedro; depends on T024)
 - [X] T026 [US2] Update `specs/003-backend-frontend-integration/integration-matrix.md` session row to `backend ready` with validation evidence (Owner: Pedro; depends on T025)
-- [ ] T027 [US2] Integrate real session consumption in `frontend/src/lib/data/sessao.ts` without touching `tasks.md` (Owner: Arthur; depends on T026)
-- [ ] T028 [US2] Remove localStorage-based session persistence for the auth flow from `frontend/src/lib/data/sessao.ts` after real login/session/logout works (Owner: Arthur; depends on T027)
-- [ ] T029 [US2] Validate protected-route redirect behavior in `frontend/src/routes/_authenticated.tsx` against the real session contract (Owner: Arthur; depends on T028)
-- [ ] T030 [US2] Update `specs/003-backend-frontend-integration/integration-matrix.md` session row to `flow complete` with backend and frontend validation evidence (Owner: Pedro; depends on T029)
+- [X] T027 [US2] Integrate real session consumption in `frontend/src/lib/data/sessao.ts` without touching `tasks.md` (Owner: Arthur; depends on T026)
+- [X] T028 [US2] Remove localStorage-based session persistence for the auth flow from `frontend/src/lib/data/sessao.ts` after real login/session/logout works (Owner: Arthur; depends on T027)
+- [X] T029 [US2] Validate protected-route redirect behavior in `frontend/src/routes/_authenticated.tsx` against the real session contract (Owner: Arthur; depends on T028)
+- [X] T030 [US2] Update `specs/003-backend-frontend-integration/integration-matrix.md` session row to `flow complete` with backend and frontend validation evidence (Owner: Pedro; depends on T029)
 
 **Checkpoint**: Authentication proof complete before profile, adopter journey, owner, admin, dashboard, health or chat integration begins.
 
