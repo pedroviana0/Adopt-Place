@@ -11,6 +11,7 @@ vi.mock("@/lib/prisma", () => ({
       create: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      count: vi.fn(),
     },
   animal: {
     findUnique: vi.fn(),
@@ -81,7 +82,13 @@ vi.mock("@/lib/prisma", () => ({
       count: vi.fn(),
     },
     usuario: { findUnique: vi.fn(), update: vi.fn(), findMany: vi.fn() },
-    $transaction: vi.fn((fn) => fn()),
+    especie: { findMany: vi.fn() },
+    raca: { findMany: vi.fn() },
+    organizacao: { findMany: vi.fn(), count: vi.fn() },
+    acolhedorIndependente: { findMany: vi.fn(), count: vi.fn() },
+    // Support both the array form `$transaction([p1, p2])` (public queries) and
+    // the callback form `$transaction(async (tx) => ...)` used elsewhere.
+    $transaction: vi.fn((arg) => (Array.isArray(arg) ? Promise.all(arg) : arg())),
   },
 }));
 

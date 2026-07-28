@@ -234,6 +234,60 @@ Consequences:
   `SameSite`, CSRF, and callback URL behavior. `Access-Control-Allow-Origin: *`
   with credentials is forbidden.
 
+## Public Showcase Contracts (T037) — Issue #26
+
+Public, unauthenticated GET contracts over the same-origin `/api/*` boundary.
+No cookie/CSRF required. Responses are explicit allowlists; Prisma models are
+never serialized directly. Executed by Arthur/Claude under explicit maintainer
+authorization for this cycle.
+
+### SHOWCASE-LIST-01 — `GET /api/animais` (`existing`, `app/api/animais/route.ts`)
+
+- **Auth**: public. **Query**: `especieId`, `racaId`, `porte`, `sexo`, `cidade`,
+  `tags` (`castrado|vacinado|vermifugado|testado`), `page`, parsed by
+  `lib/schemas/showcase.ts` (`parseShowcaseFilters`); only `DISPONIVEL` animals.
+- **200 DTO**: `{ animals: [{ id, nome, porte, sexo, idadeEstimada, castrado,
+  status, fotoPrincipal, especie, raca, cidade, responsavel, tags[] }],
+  pagination: { page, perPage, total, totalPages } }`.
+- **Excluded**: responsible/adopter IDs, CNPJ/CPF, e-mail, phone, address,
+  health detail, requests, favorites, documents, chat.
+- **Backend**: `lib/queries/animal-showcase.ts`, `lib/tags.ts`.
+
+### SHOWCASE-DETAIL-01 — `GET /api/animais/[id]` (`existing`, `app/api/animais/[id]/route.ts`)
+
+- **Auth**: public. **200 DTO**: summary fields plus `cor`, `descricao`,
+  `criadoEm`, ordered `fotos[{id,urlFoto,principal}]`, `resumoSaude[{id,tipo,
+  dataRegistro}]`, `responsavel`, `cidade`, `tags[]`, and `relacionados[]`
+  public summaries. **404** `NOT_FOUND` when the id does not exist.
+- **Health decision (Issue #26)**: `resumoSaude` exposes only the category
+  (`tipo`) and date. Granular clinical fields (`nomeDoenca`, `resultado`,
+  `medicamentoTratamento`, `procedimento`, `nomeVacina`, `tipoMedicamento`,
+  `frequencia`, `titulo`, `dataProxima`) are **not selected** by
+  `lib/queries/public-animal.ts` — private diagnoses/results never leave the DB.
+- **Excluded**: `observacoes`, `profissionalClinica`, `localProfissional`,
+  responsible/adopter IDs and contacts, screening, documents, chat.
+
+### METRICS-01 — `GET /api/metrics` (`existing`, `app/api/metrics/route.ts`)
+
+- **Auth**: public. **200 DTO**: `{ availableAnimals, completedAdoptions,
+  responsibleParties }` (aggregate counts only). **Backend**:
+  `lib/queries/public-metrics.ts`.
+
+### CATALOG-01 — `GET /api/catalogos` (`existing`, `app/api/catalogos/route.ts`)
+
+- **Auth**: public. **200 DTO**: `{ especies: [{ id, nome, racas: [{ id, nome,
+  especieId }] }], cidades: string[] }` (cities that currently have available
+  animals). **Backend**: `lib/queries/animal-showcase.ts`
+  (`getShowcaseFilterOptions`). Vaccine/disease catalogs remain out of scope.
+
+- **Tests**: `__tests__/api/public-animais.test.ts` (DTO shape, tag presence,
+  404, sensitive/clinical-field exclusion) and the tightened
+  `__tests__/queries/public-animal.test.ts` (health summary only).
+- **Frontend dependency**: Issue #27 (T040-T042) consumes these in
+  `frontend/src/lib/data/animais.ts` and `catalogos.ts`; mock removal only after
+  the flow is validated. Matrix SHOWCASE-01 rows move to `contract defined` and,
+  with the implementation and passing tests, to `backend ready`.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |

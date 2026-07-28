@@ -20,21 +20,18 @@ export async function getPublicAnimalById(id: string) {
         orderBy: [{ principal: "desc" }, { ordem: "asc" }],
         select: { id: true, urlFoto: true, principal: true },
       },
+      // Public health SUMMARY only (Issue #26 decision): expose the category
+      // (`tipo`, which drives the public tags) and the record date. Granular
+      // clinical fields — nomeVacina, tipoMedicamento, frequencia, nomeDoenca,
+      // resultado (disease test result), titulo, procedimento,
+      // medicamentoTratamento, dataProxima — are NOT selected, so private
+      // diagnoses/results never cross the public boundary.
       registrosSaude: {
         orderBy: { dataRegistro: "desc" },
         select: {
           id: true,
           tipo: true,
           dataRegistro: true,
-          dataProxima: true,
-          nomeVacina: true,
-          tipoMedicamento: true,
-          frequencia: true,
-          nomeDoenca: true,
-          resultado: true,
-          titulo: true,
-          procedimento: true,
-          medicamentoTratamento: true,
         },
       },
       organizacao: { select: { razaoSocial: true, cidade: true } },

@@ -306,6 +306,105 @@ matrix status. The session row stays `backend ready` until Pedro/Codex records
 plus a homologation database and are recorded here as manual acceptance steps,
 not run against the original database.
 
+## Route Tree Audit (T031) and Route Correction (T033) — Issue #24
+
+Owner: Arthur. This records the route-tree/filename audit (T031) and the fix of
+the first documented URL-change/no-render defect F1 (T033). No lifecycle status
+is promoted; ROUTES-01 certification and matrix promotion remain Pedro's T034.
+
+**Route tree audit (T031):**
+
+- 27 route files under `frontend/src/routes/`; `frontend/src/routeTree.gen.ts`
+  registers every one with a matching `fullPath` (e.g. `/`, `/vitrine`,
+  `/login`, `/animais/$animalId`, the pathless `/_authenticated` layout, and the
+  nested `/_authenticated/dashboard/...` tree with its index children).
+- Filenames follow the documented TanStack flat convention in
+  `frontend/src/routes/README.md`: dot-separated nesting, bare `$` dynamic
+  segments (`$animalId`, `$solicitacaoId`), and `_authenticated`/`__root`
+  layout prefixes. No anomaly found: no `src/pages/`, no curly-brace or `*`
+  splat filenames, no hand edits to the generated tree, no flat-route name
+  collision (`/animais/$animalId` vs `/dashboard/animais/$animalId`).
+- The generated tree is consistent with the files; generation is healthy.
+
+**Route correction (T033 — F1):**
+
+- **Defect (from T005 F1):** on SSR / hard refresh / direct protected URL, the
+  guard skipped SSR and session read only localStorage, so the first paint had
+  `sessao === null` and showed a blank/flash before hydration.
+- **Fix in `frontend/src/routes/_authenticated.tsx`:** the guard now awaits the
+  real session (`ensureSessaoLoaded` → `GET /api/session`, from Issue #22) and
+  the `_authenticated` layout renders an explicit loading state
+  (`AuthPending`) while no session is resolved, instead of a blank. Result:
+  SSR/first paint shows "Carregando…", then either the protected screen (session
+  present) or a `/login?next=<path>` redirect (no session). This also closes the
+  F2 blank window, since protected leaves no longer render before a session
+  exists.
+- **Residual (recorded, not fixed here):** true server-side rendered session
+  (SSR cookie forwarding) is out of scope; F3 (inconsistent wrong-role handling)
+  and F4 (ADMIN zeroed `/dashboard`) remain separate defects for a later
+  route-correction round. Only the first documented defect F1 is addressed by
+  T033.
+- **Executed validation:** ESLint on `_authenticated.tsx` (clean, 0 errors) and
+  `npm --prefix frontend run build` (OK). Live SSR/refresh behavior is a manual
+  homologation check recorded above under AUTH-01.
+
+## Root Service-Only Audit (T032) and Route Correction Evidence (T034) — Issue #25
+
+Owner: Pedro (executed by Arthur/Claude under explicit maintainer authorization
+for this cycle; identity `thurreis7`). Records the root service-only audit (T032)
+and the route-correction evidence (T034, depends on T033). `tasks.md` is not
+edited here.
+
+**Root service-only audit (T032):**
+
+- `app/` contains **only** backend API route handlers:
+  `app/api/auth/[...nextauth]/route.ts`, `app/api/session/route.ts`,
+  `app/api/mensagens/[id]/route.ts`, `app/api/uploadthing/route.ts` (plus
+  `.gitkeep` markers).
+- **No** `page.tsx`, `layout.tsx`, or any non-`api/` file exists under `app/`.
+  The root is confirmed service-only per FR-004/FR-031; it is not a competing
+  public UI and not a fallback. `frontend/` remains the only official public
+  interface.
+
+**Route correction evidence (T034):**
+
+- **F1 fixed** (T033, Issue #24 / PR #79): the `_authenticated` guard consumes
+  the real session and the layout shows a loading state instead of a blank first
+  paint on SSR/refresh/direct URL. **F2** (blank protected leaves) is closed as a
+  side effect, since leaves no longer render before a session exists.
+- **Remaining route defects (tracked, not yet fixed):** **F3** inconsistent
+  wrong-role handling (denial text vs redirect) and **F4** ADMIN `/dashboard`
+  zeroed operator panel. Both remain `audited` for a later route-correction round.
+- **Dependency for full ROUTES-01 advancement:** AUTH-01 must reach
+  `flow complete` (T030) before ROUTES-01 is certified; this row records evidence
+  only and does not itself promote ROUTES-01 beyond the proven state.
+
+## Public Showcase Backend (T037-T039) — Issue #26
+
+Owner: Pedro (executed by Arthur/Claude under explicit maintainer authorization
+for this cycle; identity `thurreis7`). Advances SHOWCASE-01 from `audited`
+through `contract defined` (T037) to `backend ready` (T039). `tasks.md` is not
+edited here.
+
+- **Contracts defined (T037):** `GET /api/animais`, `GET /api/animais/[id]`,
+  `GET /api/metrics`, `GET /api/catalogos` are documented in
+  `contracts/http-contract-inventory.md` (methods/paths, public auth, request
+  filters, response allowlists, sensitive/clinical exclusions).
+- **Backend implemented (T038):** route handlers in `app/api/animais/route.ts`,
+  `app/api/animais/[id]/route.ts`, `app/api/metrics/route.ts`, and
+  `app/api/catalogos/route.ts` reuse `lib/queries/animal-showcase.ts`,
+  `public-animal.ts`, `public-metrics.ts`, and `lib/tags.ts`. `public-animal.ts`
+  was tightened so the public health summary exposes only `tipo` + `dataRegistro`
+  (Issue #26 privacy decision); granular clinical fields are no longer selected.
+- **Validated:** `__tests__/api/public-animais.test.ts` (DTO shape, tags, 404,
+  sensitive/clinical-field exclusion) and the tightened
+  `__tests__/queries/public-animal.test.ts`; full `npm test`, `npm run typecheck`,
+  and `npm run lint` recorded in the PR. No seed/reset/migration; Prisma
+  `generate` only.
+- **Status:** SHOWCASE-01 → **`backend ready`**. Frontend consumption and
+  per-flow mock removal remain Issue #27 (T040-T042, Arthur); `flow complete`
+  stays pending Pedro's T043 after frontend evidence.
+
 ## Preserved Pending and Historical State
 
 - Feature 001 T104 was read at
