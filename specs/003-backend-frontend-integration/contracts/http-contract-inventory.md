@@ -288,14 +288,97 @@ authorization for this cycle.
   the flow is validated. Matrix SHOWCASE-01 rows move to `contract defined` and,
   with the implementation and passing tests, to `backend ready`.
 
+## Registration, Profile and Screening Contracts (T047) — Issue #29
+
+All application-owned contracts below use JSON, reject unknown fields, return
+explicit DTO allowlists, and use the same-origin `/api/*` boundary. The frontend
+maps its current `senha` form field to the contract field `password`; passwords
+and hashes never appear in responses.
+
+### REGISTRATION-01 — `POST /api/cadastro/[tipo]` (`backend ready`)
+
+- **Auth mode**: public validated mutation. `tipo` is exactly `adotante`,
+  `organizacao`, or `acolhedor`.
+- **Request DTO**: common `email` and `password`, plus only the profile fields
+  proven by `prisma/schema.prisma`: adopter `nomeCompleto`, `cpf`, `telefone`,
+  optional `instagram`, `endereco`, `cidade`, `estado`; organization
+  `razaoSocial`, `cnpj`, `telefone`, `endereco`, `cidade`, `estado`,
+  `responsavelNome`, optional `capacidadeMaxima`; foster `nomeCompleto`, `cpf`,
+  `telefone`, `endereco`, `cidade`, `estado`.
+- **201 response DTO**:
+  `{ user: { id, email, tipoPerfil, ativo, profileId } }`.
+- **Errors**: 400 `VALIDATION_ERROR`; 404 `REGISTRATION_TYPE_NOT_FOUND`; 409
+  `EMAIL_ALREADY_EXISTS`, `CPF_ALREADY_EXISTS`, or `CNPJ_ALREADY_EXISTS`.
+  Conflicts do not reveal any field beyond the submitted unique identifier.
+- **Backend source**: `lib/actions/auth-register.ts`,
+  `lib/schemas/adotante.ts`, `lib/schemas/perfil.ts`, bcrypt, and nested Prisma
+  profile creation. Registration does not invent automatic login; Issue #30 may
+  call the already-proven NextAuth login after a 201 response.
+- **Explicit exclusions**: `senhaHash`, password, cookie/token, complete Prisma
+  records, screening, address or identifier fields beyond the newly-created
+  caller's response (which contains no CPF/CNPJ/address).
+
+### PROFILE-01 — `GET /api/perfil` and `PATCH /api/perfil` (`backend ready`)
+
+- **Auth mode**: authenticated, active account, own role/profile only. Identity
+  and profile ID come from the current NextAuth session and current `Usuario`
+  row, never from request data.
+- **GET response DTO**: `{ profile: { tipoPerfil, email, ...roleFields } }`.
+  Adopter fields are `id`, `nomeCompleto`, read-only `cpf`, `telefone`,
+  `instagram`, `endereco`, `cidade`, `estado`; organization fields are `id`,
+  `razaoSocial`, read-only `cnpj`, `telefone`, `endereco`, `cidade`, `estado`,
+  `responsavelNome`, `capacidadeMaxima`; foster fields are `id`,
+  `nomeCompleto`, read-only `cpf`, `telefone`, `endereco`, `cidade`, `estado`,
+  `capacidadeAtual`.
+- **PATCH request DTO**: partial role-specific editable fields above plus
+  optional unique `email`. `cpf`, `cnpj`, `tipoPerfil`, profile/user IDs,
+  `ativo`, and unknown fields are rejected with 400 before any write.
+- **PATCH response DTO**: the same allowlisted own-profile DTO as GET.
+- **Errors**: 400 `VALIDATION_ERROR`; 401 `UNAUTHENTICATED`; 403
+  `INACTIVE_ACCOUNT` or `ROLE_NOT_SUPPORTED`; 404 `PROFILE_NOT_FOUND`; 409
+  `EMAIL_ALREADY_EXISTS`.
+- **Backend source**: current `Usuario` plus its role relation, role-specific
+  schemas in `lib/schemas/perfil.ts`, and one nested `Usuario.update` so e-mail
+  and profile changes are atomic.
+- **Explicit exclusions**: password/hash, another profile, screening answers,
+  requests, health, documents, chat, and `fotoUrl`. Organization/foster
+  `fotoUrl` remains a product decision and schema gap, not a contract field.
+
+### SCREENING-01 — `GET /api/triagem` and `PUT /api/triagem` (`backend ready`)
+
+- **Auth mode**: authenticated active `ADOTANTE`, own screening only.
+- **GET response DTO**: `{ screening: { ...screeningFields,
+  triagemConcluida } }`, selected only from the adopter profile derived from the
+  session.
+- **PUT request DTO**: the complete `adopterScreeningSchema` fields. Browser
+  supplied `usuarioId` or `adotanteId` and all unknown fields are rejected.
+- **PUT response DTO**: the same allowlisted screening DTO with
+  `triagemConcluida: true`.
+- **Errors**: 400 `VALIDATION_ERROR`; 401 `UNAUTHENTICATED`; 403
+  `INACTIVE_ACCOUNT` or `ADOPTER_ONLY`; 404 `PROFILE_NOT_FOUND`.
+- **Backend source**: `lib/actions/triagem.ts`,
+  `lib/schemas/adotante.ts`, `lib/actions/request-guards.ts`, and the current
+  adopter relation. The existing request guard remains authoritative:
+  incomplete screening blocks adoption requests.
+- **Privacy**: screening never appears in public/profile/session DTOs and is not
+  available to organization, foster, admin, or another adopter through this
+  self-service contract. A later owner-request contract must define a separate
+  read-only allowlist.
+- **Tests**: `__tests__/api/profile-screening.test.ts`,
+  `__tests__/api/registration.test.ts`, and the screening-required tests in
+  `__tests__/actions/solicitacoes.test.ts`.
+- **Frontend dependency**: Issue #30 may consume these contracts only after
+  Issue #29 marks REG-01, PROFILE-01, and SCREEN-01 `backend ready`; mock removal
+  remains frontend-owned and per-flow.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
 |----------------|-----------------------|-------------------------------|-----------|---------------------|
 | Session/login/logout | `frontend/src/lib/data/sessao.ts` | `lib/auth.ts`, `lib/auth-credentials.ts`, auth routes, auth guards/permissions | NextAuth cookie + protected session DTO | `backend ready`; frontend #22 |
-| Public showcase/detail/metrics/catalogs | `animais.ts`, `catalogos.ts`, public routes | public animal/showcase/metrics queries, showcase schema, tags | Public | `to define`; #26 |
-| Registration | `usuarios.ts`, `cadastro.*.tsx` | adopter registration action/schema; organization/foster backend gaps | Public validated mutation | `to define`; #29 |
-| Profile and screening | `usuarios.ts`, profile/triagem routes | triagem action/schema, auth/session; profile action gap | Authenticated, role scoped | `to define`; #29; photo decision remains blocked |
+| Public showcase/detail/metrics/catalogs | `animais.ts`, `catalogos.ts`, public routes | public animal/showcase/metrics queries, showcase schema, tags | Public | `flow complete`; #26-#28 |
+| Registration | `usuarios.ts`, `cadastro.*.tsx` | registration actions and role-specific schemas | Public validated mutation | `backend ready`; #29; frontend #30 |
+| Profile and screening | `usuarios.ts`, profile/triagem routes | profile/triagem handlers and schemas, auth/session | Authenticated, role scoped | `backend ready`; #29; frontend #30; photo decision remains blocked |
 | Favorites | `favoritos.ts` | favorite action/query/schema | ADOTANTE only | `to define`; #32 |
 | Adopter requests | `solicitacoes.ts` | request actions/guards/queries/schemas | ADOTANTE only | `to define`; #32 |
 | Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #43 |

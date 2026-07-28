@@ -1,63 +1,266 @@
-"use server";
-
-import { TipoPerfil } from "@prisma/client";
+import { Prisma, TipoPerfil } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { AuthError } from "next-auth";
 
 import { errorState, validationErrorState } from "@/lib/actions/form-state";
 import { signIn } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { adopterRegistrationSchema } from "@/lib/schemas/adotante";
+import {
+  adopterRegistrationSchema,
+  type AdopterRegistrationInput,
+} from "@/lib/schemas/adotante";
 import type { FormState } from "@/lib/schemas/common";
+import type {
+  FosterRegistrationInput,
+  OrganizationRegistrationInput,
+} from "@/lib/schemas/perfil";
+
+export type RegistrationConflictCode =
+  | "EMAIL_ALREADY_EXISTS"
+  | "CPF_ALREADY_EXISTS"
+  | "CNPJ_ALREADY_EXISTS";
+
+export class RegistrationConflictError extends Error {
+  constructor(readonly code: RegistrationConflictCode) {
+    super(code);
+    this.name = "RegistrationConflictError";
+  }
+}
+
+export type RegisteredUserDTO = {
+  id: string;
+  email: string;
+  tipoPerfil: TipoPerfil;
+  ativo: boolean;
+  profileId: string;
+};
+
+async function assertEmailAvailable(email: string): Promise<void> {
+  const existing = await prisma.usuario.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  if (existing) {
+    throw new RegistrationConflictError("EMAIL_ALREADY_EXISTS");
+  }
+}
+
+async function assertCpfAvailable(cpf: string): Promise<void> {
+  const [adopter, foster] = await Promise.all([
+    prisma.adotante.findUnique({ where: { cpf }, select: { id: true } }),
+    prisma.acolhedorIndependente.findUnique({
+      where: { cpf },
+      select: { id: true },
+    }),
+  ]);
+
+  if (adopter || foster) {
+    throw new RegistrationConflictError("CPF_ALREADY_EXISTS");
+  }
+}
+
+function mapCreatedUser(
+  user: {
+    id: string;
+    email: string;
+    tipoPerfil: TipoPerfil;
+    ativo: boolean;
+    adotante?: { id: string } | null;
+    organizacao?: { id: string } | null;
+    acolhedor?: { id: string } | null;
+  },
+): RegisteredUserDTO {
+  const profileId =
+    user.adotante?.id ?? user.organizacao?.id ?? user.acolhedor?.id;
+
+  if (!profileId) {
+    throw new Error("Perfil criado nao encontrado.");
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    tipoPerfil: user.tipoPerfil,
+    ativo: user.ativo,
+    profileId,
+  };
+}
+
+function mapUniqueConstraint(error: unknown): never {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  ) {
+    const target = Array.isArray(error.meta?.target)
+      ? error.meta.target.join(",")
+      : String(error.meta?.target ?? "");
+
+    if (target.includes("cpf")) {
+      throw new RegistrationConflictError("CPF_ALREADY_EXISTS");
+    }
+    if (target.includes("cnpj")) {
+      throw new RegistrationConflictError("CNPJ_ALREADY_EXISTS");
+    }
+    throw new RegistrationConflictError("EMAIL_ALREADY_EXISTS");
+  }
+
+  throw error;
+}
+
+export async function createAdopterAccount(
+  input: AdopterRegistrationInput,
+): Promise<RegisteredUserDTO> {
+  await assertEmailAvailable(input.email);
+  await assertCpfAvailable(input.cpf);
+  const senhaHash = await hash(input.password, 12);
+
+  try {
+    const user = await prisma.usuario.create({
+      data: {
+        email: input.email,
+        senhaHash,
+        tipoPerfil: TipoPerfil.ADOTANTE,
+        adotante: {
+          create: {
+            nomeCompleto: input.nomeCompleto,
+            cpf: input.cpf,
+            telefone: input.telefone,
+            instagram: input.instagram,
+            endereco: input.endereco,
+            cidade: input.cidade,
+            estado: input.estado,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        tipoPerfil: true,
+        ativo: true,
+        adotante: { select: { id: true } },
+      },
+    });
+
+    return mapCreatedUser(user);
+  } catch (error) {
+    return mapUniqueConstraint(error);
+  }
+}
+
+export async function createOrganizationAccount(
+  input: OrganizationRegistrationInput,
+): Promise<RegisteredUserDTO> {
+  await assertEmailAvailable(input.email);
+  const existingCnpj = await prisma.organizacao.findUnique({
+    where: { cnpj: input.cnpj },
+    select: { id: true },
+  });
+
+  if (existingCnpj) {
+    throw new RegistrationConflictError("CNPJ_ALREADY_EXISTS");
+  }
+
+  const senhaHash = await hash(input.password, 12);
+
+  try {
+    const user = await prisma.usuario.create({
+      data: {
+        email: input.email,
+        senhaHash,
+        tipoPerfil: TipoPerfil.ORGANIZACAO,
+        organizacao: {
+          create: {
+            razaoSocial: input.razaoSocial,
+            cnpj: input.cnpj,
+            telefone: input.telefone,
+            endereco: input.endereco,
+            cidade: input.cidade,
+            estado: input.estado,
+            responsavelNome: input.responsavelNome,
+            capacidadeMaxima: input.capacidadeMaxima,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        tipoPerfil: true,
+        ativo: true,
+        organizacao: { select: { id: true } },
+      },
+    });
+
+    return mapCreatedUser(user);
+  } catch (error) {
+    return mapUniqueConstraint(error);
+  }
+}
+
+export async function createFosterAccount(
+  input: FosterRegistrationInput,
+): Promise<RegisteredUserDTO> {
+  await assertEmailAvailable(input.email);
+  await assertCpfAvailable(input.cpf);
+  const senhaHash = await hash(input.password, 12);
+
+  try {
+    const user = await prisma.usuario.create({
+      data: {
+        email: input.email,
+        senhaHash,
+        tipoPerfil: TipoPerfil.ACOLHEDOR,
+        acolhedor: {
+          create: {
+            nomeCompleto: input.nomeCompleto,
+            cpf: input.cpf,
+            telefone: input.telefone,
+            endereco: input.endereco,
+            cidade: input.cidade,
+            estado: input.estado,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        tipoPerfil: true,
+        ativo: true,
+        acolhedor: { select: { id: true } },
+      },
+    });
+
+    return mapCreatedUser(user);
+  } catch (error) {
+    return mapUniqueConstraint(error);
+  }
+}
 
 export async function registerAdopter(
   _previousState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  "use server";
+
   const parsed = adopterRegistrationSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
     return validationErrorState(parsed.error);
   }
 
-  const existingEmail = await prisma.usuario.findUnique({
-    where: { email: parsed.data.email },
-    select: { id: true },
-  });
-
-  if (existingEmail) {
-    return errorState("E-mail ja cadastrado.");
+  try {
+    await createAdopterAccount(parsed.data);
+  } catch (error) {
+    if (error instanceof RegistrationConflictError) {
+      const messages: Record<RegistrationConflictCode, string> = {
+        EMAIL_ALREADY_EXISTS: "E-mail ja cadastrado.",
+        CPF_ALREADY_EXISTS: "CPF ja cadastrado.",
+        CNPJ_ALREADY_EXISTS: "CNPJ ja cadastrado.",
+      };
+      return errorState(messages[error.code]);
+    }
+    throw error;
   }
-
-  const existingCpf = await prisma.adotante.findUnique({
-    where: { cpf: parsed.data.cpf },
-    select: { id: true },
-  });
-
-  if (existingCpf) {
-    return errorState("CPF ja cadastrado.");
-  }
-
-  const senhaHash = await hash(parsed.data.password, 12);
-
-  await prisma.usuario.create({
-    data: {
-      email: parsed.data.email,
-      senhaHash,
-      tipoPerfil: TipoPerfil.ADOTANTE,
-      adotante: {
-        create: {
-          nomeCompleto: parsed.data.nomeCompleto,
-          cpf: parsed.data.cpf,
-          telefone: parsed.data.telefone,
-          instagram: parsed.data.instagram,
-          endereco: parsed.data.endereco,
-          cidade: parsed.data.cidade,
-          estado: parsed.data.estado,
-        },
-      },
-    },
-  });
 
   try {
     await signIn("credentials", {
