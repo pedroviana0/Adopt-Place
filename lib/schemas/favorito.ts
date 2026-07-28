@@ -3,6 +3,6 @@ import { idSchema } from "./common";
 
 export const toggleFavoriteSchema = z.object({
   animalId: idSchema,
-});
+}).strict();
 
 export type ToggleFavoriteInput = z.infer<typeof toggleFavoriteSchema>;

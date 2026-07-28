@@ -134,9 +134,9 @@ T001 through T019 MUST be completed and verified before any implementation task 
 - [X] T047 [US2] Define registration, profile and screening HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark only the corresponding evidence-backed matrix rows `contract defined`; leave the profile-photo row pending until the required decision exists (Owner: Pedro; depends on T046)
 - [X] T048 [US2] Implement backend profile/screening contract behavior through existing `lib/actions/auth-register.ts`, `lib/actions/triagem.ts`, `lib/schemas/adotante.ts`, `lib/auth.ts`, and `lib/permissions.ts` or documented route handlers from T047 (Owner: Pedro; depends on T044-T047 and requires each implemented matrix row at `contract defined`)
 - [X] T049 [US2] Update matrix profile/screening rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T048)
-- [ ] T050 [US2] Integrate real registration/profile/screening calls in `frontend/src/lib/data/usuarios.ts` and affected routes `frontend/src/routes/cadastro.*.tsx`, `frontend/src/routes/_authenticated.triagem.tsx`, `frontend/src/routes/_authenticated.meu-perfil.tsx`, and `frontend/src/routes/_authenticated.dashboard.perfil.tsx` (Owner: Arthur; depends on T049)
-- [ ] T051 [US2] Remove profile and screening mock/localStorage dependency from `frontend/src/lib/data/usuarios.ts` only for completed profile/screening flows (Owner: Arthur; depends on T050)
-- [ ] T052 [US2] Update matrix profile/screening rows to `flow complete` with validation evidence (Owner: Pedro; depends on T051)
+- [X] T050 [US2] Integrate real registration/profile/screening calls in `frontend/src/lib/data/usuarios.ts` and affected routes `frontend/src/routes/cadastro.*.tsx`, `frontend/src/routes/_authenticated.triagem.tsx`, `frontend/src/routes/_authenticated.meu-perfil.tsx`, and `frontend/src/routes/_authenticated.dashboard.perfil.tsx` (Owner: Arthur; depends on T049)
+- [X] T051 [US2] Remove profile and screening mock/localStorage dependency from `frontend/src/lib/data/usuarios.ts` only for completed profile/screening flows (Owner: Arthur; depends on T050)
+- [X] T052 [US2] Update matrix profile/screening rows to `flow complete` with validation evidence (Owner: Pedro; depends on T051)
 
 ## Phase 8: Adopter Journey (User Story 3 - P2)
 
@@ -146,14 +146,14 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 ### Tests for User Story 3 Adopter Flow
 
-- [ ] T053 [US3] Add failing backend tests for favorite authorization and persistence in `__tests__/actions/solicitacoes.test.ts` or a new favorites test recorded in the matrix (Owner: Pedro)
-- [ ] T054 [US3] Add failing backend tests for adopter request guards: screening required, duplicate active request and unavailable animal in `__tests__/actions/solicitacoes.test.ts` (Owner: Pedro; depends on T053)
+- [X] T053 [US3] Add failing backend tests for favorite authorization and persistence in `__tests__/actions/solicitacoes.test.ts` or a new favorites test recorded in the matrix (Owner: Pedro)
+- [X] T054 [US3] Add failing backend tests for adopter request guards: screening required, duplicate active request and unavailable animal in `__tests__/actions/solicitacoes.test.ts` (Owner: Pedro; depends on T053)
 
 ### Implementation for User Story 3 Adopter Flow
 
-- [ ] T055 [US3] Define favorites, adopter requests and adopter dashboard HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark the corresponding matrix rows `contract defined` only with contract evidence (Owner: Pedro; depends on T052)
-- [ ] T056 [US3] Implement backend adopter journey contracts using `lib/actions/favoritos.ts`, `lib/actions/solicitacoes.ts`, `lib/actions/request-guards.ts`, `lib/queries/favorites.ts`, `lib/queries/adopter-requests.ts`, `lib/queries/adotante-dashboard.ts`, `lib/schemas/favorito.ts`, and `lib/schemas/solicitacao.ts` or route handlers documented by T055 (Owner: Pedro; depends on T053-T055 and requires each implemented matrix row at `contract defined`)
-- [ ] T057 [US3] Update matrix adopter journey rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T056)
+- [X] T055 [US3] Define favorites, adopter requests and adopter dashboard HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark the corresponding matrix rows `contract defined` only with contract evidence (Owner: Pedro; depends on T052)
+- [X] T056 [US3] Implement backend adopter journey contracts using `lib/actions/favoritos.ts`, `lib/actions/solicitacoes.ts`, `lib/actions/request-guards.ts`, `lib/queries/favorites.ts`, `lib/queries/adopter-requests.ts`, `lib/queries/adotante-dashboard.ts`, `lib/schemas/favorito.ts`, and `lib/schemas/solicitacao.ts` or route handlers documented by T055 (Owner: Pedro; depends on T053-T055 and requires each implemented matrix row at `contract defined`)
+- [X] T057 [US3] Update matrix adopter journey rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T056)
 - [ ] T058 [US3] Integrate real favorites and adopter requests in `frontend/src/lib/data/favoritos.ts`, `frontend/src/lib/data/solicitacoes.ts`, `frontend/src/routes/_authenticated.meus-favoritos.tsx`, `frontend/src/routes/_authenticated.minhas-solicitacoes.tsx`, and adopter dashboard route (Owner: Arthur; depends on T057)
 - [ ] T059 [US3] Remove adopter journey mock/localStorage dependency from `frontend/src/lib/data/favoritos.ts` and relevant functions in `frontend/src/lib/data/solicitacoes.ts` (Owner: Arthur; depends on T058)
 - [ ] T060 [US3] Update matrix adopter journey rows to `flow complete` with validation evidence (Owner: Pedro; depends on T059)
