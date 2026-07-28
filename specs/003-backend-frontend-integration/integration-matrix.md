@@ -348,6 +348,37 @@ is promoted; ROUTES-01 certification and matrix promotion remain Pedro's T034.
   `npm --prefix frontend run build` (OK). Live SSR/refresh behavior is a manual
   homologation check recorded above under AUTH-01.
 
+## Root Service-Only Audit (T032) and Route Correction Evidence (T034) — Issue #25
+
+Owner: Pedro (executed by Arthur/Claude under explicit maintainer authorization
+for this cycle; identity `thurreis7`). Records the root service-only audit (T032)
+and the route-correction evidence (T034, depends on T033). `tasks.md` is not
+edited here.
+
+**Root service-only audit (T032):**
+
+- `app/` contains **only** backend API route handlers:
+  `app/api/auth/[...nextauth]/route.ts`, `app/api/session/route.ts`,
+  `app/api/mensagens/[id]/route.ts`, `app/api/uploadthing/route.ts` (plus
+  `.gitkeep` markers).
+- **No** `page.tsx`, `layout.tsx`, or any non-`api/` file exists under `app/`.
+  The root is confirmed service-only per FR-004/FR-031; it is not a competing
+  public UI and not a fallback. `frontend/` remains the only official public
+  interface.
+
+**Route correction evidence (T034):**
+
+- **F1 fixed** (T033, Issue #24 / PR #79): the `_authenticated` guard consumes
+  the real session and the layout shows a loading state instead of a blank first
+  paint on SSR/refresh/direct URL. **F2** (blank protected leaves) is closed as a
+  side effect, since leaves no longer render before a session exists.
+- **Remaining route defects (tracked, not yet fixed):** **F3** inconsistent
+  wrong-role handling (denial text vs redirect) and **F4** ADMIN `/dashboard`
+  zeroed operator panel. Both remain `audited` for a later route-correction round.
+- **Dependency for full ROUTES-01 advancement:** AUTH-01 must reach
+  `flow complete` (T030) before ROUTES-01 is certified; this row records evidence
+  only and does not itself promote ROUTES-01 beyond the proven state.
+
 ## Preserved Pending and Historical State
 
 - Feature 001 T104 was read at
