@@ -371,16 +371,106 @@ and hashes never appear in responses.
   Issue #29 marks REG-01, PROFILE-01, and SCREEN-01 `backend ready`; mock removal
   remains frontend-owned and per-flow.
 
+## Adopter Journey Contracts (T055) — Issue #32
+
+All contracts below use the same-origin `/api/*` boundary and the secure
+NextAuth cookie. They revalidate the current `Usuario.ativo`, role and adopter
+relation before any protected read or write. `usuarioId` and `adotanteId` never
+come from the browser. Application JSON mutations do not use the NextAuth CSRF
+endpoint; they depend on the documented same-origin/proxy boundary, credentialed
+cookies, `SameSite=Lax`, JSON content type and no credentialed cross-origin CORS.
+
+### FAVORITES-01 — `GET /api/favoritos` (`backend ready`)
+
+- **Auth mode**: authenticated active `ADOTANTE`.
+- **200 response DTO**:
+  `{ favorites: [{ animalId, criadoEm, animal: { id, nome, status,
+  idadeEstimada, especie, raca, porte, sexo, castrado, fotoPrincipal,
+  responsavel, cidade, tags[] } }] }`.
+- **Selection rule**: only favorites belonging to the session adopter and only
+  currently available animals, ordered by newest favorite.
+- **Explicit exclusions**: adopter/user IDs, another adopter's favorites,
+  responsible IDs and contacts, CPF/CNPJ, address, raw health records,
+  screening, requests, documents and chat.
+
+### FAVORITE-STATE-01 — `PUT|DELETE /api/favoritos/[animalId]` (`backend ready`)
+
+- **Auth mode**: authenticated active `ADOTANTE`.
+- **Path**: `animalId` validated by `toggleFavoriteSchema`; no body.
+- **PUT**: idempotently creates the composite favorite for the session adopter
+  when the animal exists and is `DISPONIVEL`.
+- **DELETE**: idempotently removes only the session adopter's composite
+  favorite, including when the animal later became unavailable.
+- **200 response DTO**: `{ favorite: { animalId, favorited } }`.
+- **Errors**: 400 `VALIDATION_ERROR`; 401 `UNAUTHENTICATED`; 403
+  `INACTIVE_ACCOUNT` or `ADOPTER_ONLY`; 404 `ANIMAL_NOT_AVAILABLE`.
+
+### ADOPTER-REQUESTS-01 — `GET|POST /api/solicitacoes` (`backend ready`)
+
+- **Auth mode**: authenticated active `ADOTANTE`.
+- **GET response DTO**:
+  `{ requests: [{ id, status, dataSolicitacao, dataAtualizacao, observacoes,
+  animal: { id, nome, fotoPrincipal, responsavel } }] }`, newest first.
+- **POST request DTO**: strict JSON `{ animalId }` validated by
+  `adoptionRequestSchema`; browser-supplied adopter/user IDs and unknown fields
+  are rejected before reads or writes.
+- **POST 201 response DTO**: `{ request: AdoptionRequestDTO }`.
+- **Business rules**: completed screening is required; the animal must be
+  `DISPONIVEL`; an existing active request (`EM_ANALISE` or `APROVADA`) for the
+  same adopter/animal is rejected. The Prisma composite uniqueness remains the
+  storage source of truth and is not changed by this Issue.
+- **Errors**: 400 `VALIDATION_ERROR`; 401 `UNAUTHENTICATED`; 403
+  `INACTIVE_ACCOUNT` or `ADOPTER_ONLY`; 409 `SCREENING_REQUIRED`,
+  `ANIMAL_UNAVAILABLE`, `ACTIVE_REQUEST_EXISTS`, or
+  `REQUEST_ALREADY_EXISTS`.
+- **Explicit exclusions**: `adotanteId`, user/profile IDs, screening answers,
+  another adopter's requests, owner contacts, private animal/health fields,
+  documents and chat.
+
+### ADOPTER-DASHBOARD-01 — `GET /api/dashboard/adotante` (`backend ready`)
+
+- **Auth mode**: authenticated active `ADOTANTE`.
+- **200 response DTO**:
+  `{ dashboard: { id, nomeCompleto, triagemConcluida } }`.
+- **Purpose**: expose only the existing adopter dashboard query's proven
+  screening status. Favorites and requests remain in their own contracts;
+  aggregate metrics are not invented.
+- **Errors**: 401 `UNAUTHENTICATED`; 403 `INACTIVE_ACCOUNT` or
+  `ADOPTER_ONLY`; 404 `PROFILE_NOT_FOUND`.
+- **Explicit exclusions**: screening answers, CPF/contact/address, requests,
+  favorites, health, documents and chat.
+
+- **Backend sources**: `lib/actions/favoritos.ts`,
+  `lib/actions/solicitacoes.ts`, `lib/actions/request-guards.ts`,
+  `lib/queries/favorites.ts`, `lib/queries/adopter-requests.ts`,
+  `lib/queries/adotante-dashboard.ts`, `lib/schemas/favorito.ts`,
+  `lib/schemas/solicitacao.ts`, and the route handlers above.
+- **Tests**: `__tests__/api/adopter-journey.test.ts` plus the existing
+  request-guard tests in `__tests__/actions/solicitacoes.test.ts`.
+- **Issue #32 validation**: 23 focused tests passed for session-derived
+  identity, active-account and role checks, ownership, favorite idempotency,
+  completed-screening, availability and duplicate-request guards. Typecheck,
+  targeted lint and the production backend build passed. An isolated
+  PostgreSQL 16 round trip returned 401 without a session, persisted one
+  favorite, created one request with 201, rejected its active duplicate with
+  409, returned only the current adopter's data, exposed the narrow dashboard
+  DTO and removed the favorite idempotently. No seed, reset or migration was
+  run against the original database.
+- **Frontend dependency**: Issue #33 may replace
+  `frontend/src/lib/data/favoritos.ts`, adopter-owned functions in
+  `solicitacoes.ts`, and affected routes only after Issue #32 marks these
+  contracts `backend ready`.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
 |----------------|-----------------------|-------------------------------|-----------|---------------------|
 | Session/login/logout | `frontend/src/lib/data/sessao.ts` | `lib/auth.ts`, `lib/auth-credentials.ts`, auth routes, auth guards/permissions | NextAuth cookie + protected session DTO | `backend ready`; frontend #22 |
 | Public showcase/detail/metrics/catalogs | `animais.ts`, `catalogos.ts`, public routes | public animal/showcase/metrics queries, showcase schema, tags | Public | `flow complete`; #26-#28 |
-| Registration | `usuarios.ts`, `cadastro.*.tsx` | registration actions and role-specific schemas | Public validated mutation | `backend ready`; #29; frontend #30 |
-| Profile and screening | `usuarios.ts`, profile/triagem routes | profile/triagem handlers and schemas, auth/session | Authenticated, role scoped | `backend ready`; #29; frontend #30; photo decision remains blocked |
-| Favorites | `favoritos.ts` | favorite action/query/schema | ADOTANTE only | `to define`; #32 |
-| Adopter requests | `solicitacoes.ts` | request actions/guards/queries/schemas | ADOTANTE only | `to define`; #32 |
+| Registration | `usuarios.ts`, `cadastro.*.tsx` | registration actions and role-specific schemas | Public validated mutation | `flow complete`; #29-#31 |
+| Profile and screening | `usuarios.ts`, profile/triagem routes | profile/triagem handlers and schemas, auth/session | Authenticated, role scoped | `flow complete`; #29-#31; photo decision remains blocked |
+| Favorites | `favoritos.ts` | favorite action/query/schema and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
+| Adopter requests and dashboard | `solicitacoes.ts`, adopter routes | request actions/guards/queries/schemas and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
 | Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #43 |
 | Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #35 |
 | Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | transport exists; flow contracts `to define`; #35/#51 |
