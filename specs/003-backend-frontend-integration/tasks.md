@@ -44,7 +44,7 @@ T001 through T019 MUST be completed and verified before any implementation task 
 - [X] T011 Map `frontend/src/lib/data/favoritos.ts` and `frontend/src/lib/data/solicitacoes.ts` to favorites and adoption request backend files in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro)
 - [X] T012 Map `frontend/src/lib/data/saude.ts` and feature 002 gaps to `lib/actions/registro-saude.ts`, `lib/actions/cuidados-planejados.ts`, `lib/actions/documentos-saude.ts`, `lib/actions/mensagens.ts`, and related queries in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro)
 - [X] T013 Document in `specs/003-backend-frontend-integration/integration-matrix.md` the required related backend/frontend Issue pair for every two-sided flow, including each owner, affected files or areas, dependency, execution order, and acceptance criteria; create placeholders only and do not create GitHub Issues (Owner: Pedro)
-- [ ] T014 Review matrix rows with Arthur/Claude ownership and record frontend-only gaps without changing `frontend/` code in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Arthur; depends on T008-T013)
+- [X] T014 Review matrix rows with Arthur/Claude ownership and record frontend-only gaps without changing `frontend/` code in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Arthur; depends on T008-T013)
 
 **Checkpoint**: No flow can receive implementation tasks until its matrix row exists.
 
@@ -52,11 +52,11 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 **Purpose**: Define HTTP contract inventory before endpoint implementation.
 
-- [ ] T015 Define contract documentation template fields in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`: method/path, auth mode, request DTO, response DTO, excluded sensitive fields, tests, backend source, frontend dependency (Owner: Pedro)
-- [ ] T016 Define public DTO allowlist rules for vitrine, animal detail, metrics, catalog data, and sensitive-field exclusions in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
-- [ ] T017 Define protected DTO allowlist rules for session, profile, screening, favorites, requests, owner animals, health, dashboard, chat, and admin users in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
-- [ ] T018 Define the exact first authentication proof contracts that reuse or extend `app/api/auth/[...nextauth]/route.ts` behavior, record the chosen paths in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`, and mark the corresponding matrix row `contract defined` only with contract evidence (Owner: Pedro)
-- [ ] T019 Audit whether same-origin/proxy assumptions require backend config changes in `next.config.ts`, `frontend/vite.config.ts`, or deployment docs; record decision in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
+- [X] T015 Define contract documentation template fields in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`: method/path, auth mode, request DTO, response DTO, excluded sensitive fields, tests, backend source, frontend dependency (Owner: Pedro)
+- [X] T016 Define public DTO allowlist rules for vitrine, animal detail, metrics, catalog data, and sensitive-field exclusions in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
+- [X] T017 Define protected DTO allowlist rules for session, profile, screening, favorites, requests, owner animals, health, dashboard, chat, and admin users in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
+- [X] T018 Define the exact first authentication proof contracts that reuse or extend `app/api/auth/[...nextauth]/route.ts` behavior, record the chosen paths in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`, and mark the corresponding matrix row `contract defined` only with contract evidence (Owner: Pedro)
+- [X] T019 Audit whether same-origin/proxy assumptions require backend config changes in `next.config.ts`, `frontend/vite.config.ts`, or deployment docs; record decision in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` (Owner: Pedro)
 
 **Checkpoint**: Auth proof can start only after T018 and T019.
 
