@@ -257,6 +257,55 @@ removal is allowed only after that flow is validated; the final removal/isolatio
 of `db.ts` and `seed.ts` is deferred to T114–T115 and must not happen in any
 earlier flow. No frontend code is modified by this T014 review.
 
+## Frontend Acceptance Notes — AUTH-01 (T023, Issue #22)
+
+These are the frontend acceptance notes for the authentication proof (T023) plus
+the frontend integration evidence produced by T027–T029 (Issue #22). They record
+what the frontend now does and how to validate it; they **do not** promote the
+matrix status. The session row stays `backend ready` until Pedro/Codex records
+`flow complete` in T030 after reviewing this evidence and the homologation run.
+
+**Frontend integration done (Arthur, Issue #22):**
+
+- `frontend/src/lib/data/sessao.ts` now consumes the real contract
+  `AUTH-SESSION-01` (`GET /api/session`, `credentials: "include"`), logs in via
+  `POST /api/auth/callback/credentials` with a `GET /api/auth/csrf` token, and
+  logs out via `POST /api/auth/signout`. Session is cached in memory only.
+- **localStorage session persistence removed** for the auth flow (T028): no
+  `SESSION_KEY` read/write remains in `sessao.ts`; the NextAuth HTTP-only cookie
+  is the only session source. `db.ts`/`seed.ts` are untouched (T114–T115 scope).
+- `frontend/src/routes/_authenticated.tsx` guard (T029) now awaits the real
+  session (`ensureSessaoLoaded`) before allowing the protected tree.
+- Consequential wiring (documented): `login.tsx` and `Navbar.tsx` await the now
+  async `login`/`logout`; `frontend/vite.config.ts` adds a dev-only `/api` proxy
+  to the local backend (sanctioned by the T019 decision).
+
+**Acceptance checks (manual, homologation — SC-006 login/session/logout):**
+
+| # | Step | Expected result |
+|---|------|-----------------|
+| 1 | Login with a valid active account | `POST /api/auth/callback/credentials` sets the cookie; `GET /api/session` returns 200; UI navigates to `next` or `/`. |
+| 2 | Refresh/reload while logged in | `GET /api/session` returns 200 from the cookie; session persists with **no** localStorage entry. |
+| 3 | Logout | `POST /api/auth/signout` clears the cookie; `GET /api/session` then returns 401; UI returns to `/`. |
+| 4 | Open a protected route without a session | `_authenticated` guard redirects to `/login?next=<path>`. |
+| 5 | Invalid credentials | Generic `E-mail ou senha inválidos` (no account-existence leak). |
+| 6 | Inactive account | Blocked; `GET /api/session` returns 403 `INACTIVE_ACCOUNT` with `Conta desativada. Entre em contato com o administrador`. |
+
+**Known limitations recorded (not resolved by assumption):**
+
+- SessionDTO excludes `nome`/`fotoUrl`; the frontend shows the e-mail as display
+  name until the profile contract (Issue #30). No name/photo endpoint is invented.
+- Login-time inactive blocking relies on NextAuth error masking, so step 5/6 may
+  both surface the generic message at login; the authoritative inactive block and
+  exact message are proven by the `GET /api/session` 403 (Issue #21 tests).
+- SSR session (server-side cookie forwarding) is out of scope; the F1 SSR-flash
+  defect remains tracked under ROUTES-01 / T033.
+
+**Executed validation (this PR):** `npm --prefix frontend run lint` and
+`npm --prefix frontend run build`. Live login/refresh/logout require both servers
+plus a homologation database and are recorded here as manual acceptance steps,
+not run against the original database.
+
 ## Preserved Pending and Historical State
 
 - Feature 001 T104 was read at

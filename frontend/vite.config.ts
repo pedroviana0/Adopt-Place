@@ -12,4 +12,19 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Development-only same-origin bridge for the real backend (T019 decision):
+  // the browser calls relative `/api/*` and the dev server proxies to the local
+  // Next.js backend so NextAuth cookies stay first-party. Production/homologation
+  // uses a real reverse proxy (a later deployment Issue owns that). No secret,
+  // DATABASE_URL, or credentialed CORS wildcard is exposed here.
+  vite: {
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
+    },
+  },
 });
