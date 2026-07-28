@@ -224,6 +224,36 @@ Arthur review of frontend-owned gaps after T008-T013.
 | ADMIN-01 | Backend admin contract/security/tests: Pedro. Frontend admin consumption: Arthur. Certification: Pedro. | Backend #60; frontend #61; certification #62. | Admin action/query/schema/guards/tests and handler; `usuarios.ts`, admin route/navigation. | #23 before protected admin flow; #60 before #61; #62 after per-flow mock removal. | ADMIN alone lists/toggles real accounts; inactive users are blocked; password hash and private profile data are excluded. |
 | ROUTES-01 | Frontend route correction: Arthur. Root service/auth dependency validation and matrix evidence: Pedro. | Frontend #24; validation #25. | `frontend/src/routes/`, route tree/navigation; root `app/` service-only audit and matrix. | AUTH-01 contract/backend readiness before accepting F1; #24 correction before #25 certification. | Supported navigation renders the expected official frontend screen or remains an explicit defect; root UI is not used as fallback. |
 
+## Frontend-only Gaps (T014)
+
+These records satisfy T014 (Owner: Arthur; Issue #19). They review the
+Arthur/Claude-owned side of the flow rows above and record the gaps whose
+resolution is a frontend responsibility once the matching backend contract
+reaches `backend ready`. This is a documentation review only: **no `frontend/`
+code is changed, no lifecycle status is promoted, and `tasks.md` is not
+edited**. Every flow remains `audited`. Enum/type divergences are recorded as
+gaps, not resolved by assumption; a frontend enum, type, or mock is not aligned
+until its contract is defined and the row is `backend ready`.
+
+| Flow ID | Frontend-only gap (real evidence) | Affected frontend areas | Cannot start until |
+|---------|-----------------------------------|-------------------------|--------------------|
+| AUTH-01 | Session is client-only: `getSessao` reads `adoptplace:session:v1` (`sessao.ts:12`) and `useSessao` returns `null` on the server (`hooks.ts:24`); the guard skips SSR (`_authenticated.tsx:6`). Frontend must consume a real SessionDTO and remove localStorage session **only after** login/reload/logout pass. | `frontend/src/lib/data/sessao.ts`, `hooks.ts`, `routes/_authenticated.tsx`, `login.tsx`, `components/app/Navbar.tsx` | AUTH-01 `backend ready` (#22) |
+| REG-01, PROFILE-01, SCREEN-01 | `cadastrar*` auto-login (`usuarios.ts:81,106,130`) is an untrusted client rule to drop; CPF/CNPJ read-only must be enforced in the forms; screening answers are sensitive. `fotoUrl` exists in frontend org/foster types (`types.ts:75,88`) but not in Prisma → **lacuna/decisão pendente**, no frontend change until a product decision + homologation. | `usuarios.ts`, `routes/cadastro.*.tsx`, `_authenticated.triagem.tsx`, `_authenticated.meu-perfil.tsx`, `_authenticated.dashboard.perfil.tsx`, `lib/domain/types.ts` | profile/screening `backend ready` (#30); photo row stays blocked |
+| SHOWCASE-01 | Routes render seeded arrays directly from `animais.ts`/`catalogos.ts`; must consume the public DTO and render real empty/filter/loading states; vaccine/disease catalog read is unproven. | `animais.ts`, `catalogos.ts`, `routes/index.tsx`, `vitrine.tsx`, `animais.$animalId.tsx`, `components/app/AnimalCard.tsx`, `AnimalFilters.tsx` | public showcase `backend ready` (#27) |
+| FAVORITES-01, REQUEST-ADOPTER-01 | `adotanteId` is accepted from the browser (`favoritos.ts:4,8,12`) and adoption transitions run client-side in `solicitacoes.ts` (`createSolicitacao`, `decidirSolicitacao`, `concluirAdocao`). Identity must come from the session and transitions must move to the backend. | `favoritos.ts`, `solicitacoes.ts`, `routes/_authenticated.meus-favoritos.tsx`, `_authenticated.minhas-solicitacoes.tsx`, `animais.$animalId.tsx` | adopter journey `backend ready` (#33) |
+| REQUEST-OWNER-01 | Owner dashboards mutate competing requests and animal status client-side (`solicitacoes.ts`); must consume an owner-scoped read-only DTO plus a backend decision endpoint; private triage data needs a narrow DTO. | `solicitacoes.ts`, `routes/_authenticated.dashboard.solicitacoes.*.tsx`, `components/app/TriagemReadOnly.tsx` | owner review `backend ready` (#45) |
+| ANIMALS-01 | Frontend types accept broad partial updates; `upload.ts` stores compressed base64 images inside the `adoptplace:db:v1` blob. Must consume owner CRUD/photo/relationship/search contracts and real upload responses. | `animais.ts`, `lib/upload.ts`, `routes/_authenticated.dashboard.animais.*.tsx`, `components/app/AnimalForm.tsx`, `RelatedAnimalsPanel.tsx` | animal management `backend ready` (#40/#41) |
+| HEALTH-BASIC-01 | Frontend `TipoRegistroSaude` has **3** values (`enums.ts`: VACINA, CONTROLE_PARASITAS, TESTE_DOENCA) vs backend **5** (`prisma/schema.prisma:51-57`: + MEDICAMENTO_TRATAMENTO, PROCEDIMENTO). Frontend must align to the 5 real categories — recorded as a gap, not changed now. (`StatusAnimal` and `StatusSolicitacao` are already aligned 5/5 and 4/4.) | `lib/domain/enums.ts`, `saude.ts`, `components/app/HealthPanel.tsx` | health `backend ready` (#46) |
+| F002-HEALTH-01, F002-DASHBOARD-01, F002-DOCUMENTS-01, F002-CHAT-01 | **Frontend surface missing**: no chat or health-document data module in `frontend/src/lib/data/` and no chat/document component in `components/app/` (confirmed by inventory); health center has no dedicated module (reuses `saude.ts`); operational dashboard renders a zeroed panel for ADMIN (F4). New frontend surfaces are required, not just mock swaps. | new modules/routes/components to be identified by #54; existing `_authenticated.dashboard.index.tsx`, `HealthPanel.tsx` | feature 002 audit #48 + frontend audit/types #54 |
+| ADMIN-01 | Frontend admin mock lists all users and toggles `ativo` locally; the consumed shape must be narrowed to a safe AdminUserDTO that excludes `senhaHash` and private profile data. | `usuarios.ts`, `routes/_authenticated.dashboard.admin.usuarios.tsx` | admin `backend ready` (#61) |
+| ROUTES-01 | F1–F4 are frontend-only defects: F1 SSR client-only guard, F2 six `return null` blank leaves, F3 inconsistent wrong-role handling (denial text vs redirect), F4 ADMIN zero-dashboard. F1 is corrected first once AUTH-01 is backend-ready. | `routes/_authenticated.tsx`, protected leaf routes, `_authenticated.dashboard.tsx`, `_authenticated.dashboard.admin.usuarios.tsx` | AUTH-01 readiness; correction #24 |
+
+**Cross-cutting frontend-only gap:** the entire data layer is mock/localStorage
+(`db.ts` + `seed.ts`, single `adoptplace:db:v1` blob). Per-flow mock/localStorage
+removal is allowed only after that flow is validated; the final removal/isolation
+of `db.ts` and `seed.ts` is deferred to T114–T115 and must not happen in any
+earlier flow. No frontend code is modified by this T014 review.
+
 ## Preserved Pending and Historical State
 
 - Feature 001 T104 was read at
