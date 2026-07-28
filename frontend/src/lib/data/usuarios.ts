@@ -1,8 +1,155 @@
 import type { AcolhedorIndependente, Adotante, Organizacao, Usuario } from "../domain/types";
-import { loadDB, mutate, uid } from "./db";
+import { loadDB, mutate } from "./db";
 import type { TriagemInput } from "../schemas/triagem";
-import type { CadastroAcolhedorInput, CadastroAdotanteInput, CadastroOrganizacaoInput } from "../schemas/cadastro";
-import { buildSessao, setSessao } from "./sessao";
+import type {
+  CadastroAcolhedorInput,
+  CadastroAdotanteInput,
+  CadastroOrganizacaoInput,
+} from "../schemas/cadastro";
+import { login } from "./sessao";
+
+// ============================================================================
+// Issue #30 (T050/T051): real registration / profile / screening over /api.
+// Consumes the backend contracts implemented in Issue #29 (backend ready). No
+// localStorage/mock/session-forgery for these flows. The mock read helpers
+// (getAdotante/getOrganizacao/getAcolhedor/listUsuarios/setAtivo/...) are kept
+// because other, still-mock flows (admin #61, owner dashboards #45) use them.
+// ============================================================================
+
+interface ApiError extends Error {
+  code?: string;
+  fieldErrors?: Record<string, string[] | undefined>;
+}
+
+async function apiFetch(
+  path: string,
+  init: RequestInit & { json?: unknown } = {},
+): Promise<unknown> {
+  const { json, ...rest } = init;
+  const res = await fetch(path, {
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+    },
+    ...(json !== undefined ? { body: JSON.stringify(json) } : {}),
+    ...rest,
+  });
+  const data = (await res.json().catch(() => null)) as
+    | {
+        error?: {
+          code?: string;
+          message?: string;
+          fieldErrors?: Record<string, string[] | undefined>;
+        };
+      }
+    | Record<string, unknown>
+    | null;
+  if (!res.ok) {
+    const errObj = (
+      data as {
+        error?: {
+          code?: string;
+          message?: string;
+          fieldErrors?: Record<string, string[] | undefined>;
+        };
+      }
+    )?.error;
+    const err: ApiError = new Error(errObj?.message ?? "Não foi possível concluir a operação");
+    err.code = errObj?.code;
+    err.fieldErrors = errObj?.fieldErrors;
+    throw err;
+  }
+  return data;
+}
+
+// ---- Registration: POST /api/cadastro/{tipo}, then real login (no auto-session) ----
+
+export async function cadastrarAdotante(input: CadastroAdotanteInput): Promise<void> {
+  const { senha, instagram, ...rest } = input;
+  await apiFetch("/api/cadastro/adotante", {
+    method: "POST",
+    json: { ...rest, password: senha, ...(instagram ? { instagram } : {}) },
+  });
+  await login(input.email, senha);
+}
+
+export async function cadastrarOrganizacao(input: CadastroOrganizacaoInput): Promise<void> {
+  const { senha, ...rest } = input;
+  await apiFetch("/api/cadastro/organizacao", {
+    method: "POST",
+    json: { ...rest, password: senha },
+  });
+  await login(input.email, senha);
+}
+
+export async function cadastrarAcolhedor(input: CadastroAcolhedorInput): Promise<void> {
+  const { senha, ...rest } = input;
+  await apiFetch("/api/cadastro/acolhedor", { method: "POST", json: { ...rest, password: senha } });
+  await login(input.email, senha);
+}
+
+// ---- Profile: GET/PATCH /api/perfil (role inferred from session) ----
+
+export interface PerfilDTO {
+  id: string;
+  tipoPerfil: "ADOTANTE" | "ORGANIZACAO" | "ACOLHEDOR" | "ADMIN";
+  email: string;
+  nomeCompleto?: string;
+  cpf?: string;
+  telefone?: string;
+  instagram?: string | null;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  razaoSocial?: string;
+  cnpj?: string;
+  responsavelNome?: string;
+  capacidadeMaxima?: number | null;
+  capacidadeAtual?: number;
+}
+
+export async function fetchPerfil(): Promise<PerfilDTO> {
+  const data = (await apiFetch("/api/perfil", { method: "GET" })) as { profile: PerfilDTO };
+  return data.profile;
+}
+
+export async function atualizarPerfil(patch: Record<string, unknown>): Promise<PerfilDTO> {
+  const data = (await apiFetch("/api/perfil", { method: "PATCH", json: patch })) as {
+    profile: PerfilDTO;
+  };
+  return data.profile;
+}
+
+// ---- Screening: GET/PUT /api/triagem (adopter-only, session-scoped) ----
+
+export interface ScreeningDTO extends Partial<Record<string, unknown>> {
+  triagemConcluida: boolean;
+}
+
+export async function fetchTriagem(): Promise<ScreeningDTO> {
+  const data = (await apiFetch("/api/triagem", { method: "GET" })) as { screening: ScreeningDTO };
+  return data.screening;
+}
+
+// The backend Prisma columns carry two historical typos (todosConordamAdocao,
+// ciendeNaoRepassar). The frontend keeps the correct spelling for UX and maps to
+// the contract names only at this boundary — recorded, not "fixed" by guessing.
+export async function salvarTriagem(input: TriagemInput): Promise<void> {
+  const { todosConcordamAdocao, cienteNaoRepassar, ...rest } = input;
+  await apiFetch("/api/triagem", {
+    method: "PUT",
+    json: {
+      ...rest,
+      todosConordamAdocao: todosConcordamAdocao,
+      ciendeNaoRepassar: cienteNaoRepassar,
+    },
+  });
+}
+
+// ============================================================================
+// Mock read helpers kept for still-mock flows (admin #61, owner dashboards #45).
+// ============================================================================
 
 export function listUsuarios(): Usuario[] {
   const db = loadDB();
@@ -40,171 +187,4 @@ export function listOrganizacoes(): Organizacao[] {
 }
 export function listAcolhedores(): AcolhedorIndependente[] {
   return loadDB().acolhedores;
-}
-
-function checkUnique(email: string, cpf?: string, cnpj?: string): void {
-  const db = loadDB();
-  if (db.usuarios.some((u) => u.email.toLowerCase() === email.toLowerCase()))
-    throw new Error("E-mail já cadastrado");
-  if (cpf) {
-    if (
-      db.adotantes.some((a) => a.cpf === cpf) ||
-      db.acolhedores.some((a) => a.cpf === cpf)
-    )
-      throw new Error("CPF já cadastrado");
-  }
-  if (cnpj && db.organizacoes.some((o) => o.cnpj === cnpj))
-    throw new Error("CNPJ já cadastrado");
-}
-
-export function cadastrarAdotante(input: CadastroAdotanteInput): Adotante {
-  checkUnique(input.email, input.cpf);
-  const a = mutate((db) => {
-    const uId = uid("u");
-    db.usuarios.push({ id: uId, email: input.email, tipoPerfil: "ADOTANTE", ativo: true, criadoEm: new Date().toISOString() });
-    db.senhas[uId] = input.senha;
-    const adot: Adotante = {
-      id: uid("adot"),
-      usuarioId: uId,
-      nomeCompleto: input.nomeCompleto,
-      cpf: input.cpf,
-      telefone: input.telefone,
-      instagram: input.instagram || null,
-      endereco: input.endereco,
-      cidade: input.cidade,
-      estado: input.estado,
-      triagemConcluida: false,
-    };
-    db.adotantes.push(adot);
-    return adot;
-  });
-  setSessao(buildSessao(a.usuarioId));
-  return a;
-}
-
-export function cadastrarOrganizacao(input: CadastroOrganizacaoInput): Organizacao {
-  checkUnique(input.email, undefined, input.cnpj);
-  const o = mutate((db) => {
-    const uId = uid("u");
-    db.usuarios.push({ id: uId, email: input.email, tipoPerfil: "ORGANIZACAO", ativo: true, criadoEm: new Date().toISOString() });
-    db.senhas[uId] = input.senha;
-    const org: Organizacao = {
-      id: uid("org"),
-      usuarioId: uId,
-      razaoSocial: input.razaoSocial,
-      cnpj: input.cnpj,
-      telefone: input.telefone,
-      endereco: input.endereco,
-      cidade: input.cidade,
-      estado: input.estado,
-      responsavelNome: input.responsavelNome,
-      capacidadeMaxima: input.capacidadeMaxima ?? null,
-    };
-    db.organizacoes.push(org);
-    return org;
-  });
-  setSessao(buildSessao(o.usuarioId));
-  return o;
-}
-
-export function cadastrarAcolhedor(input: CadastroAcolhedorInput): AcolhedorIndependente {
-  checkUnique(input.email, input.cpf);
-  const a = mutate((db) => {
-    const uId = uid("u");
-    db.usuarios.push({ id: uId, email: input.email, tipoPerfil: "ACOLHEDOR", ativo: true, criadoEm: new Date().toISOString() });
-    db.senhas[uId] = input.senha;
-    const aco: AcolhedorIndependente = {
-      id: uid("aco"),
-      usuarioId: uId,
-      nomeCompleto: input.nomeCompleto,
-      cpf: input.cpf,
-      telefone: input.telefone,
-      endereco: input.endereco,
-      cidade: input.cidade,
-      estado: input.estado,
-      capacidadeAtual: 0,
-    };
-    db.acolhedores.push(aco);
-    return aco;
-  });
-  setSessao(buildSessao(a.usuarioId));
-  return a;
-}
-
-export function salvarTriagem(adotanteId: string, input: TriagemInput): void {
-  mutate((db) => {
-    const idx = db.adotantes.findIndex((a) => a.id === adotanteId);
-    if (idx < 0) throw new Error("Adotante não encontrado");
-    db.adotantes[idx] = { ...db.adotantes[idx], ...input, triagemConcluida: true };
-  });
-}
-
-function ensureEmailUnique(email: string, exceptUsuarioId: string): void {
-  const db = loadDB();
-  if (
-    db.usuarios.some(
-      (u) => u.id !== exceptUsuarioId && u.email.toLowerCase() === email.toLowerCase(),
-    )
-  ) {
-    throw new Error("E-mail já cadastrado");
-  }
-}
-
-export type OrganizacaoUpdate = Partial<
-  Pick<
-    Organizacao,
-    | "razaoSocial"
-    | "telefone"
-    | "endereco"
-    | "cidade"
-    | "estado"
-    | "responsavelNome"
-    | "capacidadeMaxima"
-    | "fotoUrl"
-  >
-> & { email?: string };
-
-export function atualizarOrganizacao(orgId: string, patch: OrganizacaoUpdate): Organizacao {
-  return mutate((db) => {
-    const idx = db.organizacoes.findIndex((o) => o.id === orgId);
-    if (idx < 0) throw new Error("Organização não encontrada");
-    const org = db.organizacoes[idx];
-    if (patch.email && patch.email !== db.usuarios.find((u) => u.id === org.usuarioId)?.email) {
-      ensureEmailUnique(patch.email, org.usuarioId);
-      const u = db.usuarios.find((x) => x.id === org.usuarioId);
-      if (u) u.email = patch.email;
-    }
-    const { email: _e, ...rest } = patch;
-    db.organizacoes[idx] = { ...org, ...rest };
-    return db.organizacoes[idx];
-  });
-}
-
-export type AcolhedorUpdate = Partial<
-  Pick<
-    AcolhedorIndependente,
-    | "nomeCompleto"
-    | "telefone"
-    | "endereco"
-    | "cidade"
-    | "estado"
-    | "capacidadeAtual"
-    | "fotoUrl"
-  >
-> & { email?: string };
-
-export function atualizarAcolhedor(acoId: string, patch: AcolhedorUpdate): AcolhedorIndependente {
-  return mutate((db) => {
-    const idx = db.acolhedores.findIndex((a) => a.id === acoId);
-    if (idx < 0) throw new Error("Acolhedor não encontrado");
-    const aco = db.acolhedores[idx];
-    if (patch.email && patch.email !== db.usuarios.find((u) => u.id === aco.usuarioId)?.email) {
-      ensureEmailUnique(patch.email, aco.usuarioId);
-      const u = db.usuarios.find((x) => x.id === aco.usuarioId);
-      if (u) u.email = patch.email;
-    }
-    const { email: _e, ...rest } = patch;
-    db.acolhedores[idx] = { ...aco, ...rest };
-    return db.acolhedores[idx];
-  });
 }
