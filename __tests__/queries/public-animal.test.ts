@@ -108,4 +108,31 @@ describe("getPublicAnimalById", () => {
       expect(selectedKeys.has(key), `${key} should not be selected`).toBe(false);
     }
   });
+
+  it("exposes only a safe health summary (no granular clinical fields)", async () => {
+    findAnimal.mockResolvedValue(publicAnimalResult);
+
+    await getPublicAnimalById(animalId);
+
+    const query = vi.mocked(prisma.animal.findUnique).mock.calls[0]?.[0];
+    const selectedKeys = collectObjectKeys(query);
+
+    // Issue #26 decision: public detail exposes only the health category (`tipo`)
+    // and record date. Granular clinical fields must never be selected.
+    const clinicalKeys = [
+      "nomeDoenca",
+      "resultado",
+      "medicamentoTratamento",
+      "procedimento",
+      "nomeVacina",
+      "tipoMedicamento",
+      "frequencia",
+      "titulo",
+      "dataProxima",
+    ] as const;
+
+    for (const key of clinicalKeys) {
+      expect(selectedKeys.has(key), `${key} should not be selected`).toBe(false);
+    }
+  });
 });

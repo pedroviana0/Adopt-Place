@@ -379,6 +379,32 @@ edited here.
   `flow complete` (T030) before ROUTES-01 is certified; this row records evidence
   only and does not itself promote ROUTES-01 beyond the proven state.
 
+## Public Showcase Backend (T037-T039) — Issue #26
+
+Owner: Pedro (executed by Arthur/Claude under explicit maintainer authorization
+for this cycle; identity `thurreis7`). Advances SHOWCASE-01 from `audited`
+through `contract defined` (T037) to `backend ready` (T039). `tasks.md` is not
+edited here.
+
+- **Contracts defined (T037):** `GET /api/animais`, `GET /api/animais/[id]`,
+  `GET /api/metrics`, `GET /api/catalogos` are documented in
+  `contracts/http-contract-inventory.md` (methods/paths, public auth, request
+  filters, response allowlists, sensitive/clinical exclusions).
+- **Backend implemented (T038):** route handlers in `app/api/animais/route.ts`,
+  `app/api/animais/[id]/route.ts`, `app/api/metrics/route.ts`, and
+  `app/api/catalogos/route.ts` reuse `lib/queries/animal-showcase.ts`,
+  `public-animal.ts`, `public-metrics.ts`, and `lib/tags.ts`. `public-animal.ts`
+  was tightened so the public health summary exposes only `tipo` + `dataRegistro`
+  (Issue #26 privacy decision); granular clinical fields are no longer selected.
+- **Validated:** `__tests__/api/public-animais.test.ts` (DTO shape, tags, 404,
+  sensitive/clinical-field exclusion) and the tightened
+  `__tests__/queries/public-animal.test.ts`; full `npm test`, `npm run typecheck`,
+  and `npm run lint` recorded in the PR. No seed/reset/migration; Prisma
+  `generate` only.
+- **Status:** SHOWCASE-01 → **`backend ready`**. Frontend consumption and
+  per-flow mock removal remain Issue #27 (T040-T042, Arthur); `flow complete`
+  stays pending Pedro's T043 after frontend evidence.
+
 ## Preserved Pending and Historical State
 
 - Feature 001 T104 was read at

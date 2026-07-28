@@ -1,0 +1,166 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { GET as getAnimais } from "@/app/api/animais/route";
+import { GET as getAnimalDetail } from "@/app/api/animais/[id]/route";
+import { GET as getMetrics } from "@/app/api/metrics/route";
+import { GET as getCatalogos } from "@/app/api/catalogos/route";
+import { prisma } from "@/lib/prisma";
+
+const showcaseAnimal = {
+  id: "a1",
+  nome: "Luna",
+  porte: "M",
+  sexo: "F",
+  idadeEstimada: "2 anos",
+  castrado: true,
+  status: "DISPONIVEL",
+  fotos: [{ urlFoto: "/luna.jpg" }],
+  especie: { nome: "Cachorro" },
+  raca: { nome: "SRD" },
+  registrosSaude: [{ tipo: "VACINA" }],
+  organizacao: { razaoSocial: "Cia Animal VR", cidade: "Volta Redonda" },
+  acolhedor: null,
+};
+
+const detailAnimal = {
+  id: "a1",
+  nome: "Luna",
+  porte: "M",
+  sexo: "F",
+  cor: "Caramelo",
+  idadeEstimada: "2 anos",
+  castrado: true,
+  descricao: "Docil",
+  status: "DISPONIVEL",
+  criadoEm: new Date("2026-01-01T00:00:00.000Z"),
+  especie: { nome: "Cachorro" },
+  raca: { nome: "SRD" },
+  fotos: [{ id: "f1", urlFoto: "/luna.jpg", principal: true }],
+  registrosSaude: [
+    { id: "s1", tipo: "VACINA", dataRegistro: new Date("2026-01-02T00:00:00.000Z") },
+  ],
+  organizacao: { razaoSocial: "Cia Animal VR", cidade: "Volta Redonda" },
+  acolhedor: null,
+  relacionadosA: [],
+};
+
+function collectKeys(value: unknown): Set<string> {
+  const keys = new Set<string>();
+  const visit = (current: unknown): void => {
+    if (!current || typeof current !== "object") return;
+    if (Array.isArray(current)) return current.forEach(visit);
+    for (const [key, nested] of Object.entries(current)) {
+      keys.add(key);
+      visit(nested);
+    }
+  };
+  visit(value);
+  return keys;
+}
+
+const forbiddenPublicKeys = [
+  "cnpj",
+  "cpf",
+  "email",
+  "telefone",
+  "endereco",
+  "senhaHash",
+  "usuarioId",
+  "organizacaoId",
+  "acolhedorId",
+  "nomeDoenca",
+  "resultado",
+  "medicamentoTratamento",
+  "procedimento",
+  "nomeVacina",
+];
+
+describe("public showcase API", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("GET /api/animais returns allowlisted summaries with tags", async () => {
+    vi.mocked(prisma.animal.findMany).mockResolvedValue([showcaseAnimal] as never);
+    vi.mocked(prisma.animal.count).mockResolvedValue(1 as never);
+
+    const res = await getAnimais(new Request("http://localhost/api/animais?porte=M"));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.animals).toHaveLength(1);
+    expect(body.animals[0]).toMatchObject({
+      id: "a1",
+      responsavel: "Cia Animal VR",
+      cidade: "Volta Redonda",
+      fotoPrincipal: "/luna.jpg",
+    });
+    expect(Array.isArray(body.animals[0].tags)).toBe(true);
+    expect(body.pagination).toMatchObject({ page: 1, total: 1 });
+    for (const key of forbiddenPublicKeys) {
+      expect(collectKeys(body).has(key), `${key} leaked`).toBe(false);
+    }
+  });
+
+  it("GET /api/animais/[id] returns 200 with a safe health summary only", async () => {
+    vi.mocked(prisma.animal.findUnique).mockResolvedValue(detailAnimal as never);
+
+    const res = await getAnimalDetail(new Request("http://localhost/api/animais/a1"), {
+      params: Promise.resolve({ id: "a1" }),
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.resumoSaude).toEqual([
+      { id: "s1", tipo: "VACINA", dataRegistro: "2026-01-02T00:00:00.000Z" },
+    ]);
+    for (const key of forbiddenPublicKeys) {
+      expect(collectKeys(body).has(key), `${key} leaked`).toBe(false);
+    }
+  });
+
+  it("GET /api/animais/[id] returns 404 when the animal does not exist", async () => {
+    vi.mocked(prisma.animal.findUnique).mockResolvedValue(null as never);
+
+    const res = await getAnimalDetail(new Request("http://localhost/api/animais/none"), {
+      params: Promise.resolve({ id: "none" }),
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(body.error.code).toBe("NOT_FOUND");
+  });
+
+  it("GET /api/metrics returns aggregate counts only", async () => {
+    vi.mocked(prisma.animal.count).mockResolvedValue(5 as never);
+    vi.mocked(prisma.solicitacaoAdocao.count).mockResolvedValue(3 as never);
+    vi.mocked(prisma.organizacao.count).mockResolvedValue(2 as never);
+    vi.mocked(prisma.acolhedorIndependente.count).mockResolvedValue(1 as never);
+
+    const res = await getMetrics();
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({
+      availableAnimals: 5,
+      completedAdoptions: 3,
+      responsibleParties: 3,
+    });
+  });
+
+  it("GET /api/catalogos returns species/breeds and available cities", async () => {
+    vi.mocked(prisma.especie.findMany).mockResolvedValue([
+      { id: "e1", nome: "Cachorro", racas: [{ id: "r1", nome: "SRD", especieId: "e1" }] },
+    ] as never);
+    vi.mocked(prisma.organizacao.findMany).mockResolvedValue([{ cidade: "Volta Redonda" }] as never);
+    vi.mocked(prisma.acolhedorIndependente.findMany).mockResolvedValue([{ cidade: "Barra Mansa" }] as never);
+
+    const res = await getCatalogos();
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.especies[0]).toMatchObject({ id: "e1", nome: "Cachorro" });
+    expect(body.cidades).toContain("Volta Redonda");
+    expect(body.cidades).toContain("Barra Mansa");
+  });
+});
