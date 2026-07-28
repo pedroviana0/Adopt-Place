@@ -134,17 +134,18 @@ JavaScript.
 - **Response**: NextAuth redirect JSON protocol and `Set-Cookie` on success. The
   frontend adapter interprets only safe result/error codes and never persists
   the password or session token.
-- **Backend source**: `lib/auth.ts` credentials schema, `Usuario` lookup,
-  bcrypt comparison, active-account check, JWT callback, and session callback.
-- **Required Issue #21 tests**: valid active credentials create a session;
+- **Backend source**: `lib/auth-credentials.ts` credentials schema, `Usuario`
+  lookup, bcrypt comparison, and active-account check; `lib/auth.ts` NextAuth
+  configuration, JWT callback, and session callback.
+- **Issue #21 validation**: valid active credentials create a safe identity;
   invalid credentials do not reveal whether account/e-mail exists; an inactive
-  account is blocked with the approved message; callback/cookie behavior is
-  preserved.
+  account is blocked with the approved message. The existing NextAuth
+  callback/cookie boundary is preserved.
 
 ### AUTH-SESSION-01 - Protected Application Session DTO
 
-- **Method/path**: `GET /api/session` (**planned**, to be implemented only by
-  Issue #21; this route does not exist at Issue #20 completion).
+- **Method/path**: `GET /api/session` (**existing**, implemented by Issue #21 in
+  `app/api/session/route.ts`).
 - **Auth mode**: authenticated and active account.
 - **Request**: no body; browser sends the secure NextAuth cookie through the
   same-origin/proxy boundary.
@@ -172,13 +173,14 @@ JavaScript.
 - **Explicit exclusions**: `senhaHash`, password, JWT/token, cookie, CSRF token,
   NextAuth adapter account/session records, CPF, CNPJ, phone, address, screening
   answers, health, requests, documents, and chat.
-- **Backend source**: `lib/auth.ts`, `getServerSession()`,
-  `lib/actions/auth-guards.ts`, `lib/permissions.ts`, and the current
-  `Usuario.ativo` value. Issue #21 must revalidate the active account instead of
-  trusting only a possibly stale JWT claim.
-- **Required Issue #21 tests**: safe DTO exact keys; 401 without session; inactive
-  block; role/scoped IDs map correctly; excluded fields are absent; reload uses
-  the same cookie-backed session.
+- **Backend source**: `app/api/session/route.ts`, `lib/auth.ts`,
+  `getServerSession()`, `lib/actions/auth-guards.ts`, `lib/permissions.ts`, and
+  the current `Usuario.ativo` value. The route revalidates the active account
+  instead of trusting only a possibly stale JWT claim.
+- **Issue #21 validation**: `__tests__/api/session.test.ts` proves exact safe DTO
+  keys, 401 without session, inactive-account blocking, role/scoped ID mapping,
+  and sensitive-field exclusion. Cookie-backed reload and logout remain
+  frontend acceptance work in Issue #22.
 - **Frontend dependency**: Issue #22 may replace
   `frontend/src/lib/data/sessao.ts` only after Issue #21 marks this contract
   `backend ready`.
@@ -236,7 +238,7 @@ Consequences:
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
 |----------------|-----------------------|-------------------------------|-----------|---------------------|
-| Session/login/logout | `frontend/src/lib/data/sessao.ts` | `lib/auth.ts`, auth route, auth guards/permissions | NextAuth cookie + protected session DTO | `contract defined`; implementation #21, frontend #22 |
+| Session/login/logout | `frontend/src/lib/data/sessao.ts` | `lib/auth.ts`, `lib/auth-credentials.ts`, auth routes, auth guards/permissions | NextAuth cookie + protected session DTO | `backend ready`; frontend #22 |
 | Public showcase/detail/metrics/catalogs | `animais.ts`, `catalogos.ts`, public routes | public animal/showcase/metrics queries, showcase schema, tags | Public | `to define`; #26 |
 | Registration | `usuarios.ts`, `cadastro.*.tsx` | adopter registration action/schema; organization/foster backend gaps | Public validated mutation | `to define`; #29 |
 | Profile and screening | `usuarios.ts`, profile/triagem routes | triagem action/schema, auth/session; profile action gap | Authenticated, role scoped | `to define`; #29; photo decision remains blocked |
@@ -259,9 +261,12 @@ Consequences:
   sensitive exclusions are defined from current query evidence.
 - T017: protected DTO group allowlists and identity rules are defined.
 - T018: exact auth proof methods/paths, DTO, exclusions, errors, backend sources,
-  tests, and frontend dependency are defined; only `/api/session` is planned.
+  tests, and frontend dependency are defined.
 - T019: same-origin reverse proxy is selected, current config gaps are recorded,
   and no provider-specific deployment behavior is claimed.
+- T020-T022 and T024-T026: the credentials boundary and protected
+  `GET /api/session` are implemented and validated by
+  `__tests__/actions/auth-credentials.test.ts` and
+  `__tests__/api/session.test.ts` (6 passing tests).
 
-No endpoint, config, test, seed, reset, migration, or database operation is
-implemented by Issue #20.
+No seed, reset, migration, or real database operation was executed by Issue #21.

@@ -80,7 +80,7 @@ vi.mock("@/lib/prisma", () => ({
       create: vi.fn(),
       count: vi.fn(),
     },
-    usuario: { update: vi.fn(), findMany: vi.fn() },
+    usuario: { findUnique: vi.fn(), update: vi.fn(), findMany: vi.fn() },
     $transaction: vi.fn((fn) => fn()),
   },
 }));
