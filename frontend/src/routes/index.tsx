@@ -1,21 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Heart, Home as HomeIcon, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { AnimalCard } from "@/components/app/AnimalCard";
+import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
 import { EmptyState } from "@/components/app/EmptyState";
-import { useMemo, useState } from "react";
-import { listAnimais } from "@/lib/data/animais";
-import { listAcolhedores } from "@/lib/data/usuarios";
-import { useDbVersion } from "@/lib/data/hooks";
+import { useState } from "react";
+import { fetchVitrine, fetchPublicMetrics } from "@/lib/data/animais";
+import { fetchCatalogos } from "@/lib/data/catalogos";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "AdoptPlace — Encontre seu parceiro ideal" },
-      { name: "description", content: "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ." },
+      {
+        name: "description",
+        content:
+          "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ.",
+      },
       { property: "og:title", content: "AdoptPlace — Encontre seu parceiro ideal" },
-      { property: "og:description", content: "Adote com responsabilidade: animais resgatados por organizações e acolhedores de Volta Redonda/RJ." },
+      {
+        property: "og:description",
+        content:
+          "Adote com responsabilidade: animais resgatados por organizações e acolhedores de Volta Redonda/RJ.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -23,28 +31,27 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const PAGE_SIZE = 12;
-
 function Home() {
-  useDbVersion();
   const [filters, setFilters] = useState<FilterState>(emptyFilters());
   const [page, setPage] = useState(1);
 
-  const disponiveis = useMemo(
-    () => listAnimais({ ...filters, status: "DISPONIVEL" }),
-    [filters]
-  );
-  const totalPages = Math.max(1, Math.ceil(disponiveis.length / PAGE_SIZE));
-  const paginados = disponiveis.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const catalogos = useQuery({ queryKey: ["catalogos"], queryFn: fetchCatalogos });
+  const metricsQuery = useQuery({ queryKey: ["metrics"], queryFn: fetchPublicMetrics });
+  const vitrine = useQuery({
+    queryKey: ["vitrine", filters, page],
+    queryFn: () => fetchVitrine({ ...filters, page }),
+  });
 
-  const metrics = useMemo(() => {
-    const todos = listAnimais();
-    return {
-      disponiveis: todos.filter((a) => a.status === "DISPONIVEL").length,
-      adotados: todos.filter((a) => a.status === "ADOTADO").length,
-      acolhedores: listAcolhedores().length,
-    };
-  }, []);
+  const paginados = vitrine.data?.animals ?? [];
+  const pagination = vitrine.data?.pagination;
+  const totalPages = pagination?.totalPages ?? 1;
+  const totalDisponiveis = pagination?.total ?? 0;
+
+  const metrics = {
+    disponiveis: metricsQuery.data?.availableAnimals ?? 0,
+    adotados: metricsQuery.data?.completedAdoptions ?? 0,
+    parceiros: metricsQuery.data?.responsibleParties ?? 0,
+  };
 
   return (
     <div>
@@ -59,7 +66,8 @@ function Home() {
               Encontre seu parceiro ideal
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-              O AdoptPlace conecta animais resgatados por organizações e acolhedores independentes a famílias prontas para dar um lar cheio de amor.
+              O AdoptPlace conecta animais resgatados por organizações e acolhedores independentes a
+              famílias prontas para dar um lar cheio de amor.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -74,9 +82,21 @@ function Home() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <MetricCard icon={<Heart className="h-5 w-5" />} label="Animais disponíveis" value={metrics.disponiveis} />
-            <MetricCard icon={<HomeIcon className="h-5 w-5" />} label="Adoções realizadas" value={metrics.adotados} />
-            <MetricCard icon={<Users className="h-5 w-5" />} label="Acolhedores parceiros" value={metrics.acolhedores} />
+            <MetricCard
+              icon={<Heart className="h-5 w-5" />}
+              label="Animais disponíveis"
+              value={metrics.disponiveis}
+            />
+            <MetricCard
+              icon={<HomeIcon className="h-5 w-5" />}
+              label="Adoções realizadas"
+              value={metrics.adotados}
+            />
+            <MetricCard
+              icon={<Users className="h-5 w-5" />}
+              label="Parceiros responsáveis"
+              value={metrics.parceiros}
+            />
           </div>
         </div>
       </section>
@@ -87,31 +107,71 @@ function Home() {
           <div>
             <h2 className="font-serif text-3xl font-semibold">Animais disponíveis</h2>
             <p className="text-sm text-muted-foreground">
-              {disponiveis.length} {disponiveis.length === 1 ? "animal" : "animais"} para conhecer
+              {totalDisponiveis} {totalDisponiveis === 1 ? "animal" : "animais"} para conhecer
             </p>
           </div>
         </div>
 
-        <AnimalFilters value={filters} onChange={(v) => { setFilters(v); setPage(1); }} />
+        <AnimalFilters
+          value={filters}
+          onChange={(v) => {
+            setFilters(v);
+            setPage(1);
+          }}
+          especies={catalogos.data?.especies}
+        />
 
-        {disponiveis.length === 0 ? (
+        {vitrine.isLoading ? (
+          <p className="mt-8 text-sm text-muted-foreground">Carregando animais…</p>
+        ) : vitrine.isError ? (
+          <div className="mt-8">
+            <EmptyState
+              title="Não foi possível carregar os animais"
+              action={{ label: "Tentar novamente", onClick: () => vitrine.refetch() }}
+            />
+          </div>
+        ) : paginados.length === 0 ? (
           <div className="mt-8">
             <EmptyState
               title="Nenhum animal encontrado com esses critérios"
               description="Ajuste os filtros para explorar outros perfis disponíveis."
-              action={{ label: "Limpar filtros", onClick: () => setFilters(emptyFilters()) }}
+              action={{
+                label: "Limpar filtros",
+                onClick: () => {
+                  setFilters(emptyFilters());
+                  setPage(1);
+                },
+              }}
             />
           </div>
         ) : (
           <>
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {paginados.map((a) => <AnimalCard key={a.id} animal={a} />)}
+              {paginados.map((a) => (
+                <PublicAnimalCard key={a.id} animal={a} />
+              ))}
             </div>
             {totalPages > 1 && (
               <div className="mt-8 flex items-center justify-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Anterior</Button>
-                <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Próxima</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {page} de {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Próxima
+                </Button>
               </div>
             )}
           </>
@@ -121,11 +181,21 @@ function Home() {
   );
 }
 
-function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function MetricCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}) {
   return (
     <div className="rounded-2xl border bg-card p-5">
       <div className="flex items-center gap-2 text-muted-foreground">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary">{icon}</span>
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary">
+          {icon}
+        </span>
         <span className="text-sm">{label}</span>
       </div>
       <p className="mt-2 font-serif text-3xl font-semibold">{value}</p>

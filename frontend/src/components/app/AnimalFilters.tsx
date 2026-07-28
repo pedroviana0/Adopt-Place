@@ -2,7 +2,13 @@ import { useMemo } from "react";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { listEspecies, listRacas } from "@/lib/data/catalogos";
 import { porteLabel, sexoLabel } from "@/lib/domain/enums";
@@ -22,15 +28,30 @@ export function emptyFilters(): FilterState {
 
 const TAG_OPTS = ["Castrado", "Vacinado", "Vermifugado", "Testado"];
 
+interface CatalogEspecie {
+  id: string;
+  nome: string;
+  racas: { id: string; nome: string; especieId: string }[];
+}
+
 export function AnimalFilters({
   value,
   onChange,
+  especies: especiesProp,
 }: {
   value: FilterState;
   onChange: (v: FilterState) => void;
+  // When provided (public showcase), the real catalog from GET /api/catalogos is
+  // used; otherwise it falls back to the mock catalog for other callers.
+  especies?: CatalogEspecie[];
 }) {
-  const especies = listEspecies();
-  const racas = useMemo(() => listRacas(value.especieId), [value.especieId]);
+  const especies = especiesProp ?? listEspecies();
+  const racas = useMemo(() => {
+    if (especiesProp) {
+      return especiesProp.find((e) => e.id === value.especieId)?.racas ?? [];
+    }
+    return listRacas(value.especieId);
+  }, [especiesProp, value.especieId]);
 
   const toggleTag = (t: string) => {
     onChange({
@@ -54,13 +75,19 @@ export function AnimalFilters({
           <Label className="mb-1 block text-xs">Espécie</Label>
           <Select
             value={value.especieId ?? "__all"}
-            onValueChange={(v) => onChange({ ...value, especieId: v === "__all" ? undefined : v, racaId: undefined })}
+            onValueChange={(v) =>
+              onChange({ ...value, especieId: v === "__all" ? undefined : v, racaId: undefined })
+            }
           >
-            <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todas</SelectItem>
               {especies.map((e) => (
-                <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>
+                <SelectItem key={e.id} value={e.id}>
+                  {e.nome}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -72,19 +99,28 @@ export function AnimalFilters({
             onValueChange={(v) => onChange({ ...value, racaId: v === "__all" ? undefined : v })}
             disabled={!value.especieId}
           >
-            <SelectTrigger><SelectValue placeholder={value.especieId ? "Todas" : "Selecione uma espécie"} /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder={value.especieId ? "Todas" : "Selecione uma espécie"} />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todas</SelectItem>
               {racas.map((r) => (
-                <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
+                <SelectItem key={r.id} value={r.id}>
+                  {r.nome}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
           <Label className="mb-1 block text-xs">Porte</Label>
-          <Select value={value.porte ?? "__all"} onValueChange={(v) => onChange({ ...value, porte: v === "__all" ? undefined : v })}>
-            <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+          <Select
+            value={value.porte ?? "__all"}
+            onValueChange={(v) => onChange({ ...value, porte: v === "__all" ? undefined : v })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todos</SelectItem>
               <SelectItem value="P">{porteLabel.P}</SelectItem>
@@ -95,8 +131,13 @@ export function AnimalFilters({
         </div>
         <div>
           <Label className="mb-1 block text-xs">Sexo</Label>
-          <Select value={value.sexo ?? "__all"} onValueChange={(v) => onChange({ ...value, sexo: v === "__all" ? undefined : v })}>
-            <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+          <Select
+            value={value.sexo ?? "__all"}
+            onValueChange={(v) => onChange({ ...value, sexo: v === "__all" ? undefined : v })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todos</SelectItem>
               <SelectItem value="M">{sexoLabel.M}</SelectItem>

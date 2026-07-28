@@ -1,5 +1,6 @@
 import { assertNaoRelacionaSiMesmo, assertXorResponsavel } from "../domain/rules";
 import type { Animal, FotoAnimal } from "../domain/types";
+import type { StatusAnimal } from "../domain/enums";
 import { loadDB, mutate, uid } from "./db";
 
 export interface AnimalFilters {
@@ -32,7 +33,8 @@ export function listAnimais(filters: AnimalFilters = {}): Animal[] {
       const c = cidadeDoResponsavel(a);
       if (!c || c.toLowerCase() !== filters.cidade.toLowerCase()) return false;
     }
-    if (filters.ownerId?.organizacaoId && a.organizacaoId !== filters.ownerId.organizacaoId) return false;
+    if (filters.ownerId?.organizacaoId && a.organizacaoId !== filters.ownerId.organizacaoId)
+      return false;
     if (filters.ownerId?.acolhedorId && a.acolhedorId !== filters.ownerId.acolhedorId) return false;
     if (filters.tags && filters.tags.length > 0) {
       const rs = db.registrosSaude.filter((r) => r.animalId === a.id);
@@ -63,7 +65,7 @@ export function fotoPrincipal(animalId: string): FotoAnimal | undefined {
 
 export function createAnimal(
   data: Omit<Animal, "id" | "criadoEm">,
-  fotos: { url: string; principal: boolean }[]
+  fotos: { url: string; principal: boolean }[],
 ): Animal {
   assertXorResponsavel(data);
   if (fotos.length === 0 || !fotos.some((f) => f.principal))
@@ -97,8 +99,7 @@ export function updateAnimal(id: string, patch: Partial<Animal>): Animal {
 }
 
 export function replaceFotos(animalId: string, fotos: { url: string; principal: boolean }[]): void {
-  if (fotos.length === 0)
-    throw new Error("O animal precisa de pelo menos uma foto principal");
+  if (fotos.length === 0) throw new Error("O animal precisa de pelo menos uma foto principal");
   if (!fotos.some((f) => f.principal))
     throw new Error("O animal precisa de pelo menos uma foto principal");
   mutate((db) => {
@@ -122,16 +123,14 @@ export function replaceFotos(animalId: string, fotos: { url: string; principal: 
 export function removerFoto(animalId: string, fotoId: string, novaPrincipalId?: string): void {
   mutate((db) => {
     const fotos = db.fotos.filter((f) => f.animalId === animalId);
-    if (fotos.length <= 1)
-      throw new Error("O animal precisa de pelo menos uma foto principal");
+    if (fotos.length <= 1) throw new Error("O animal precisa de pelo menos uma foto principal");
     const alvo = fotos.find((f) => f.id === fotoId);
     if (!alvo) throw new Error("Foto não encontrada");
     if (alvo.principal) {
       const nova = novaPrincipalId
         ? fotos.find((f) => f.id === novaPrincipalId && f.id !== fotoId)
         : undefined;
-      if (!nova)
-        throw new Error("Selecione uma nova foto principal antes de excluir esta");
+      if (!nova) throw new Error("Selecione uma nova foto principal antes de excluir esta");
       db.fotos.forEach((f) => {
         if (f.animalId === animalId) f.principal = f.id === nova.id;
       });
@@ -142,7 +141,9 @@ export function removerFoto(animalId: string, fotoId: string, novaPrincipalId?: 
 
 export function listRelacionados(animalId: string): Animal[] {
   const db = loadDB();
-  const ids = db.relacionados.filter((r) => r.animalId === animalId).map((r) => r.animalRelacionadoId);
+  const ids = db.relacionados
+    .filter((r) => r.animalId === animalId)
+    .map((r) => r.animalRelacionadoId);
   return db.animais.filter((a) => ids.includes(a.id));
 }
 
@@ -150,8 +151,9 @@ export function addRelacionamento(a: string, b: string): void {
   assertNaoRelacionaSiMesmo(a, b);
   mutate((db) => {
     const exists = db.relacionados.some(
-      (r) => (r.animalId === a && r.animalRelacionadoId === b) ||
-             (r.animalId === b && r.animalRelacionadoId === a)
+      (r) =>
+        (r.animalId === a && r.animalRelacionadoId === b) ||
+        (r.animalId === b && r.animalRelacionadoId === a),
     );
     if (exists) return;
     db.relacionados.push({ animalId: a, animalRelacionadoId: b });
@@ -162,8 +164,104 @@ export function addRelacionamento(a: string, b: string): void {
 export function removeRelacionamento(a: string, b: string): void {
   mutate((db) => {
     db.relacionados = db.relacionados.filter(
-      (r) => !((r.animalId === a && r.animalRelacionadoId === b) ||
-               (r.animalId === b && r.animalRelacionadoId === a))
+      (r) =>
+        !(
+          (r.animalId === a && r.animalRelacionadoId === b) ||
+          (r.animalId === b && r.animalRelacionadoId === a)
+        ),
     );
   });
+}
+
+// --- Public showcase (Issue #27 / T040): real HTTP consumption ---
+// These consume the public backend contracts (SHOWCASE-01) over the
+// same-origin/proxy boundary. They do NOT touch the mock helpers above, which
+// remain in use by the owner/dashboard and favorites flows (other Issues).
+
+export interface PublicAnimalTag {
+  key: string;
+  label: string;
+}
+
+export interface PublicAnimalSummary {
+  id: string;
+  nome: string;
+  porte: string;
+  sexo: string;
+  idadeEstimada: string | null;
+  castrado: boolean;
+  status: StatusAnimal;
+  fotoPrincipal: string | null;
+  especie: string | null;
+  raca: string | null;
+  cidade: string | null;
+  responsavel: string | null;
+  tags: PublicAnimalTag[];
+}
+
+export interface PublicAnimalDetail extends Omit<PublicAnimalSummary, "fotoPrincipal"> {
+  cor: string | null;
+  descricao: string | null;
+  criadoEm: string;
+  fotos: { id: string; urlFoto: string; principal: boolean }[];
+  resumoSaude: { id: string; tipo: string; dataRegistro: string }[];
+  relacionados: PublicAnimalSummary[];
+}
+
+export interface PublicMetrics {
+  availableAnimals: number;
+  completedAdoptions: number;
+  responsibleParties: number;
+}
+
+export interface VitrineParams {
+  especieId?: string;
+  racaId?: string;
+  porte?: string;
+  sexo?: string;
+  cidade?: string;
+  tags?: string[];
+  page?: number;
+}
+
+// Filter UI uses capitalized labels; the public API expects lowercase tag keys.
+const TAG_KEYS: Record<string, string> = {
+  Castrado: "castrado",
+  Vacinado: "vacinado",
+  Vermifugado: "vermifugado",
+  Testado: "testado",
+};
+
+export async function fetchVitrine(params: VitrineParams = {}): Promise<{
+  animals: PublicAnimalSummary[];
+  pagination: { page: number; perPage: number; total: number; totalPages: number };
+}> {
+  const query = new URLSearchParams();
+  if (params.especieId) query.set("especieId", params.especieId);
+  if (params.racaId) query.set("racaId", params.racaId);
+  if (params.porte) query.set("porte", params.porte);
+  if (params.sexo) query.set("sexo", params.sexo);
+  if (params.cidade) query.set("cidade", params.cidade);
+  const tags = (params.tags ?? []).map((t) => TAG_KEYS[t] ?? t.toLowerCase());
+  if (tags.length > 0) query.set("tags", tags.join(","));
+  query.set("page", String(params.page ?? 1));
+
+  const res = await fetch(`/api/animais?${query.toString()}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error("Falha ao carregar a vitrine");
+  return res.json();
+}
+
+export async function fetchPublicAnimal(id: string): Promise<PublicAnimalDetail | null> {
+  const res = await fetch(`/api/animais/${id}`, { headers: { Accept: "application/json" } });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Falha ao carregar o animal");
+  return (await res.json()) as PublicAnimalDetail;
+}
+
+export async function fetchPublicMetrics(): Promise<PublicMetrics> {
+  const res = await fetch("/api/metrics", { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error("Falha ao carregar as métricas");
+  return (await res.json()) as PublicMetrics;
 }
