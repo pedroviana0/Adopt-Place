@@ -28,9 +28,9 @@ function LoginPage() {
   const navigate = useNavigate();
   const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", senha: "" } });
 
-  const onSubmit = (data: LoginInput) => {
+  const onSubmit = async (data: LoginInput) => {
     try {
-      login(data.email, data.senha);
+      await login(data.email, data.senha);
       toast.success("Bem-vindo(a)!");
       navigate({ to: (search.next as string) ?? "/" });
     } catch (e) {

@@ -26,8 +26,8 @@ export function Navbar() {
   const sessao = useSessao();
   const router = useRouter();
 
-  const doLogout = () => {
-    logout();
+  const doLogout = async () => {
+    await logout();
     router.navigate({ to: "/" });
   };
 
