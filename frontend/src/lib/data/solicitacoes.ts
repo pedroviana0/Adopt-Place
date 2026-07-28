@@ -1,17 +1,52 @@
 import type { SolicitacaoAdocao } from "../domain/types";
-import { loadDB, mutate, uid } from "./db";
+import type { StatusSolicitacao } from "../domain/enums";
+import { loadDB, mutate } from "./db";
+import { apiRequest } from "./api";
+
+// ============================================================================
+// Issue #33 (T058/T059): real adopter-side requests over /api/solicitacoes.
+// The responsible-side helpers below stay mock until their own flow (#45).
+// ============================================================================
+
+export interface AdopterRequestDTO {
+  id: string;
+  status: StatusSolicitacao;
+  dataSolicitacao: string;
+  dataAtualizacao: string;
+  observacoes: string | null;
+  animal: {
+    id: string;
+    nome: string;
+    fotoPrincipal: string | null;
+    responsavel: string | null;
+  };
+}
+
+export async function fetchMinhasSolicitacoes(): Promise<AdopterRequestDTO[]> {
+  const data = await apiRequest<{ requests: AdopterRequestDTO[] }>("/api/solicitacoes", {
+    method: "GET",
+  });
+  return data.requests;
+}
+
+// Backend enforces screening-required, animal-availability and duplicate guards
+// and returns a stable error code/message consumed by the caller.
+export async function criarSolicitacao(animalId: string): Promise<void> {
+  await apiRequest("/api/solicitacoes", { method: "POST", json: { animalId } });
+}
+
+// ---- Mock helpers kept for the still-mock responsible-side flow (#45) ----
 
 export function listSolicitacoes(): SolicitacaoAdocao[] {
-  return loadDB().solicitacoes.slice().sort((a, b) => b.dataSolicitacao.localeCompare(a.dataSolicitacao));
+  return loadDB()
+    .solicitacoes.slice()
+    .sort((a, b) => b.dataSolicitacao.localeCompare(a.dataSolicitacao));
 }
 
-export function listSolicitacoesPorAdotante(adotanteId: string): SolicitacaoAdocao[] {
-  return listSolicitacoes().filter((s) => s.adotanteId === adotanteId);
-}
-
-export function listSolicitacoesPorResponsavel(
-  responsavel: { organizacaoId?: string; acolhedorId?: string }
-): SolicitacaoAdocao[] {
+export function listSolicitacoesPorResponsavel(responsavel: {
+  organizacaoId?: string;
+  acolhedorId?: string;
+}): SolicitacaoAdocao[] {
   const db = loadDB();
   return listSolicitacoes().filter((s) => {
     const a = db.animais.find((x) => x.id === s.animalId);
@@ -26,42 +61,12 @@ export function getSolicitacao(id: string): SolicitacaoAdocao | undefined {
   return loadDB().solicitacoes.find((s) => s.id === id);
 }
 
-export function createSolicitacao(adotanteId: string, animalId: string): SolicitacaoAdocao {
-  return mutate((db) => {
-    const adot = db.adotantes.find((a) => a.id === adotanteId);
-    if (!adot) throw new Error("Adotante não encontrado");
-    if (!adot.triagemConcluida)
-      throw new Error("Você precisa concluir a triagem antes de solicitar uma adoção.");
-    const animal = db.animais.find((a) => a.id === animalId);
-    if (!animal) throw new Error("Animal não encontrado");
-    if (animal.status !== "DISPONIVEL")
-      throw new Error("Este animal não está disponível para adoção.");
-    const dup = db.solicitacoes.find(
-      (s) => s.adotanteId === adotanteId && s.animalId === animalId &&
-             (s.status === "EM_ANALISE" || s.status === "APROVADA")
-    );
-    if (dup) throw new Error("Você já tem uma solicitação ativa para este animal");
-    const now = new Date().toISOString();
-    const s: SolicitacaoAdocao = {
-      id: uid("s"),
-      animalId,
-      adotanteId,
-      status: "EM_ANALISE",
-      dataSolicitacao: now,
-      dataAtualizacao: now,
-      observacoes: null,
-    };
-    db.solicitacoes.push(s);
-    return s;
-  });
-}
-
 export type DecisaoSolicitacao = "APROVADA" | "RECUSADA";
 
 export function decidirSolicitacao(
   id: string,
   decisao: DecisaoSolicitacao,
-  observacoes?: string
+  observacoes?: string,
 ): void {
   mutate((db) => {
     const s = db.solicitacoes.find((x) => x.id === id);
@@ -76,8 +81,7 @@ export function decidirSolicitacao(
         if (o.animalId === s.animalId && o.id !== s.id && o.status === "EM_ANALISE") {
           o.status = "RECUSADA";
           o.observacoes =
-            (o.observacoes ?? "") +
-            " Recusada automaticamente: outra solicitação foi aprovada.";
+            (o.observacoes ?? "") + " Recusada automaticamente: outra solicitação foi aprovada.";
           o.dataAtualizacao = new Date().toISOString();
         }
       });
