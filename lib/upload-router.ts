@@ -4,6 +4,11 @@ import { TipoDocumentoSaude } from "@prisma/client";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 
+import { persistAnimalPhotoUpload } from "@/lib/actions/fotos";
+import {
+  getResponsibleContext,
+  ownsAnimal,
+} from "@/lib/api/responsible-context";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -14,7 +19,7 @@ import {
 const f = createUploadthing();
 
 const animalPhotoInputSchema = z.object({
-  animalId: z.string().min(1),
+  animalId: z.string().cuid(),
 });
 
 const healthDocumentInputSchema = z.object({
@@ -115,20 +120,11 @@ export const uploadRouter = {
   animalPhoto: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
     .input(animalPhotoInputSchema)
     .middleware(async ({ files, input }) => {
-      const session = await getServerSession();
-
-      if (!session?.user?.id) {
-        throw new UploadThingError("Unauthorized");
-      }
-
-      if (!session.user.ativo || !isResponsibleRole(session.user.tipoPerfil)) {
-        throw new UploadThingError("Forbidden");
-      }
-
-      const responsavelId = getResponsavelId(session.user.tipoPerfil, session.user);
-
-      if (!responsavelId) {
-        throw new UploadThingError("Forbidden");
+      const current = await getResponsibleContext();
+      if ("error" in current) {
+        throw new UploadThingError(
+          current.error.status === 401 ? "Unauthorized" : "Forbidden",
+        );
       }
 
       const animal = await prisma.animal.findUnique({
@@ -139,19 +135,15 @@ export const uploadRouter = {
         },
       });
 
-      const ownsAnimal =
-        session.user.tipoPerfil === TipoPerfil.ORGANIZACAO
-          ? animal?.organizacaoId === responsavelId
-          : animal?.acolhedorId === responsavelId;
-
-      if (!ownsAnimal) {
+      if (!ownsAnimal(current.context, animal)) {
         throw new UploadThingError("Forbidden");
       }
 
       return {
-        userId: session.user.id,
-        responsavelId,
-        tipoPerfil: session.user.tipoPerfil,
+        userId: current.context.userId,
+        organizacaoId: current.context.organizacaoId,
+        acolhedorId: current.context.acolhedorId,
+        animalId: input.animalId,
         [UTFiles]: files.map((file) => ({
           ...file,
           customId: input.animalId,
@@ -159,20 +151,18 @@ export const uploadRouter = {
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      if (!file.customId) {
-        throw new UploadThingError("Bad Request");
+      try {
+        const photo = await persistAnimalPhotoUpload(metadata, { url: file.url });
+        return {
+          photoId: photo.id,
+          uploadedBy: metadata.userId,
+          animalId: metadata.animalId,
+        };
+      } catch (error) {
+        throw new UploadThingError(
+          error instanceof Error ? error.message : "Upload failed",
+        );
       }
-
-      await prisma.fotoAnimal.create({
-        data: {
-          animalId: file.customId,
-          urlFoto: file.url,
-          principal: false,
-          ordem: 0,
-        },
-      });
-
-      return { uploadedBy: metadata.userId };
     }),
   healthDocument: f({
     image: { maxFileSize: "16MB", maxFileCount: 1 },

@@ -17,4 +17,25 @@ describe("getOwnedAnimals filters", () => {
       status: "DISPONIVEL",
     });
   });
+
+  it("keeps foster ownership while combining all supported filters", async () => {
+    await getOwnedAnimals("foster-1", "ACOLHEDOR", {
+      q: "luna",
+      status: "EM_CUIDADOS",
+      especieId: "species-1",
+      racaId: "breed-1",
+      porte: "M",
+      sexo: "F",
+    });
+
+    expect(vi.mocked(prisma.animal.findMany).mock.calls[0]?.[0]?.where).toEqual({
+      acolhedorId: "foster-1",
+      nome: { contains: "luna", mode: "insensitive" },
+      status: "EM_CUIDADOS",
+      especieId: "species-1",
+      racaId: "breed-1",
+      porte: "M",
+      sexo: "F",
+    });
+  });
 });

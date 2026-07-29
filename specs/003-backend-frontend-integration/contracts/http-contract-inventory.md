@@ -461,6 +461,96 @@ cookies, `SameSite=Lax`, JSON content type and no credentialed cross-origin CORS
   `solicitacoes.ts`, and affected routes only after Issue #32 marks these
   contracts `backend ready`.
 
+## Owner Animal Management Contracts (T064) - Issues #35-#39
+
+All contracts in this group require an authenticated, currently active
+`ORGANIZACAO` or `ACOLHEDOR`. The backend reloads the account and scoped
+responsible profile from `Usuario` before protected data access. Browser payloads
+never choose `organizacaoId`, `acolhedorId` or another ownership identifier.
+
+### OWNER-ANIMALS-01 - `GET|POST /api/animais/gerenciados`
+
+- **GET filters**: optional `q`, `status`, `especieId`, `racaId`, `porte` and
+  `sexo`, validated by `ownedAnimalFilterSchema`. Every filter is combined with
+  the responsible identity derived from the current account.
+- **GET response**: `{ animals: OwnedAnimalSummaryDTO[] }`, ordered by animal
+  name. Each item allows only `id`, management attributes, taxonomy names,
+  primary photo and pending-request count. Owner IDs and private related
+  entities are excluded.
+- **POST request**: strict `AnimalInputDTO` with `nome`, `especieId`, nullable
+  `racaId`, `porte`, `sexo`, `cor`, nullable `idadeEstimada`, `castrado`,
+  nullable `descricao` and `status`.
+- **POST behavior**: creates exactly one owner relation from the active account;
+  owner IDs and unknown fields are rejected.
+- **POST response**: `201 { animal: OwnedAnimalDetailDTO }`.
+
+### OWNER-ANIMAL-01 - `GET|PATCH|DELETE /api/animais/gerenciados/[id]`
+
+- **Path**: CUID validated before the operation.
+- **GET response**: `{ animal: OwnedAnimalDetailDTO }` with the allowed
+  management fields, taxonomy and ordered photos.
+- **PATCH request**: the same strict editable animal fields as creation. Owner
+  transfer is not part of this contract.
+- **DELETE behavior**: deletes only an owned animal. A database relation that
+  prevents deletion is returned as `409 ANIMAL_HAS_DEPENDENCIES`; no cascade is
+  invented.
+- **Errors**: 400 `VALIDATION_ERROR`; 401 `UNAUTHENTICATED`; 403
+  `INACTIVE_ACCOUNT`, `RESPONSIBLE_ONLY` or `FORBIDDEN`; 404
+  `ANIMAL_NOT_FOUND`; 409 `ANIMAL_HAS_DEPENDENCIES`.
+
+### OWNER-ANIMAL-PHOTOS-01
+
+- **Read**: ordered photos are included in `OwnedAnimalDetailDTO`.
+- **Upload transport**: existing `POST /api/uploadthing`, endpoint
+  `animalPhoto`, input `{ animalId }`, image only, at most 4 MB per file and at
+  most 10 files. Middleware and upload completion both recheck current ownership.
+- **Upload completion**: stores the first photo as primary with order zero;
+  later photos append after the current maximum order. Response returns the
+  allowlisted `OwnedAnimalPhotoDTO`.
+- **Order**: `PATCH /api/animais/gerenciados/[id]/fotos` with strict
+  `{ photos: [{ id, ordem }] }`. The payload must contain every current photo
+  exactly once with unique contiguous positions.
+- **Primary**:
+  `PUT /api/animais/gerenciados/[id]/fotos/[fotoId]` atomically clears the old
+  primary and selects the owned target photo.
+- **Delete**:
+  `DELETE /api/animais/gerenciados/[id]/fotos/[fotoId]` accepts optional strict
+  JSON `{ novaPrincipalId }`. The only photo cannot be removed; deleting the
+  primary requires another owned photo as replacement.
+- **Known integration constraint**: Uploadthing requires an existing `animalId`.
+  The later frontend flow must create the animal before upload and must not mark
+  the create flow complete until at least one primary photo persists. No staging
+  model or migration is invented by this backend Issue.
+
+### OWNER-ANIMAL-RELATIONSHIPS-01
+
+- **List**:
+  `GET /api/animais/gerenciados/[id]/relacionamentos` returns
+  `{ animals: OwnedAnimalRelationshipDTO[] }` for an owned source animal.
+- **Link**:
+  `POST /api/animais/gerenciados/[id]/relacionamentos` with strict
+  `{ animalRelacionadoId }`.
+- **Unlink**:
+  `DELETE /api/animais/gerenciados/[id]/relacionamentos/[relatedId]`.
+- **Rules**: both animals must belong to the current responsible account;
+  self-link is rejected; link and unlink write both directions in one
+  transaction and are idempotent.
+
+### Validation and privacy
+
+- Tests must prove no session, inactive account, wrong role, ownership
+  isolation, exactly-one derived owner, no owner transfer, photo ordering and
+  primary behavior, upload ownership, self-link rejection, bidirectional
+  relationship effects and owner-scoped filters.
+- Responses exclude owner IDs, `Usuario`, CPF/CNPJ, contacts, addresses,
+  requests, adopters, screening, private health fields, documents and chat.
+- Sources are the existing Prisma `Animal`, `FotoAnimal`,
+  `AnimalRelacionado`, `Especie` and `Raca` models plus
+  `lib/actions/animais.ts`, `fotos.ts`, `animal-relacionado.ts`,
+  `animal-search.ts`, `lib/queries/owned-animals.ts`, the three animal schemas
+  and `lib/upload-router.ts`.
+- No Prisma model, enum, migration or dependency is added by these contracts.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
@@ -472,8 +562,8 @@ cookies, `SameSite=Lax`, JSON content type and no credentialed cross-origin CORS
 | Favorites | `favoritos.ts` | favorite action/query/schema and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
 | Adopter requests and dashboard | `solicitacoes.ts`, adopter routes | request actions/guards/queries/schemas and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
 | Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #43 |
-| Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #35 |
-| Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | transport exists; flow contracts `to define`; #35/#51 |
+| Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas and documented handlers | ORGANIZACAO/ACOLHEDOR owner scoped | `contract defined`; #35-#39 |
+| Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | animal photo contract defined in #35; health document flow remains #51 |
 | Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #44 |
 | Feature 002 health center | incomplete frontend surface | planned-care action/query/schema | Owner scoped | blocked on audit #48, then #49 |
 | Health documents | missing frontend surface | document action/query/schema/upload | Owner scoped and private | blocked on audit #48, then #51 |
