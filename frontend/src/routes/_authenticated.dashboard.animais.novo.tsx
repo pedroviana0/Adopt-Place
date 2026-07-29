@@ -25,9 +25,11 @@ function Page() {
   return (
     <div>
       <h1 className="font-serif text-3xl font-semibold">Novo animal</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Preencha os dados abaixo e envie pelo menos uma foto principal.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Preencha os dados abaixo. Depois de cadastrar, você poderá adicionar fotos e vínculos.
+      </p>
       <div className="mt-6">
-        <AnimalForm sessao={s} mode="create" />
+        <AnimalForm mode="create" />
       </div>
     </div>
   );
