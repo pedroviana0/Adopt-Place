@@ -52,7 +52,8 @@ export function actionErrorResponse(result: {
         : code === "NOT_FOUND"
           ? 404
           : code === "HAS_DEPENDENCIES" ||
-              code === "PRIMARY_REPLACEMENT_REQUIRED"
+              code === "PRIMARY_REPLACEMENT_REQUIRED" ||
+              code === "INVALID_TRANSITION"
             ? 409
             : 400;
 

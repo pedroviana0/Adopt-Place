@@ -482,7 +482,8 @@ never choose `organizacaoId`, `acolhedorId` or another ownership identifier.
   nullable `descricao` and `status`.
 - **POST behavior**: creates exactly one owner relation from the active account;
   owner IDs and unknown fields are rejected.
-- **POST response**: `201 { animal: OwnedAnimalDetailDTO }`.
+- **POST response**: `201 { animal: { id } }`. The frontend uses the returned
+  identifier to navigate to the protected detail contract.
 
 ### OWNER-ANIMAL-01 - `GET|PATCH|DELETE /api/animais/gerenciados/[id]`
 
@@ -503,10 +504,14 @@ never choose `organizacaoId`, `acolhedorId` or another ownership identifier.
 - **Read**: ordered photos are included in `OwnedAnimalDetailDTO`.
 - **Upload transport**: existing `POST /api/uploadthing`, endpoint
   `animalPhoto`, input `{ animalId }`, image only, at most 4 MB per file and at
-  most 10 files. Middleware and upload completion both recheck current ownership.
+  most 10 files. The official frontend sends one selected file per interaction.
+  Middleware and upload completion both recheck the active responsible account,
+  role and current ownership.
 - **Upload completion**: stores the first photo as primary with order zero;
-  later photos append after the current maximum order. Response returns the
-  allowlisted `OwnedAnimalPhotoDTO`.
+  later photos append after the current maximum order. The serializable write
+  prevents concurrent completions from assigning two primary photos. Server data
+  returns only `{ photo: { id, animalId, principal, ordem } }`; the frontend must
+  not synthesize successful persistence from provider file metadata.
 - **Order**: `PATCH /api/animais/gerenciados/[id]/fotos` with strict
   `{ photos: [{ id, ordem }] }`. The payload must contain every current photo
   exactly once with unique contiguous positions.
@@ -518,15 +523,20 @@ never choose `organizacaoId`, `acolhedorId` or another ownership identifier.
   JSON `{ novaPrincipalId }`. The only photo cannot be removed; deleting the
   primary requires another owned photo as replacement.
 - **Known integration constraint**: Uploadthing requires an existing `animalId`.
-  The later frontend flow must create the animal before upload and must not mark
-  the create flow complete until at least one primary photo persists. No staging
-  model or migration is invented by this backend Issue.
+  The frontend creates the animal before upload and reports success only after a
+  fresh protected animal read confirms a primary photo. If upload or confirmation
+  fails, the animal remains persisted and the same form retries against its
+  existing ID instead of creating a duplicate. No staging model or migration is
+  introduced.
+- **Provider configuration**: Uploadthing 7.7.4 reads `UPLOADTHING_TOKEN` only in
+  the backend service. The variable is documented in `.env.example` without a
+  real credential and is never exposed to `frontend/`.
 
 ### OWNER-ANIMAL-RELATIONSHIPS-01
 
 - **List**:
   `GET /api/animais/gerenciados/[id]/relacionamentos` returns
-  `{ animals: OwnedAnimalRelationshipDTO[] }` for an owned source animal.
+  `{ relationships: OwnedAnimalRelationshipDTO[] }` for an owned source animal.
 - **Link**:
   `POST /api/animais/gerenciados/[id]/relacionamentos` with strict
   `{ animalRelacionadoId }`.
@@ -551,6 +561,74 @@ never choose `organizacaoId`, `acolhedorId` or another ownership identifier.
   and `lib/upload-router.ts`.
 - No Prisma model, enum, migration or dependency is added by these contracts.
 
+## Owner Request and Basic Health Contracts (T076) - Issues #43/#44
+
+Every contract in this section requires a currently active `ORGANIZACAO` or
+`ACOLHEDOR`. The backend reloads the account and responsible profile before any
+protected read or write. Browser-provided user, organization, foster or animal
+owner IDs are never accepted.
+
+### REQUEST-OWNER-01 - responsible request review
+
+- `GET /api/solicitacoes/gerenciadas` accepts only an optional validated
+  `status` filter. It returns `{ requests: OwnerRequestSummaryDTO[] }`, newest
+  first, and combines the filter with ownership of the requested animal.
+- `GET /api/solicitacoes/gerenciadas/[id]` applies request ID and animal
+  ownership in the same query that selects screening data. It returns
+  `{ request: OwnerRequestDetailDTO }` with request dates/status/notes, animal
+  `id`/`nome`, and a read-only screening allowlist.
+- The screening allowlist contains the fields rendered by
+  `TriagemReadOnly.tsx`, including name, telephone, city/state, housing,
+  routine, history and commitments. It excludes CPF, street address,
+  Instagram, user/profile ownership IDs, password data and unrelated records.
+- `PATCH /api/solicitacoes/gerenciadas/[id]` accepts strict
+  `{ decision: "APROVADA" | "RECUSADA", observacoes? }`. Only
+  `EM_ANALISE` can transition. Approval atomically changes the request and
+  available animal, refuses competing requests, and creates the participant
+  conversation. Refusal changes only the selected request.
+- `POST /api/solicitacoes/gerenciadas/[id]` completes an approved request.
+  It atomically changes the request to `CONCLUIDA`, the animal to `ADOTADO`,
+  and the conversation to archived/read-only.
+- Conditional writes repeat the expected previous status inside the
+  transaction. Concurrent or repeated transitions return
+  `409 INVALID_TRANSITION`.
+
+### HEALTH-BASIC-01 - completed clinical history
+
+- `GET|POST /api/animais/gerenciados/[id]/saude` lists newest-first owned
+  records or creates one record for an owned animal.
+- `PATCH|DELETE
+  /api/animais/gerenciados/[id]/saude/[registroId]` requires both the animal
+  path and record path to match the current owner's data.
+- Request bodies are strict JSON and use ISO 8601 date strings. They support
+  only the five Prisma history categories: `VACINA`, `CONTROLE_PARASITAS`,
+  `TESTE_DOENCA`, `MEDICAMENTO_TRATAMENTO`, and `PROCEDIMENTO`.
+- `CONSULTA` is rejected and is never stored as a clinical-history fact.
+  Application dates cannot be future dates, and a next date must be later than
+  the application date.
+- Responses use `HealthRecordDTO`; dates are serialized as ISO strings and only
+  the protected responsible flow receives clinical fields. These fields remain
+  excluded from public animal endpoints.
+- Create/update synchronize at most one pending `CuidadoPlanejado` derived from
+  the next date. Clearing the date or deleting the record removes the pending
+  derived care in the same transaction.
+- `GET /api/saude/alertas` returns the current owner's vaccine, parasite-control
+  and procedure records due in the next 30 days as
+  `{ alerts: UpcomingHealthAlertDTO[] }`.
+
+### Shared errors and evidence
+
+- Stable errors are 400 `VALIDATION_ERROR`, 401 `UNAUTHENTICATED`, 403
+  `INACTIVE_ACCOUNT`/`FORBIDDEN`, 404 `NOT_FOUND`, and 409
+  `INVALID_TRANSITION`.
+- Evidence lives in `__tests__/api/owner-requests.test.ts`,
+  `__tests__/api/owner-health.test.ts`,
+  `__tests__/queries/owner-requests.test.ts`,
+  `__tests__/actions/solicitacoes.test.ts`, and
+  `__tests__/actions/registro-saude.test.ts`.
+- No Prisma model, enum, migration, seed or database reset is added by these
+  contracts. Frontend consumption remains assigned to Issues #45 and #46.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
@@ -561,10 +639,10 @@ never choose `organizacaoId`, `acolhedorId` or another ownership identifier.
 | Profile and screening | `usuarios.ts`, profile/triagem routes | profile/triagem handlers and schemas, auth/session | Authenticated, role scoped | `flow complete`; #29-#31; photo decision remains blocked |
 | Favorites | `favoritos.ts` | favorite action/query/schema and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
 | Adopter requests and dashboard | `solicitacoes.ts`, adopter routes | request actions/guards/queries/schemas and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
-| Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #43 |
+| Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | implemented and validated; certification blocked by T073 dependency; #43 |
 | Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas and documented handlers | ORGANIZACAO/ACOLHEDOR owner scoped | `contract defined`; #35-#39 |
 | Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | animal photo contract defined in #35; health document flow remains #51 |
-| Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | `to define`; #44 |
+| Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | implemented and validated; certification blocked by T073 dependency; #44 |
 | Feature 002 health center | incomplete frontend surface | planned-care action/query/schema | Owner scoped | blocked on audit #48, then #49 |
 | Health documents | missing frontend surface | document action/query/schema/upload | Owner scoped and private | blocked on audit #48, then #51 |
 | Dashboards | dashboard routes | adopter/operational/admin queries | Role and owner scoped | feature 002 slice blocked on #48, then #50 |

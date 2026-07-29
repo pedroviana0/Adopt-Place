@@ -9,54 +9,41 @@ import {
   TipoRegistroSaude,
 } from "@prisma/client";
 
-import { getServerSession } from "@/lib/auth";
+import {
+  getResponsibleContext,
+  type ResponsibleContext,
+} from "@/lib/api/responsible-context";
 import { prisma } from "@/lib/prisma";
 import {
   registroSaudeSchema,
   type RegistroSaudeInput,
 } from "@/lib/schemas/registro-saude";
 
-type ActionResult = { success?: boolean; error?: string };
+type ActionResult = {
+  success?: boolean;
+  id?: string;
+  error?: string;
+  code?: string;
+};
 
 function firstValidationError(error: ZodError): string {
   return error.issues[0]?.message ?? "Dados invalidos.";
 }
 
-type ResponsibleSession = {
-  user: {
-    id: string;
-    tipoPerfil: "ORGANIZACAO" | "ACOLHEDOR";
-    ativo: boolean;
-    organizacaoId: string | null;
-    acolhedorId: string | null;
-  };
-};
-
-async function requireResponsibleSession(): Promise<
-  { session: ResponsibleSession } | { error: string }
-> {
-  const session = await getServerSession();
-
-  if (!session?.user?.id) {
-    return { error: "Nao autenticado" };
-  }
-
-  if (!session.user.ativo) {
-    return { error: "Conta desativada" };
-  }
-
-  if (session.user.tipoPerfil !== "ORGANIZACAO" && session.user.tipoPerfil !== "ACOLHEDOR") {
-    return { error: "Apenas organizacoes ou acolhedores podem gerenciar registros de saude" };
-  }
-
-  return { session: session as ResponsibleSession };
+function ownershipFilter(context: ResponsibleContext) {
+  return context.tipoPerfil === "ORGANIZACAO"
+    ? { organizacaoId: context.responsavelId }
+    : { acolhedorId: context.responsavelId };
 }
 
-function ownsAnimal(session: ResponsibleSession, animal: { organizacaoId: string | null; acolhedorId: string | null }): boolean {
-  return (
-    (Boolean(session.user.organizacaoId) && animal.organizacaoId === session.user.organizacaoId) ||
-    (Boolean(session.user.acolhedorId) && animal.acolhedorId === session.user.acolhedorId)
-  );
+async function resolveResponsibleContext(
+  provided?: ResponsibleContext,
+): Promise<{ context: ResponsibleContext } | { error: string; code: string }> {
+  if (provided) return { context: provided };
+  const current = await getResponsibleContext();
+  return "error" in current
+    ? { error: current.error.message, code: current.error.code }
+    : current;
 }
 
 function mapToPrisma(data: RegistroSaudeInput) {
@@ -177,11 +164,12 @@ async function syncPlannedCare(
 export async function createRegistroSaude(
   animalId: string,
   data: RegistroSaudeInput,
+  providedContext?: ResponsibleContext,
 ): Promise<ActionResult> {
-  const sessionResult = await requireResponsibleSession();
+  const sessionResult = await resolveResponsibleContext(providedContext);
 
   if ("error" in sessionResult) {
-    return { error: sessionResult.error };
+    return sessionResult;
   }
 
   const parsed = registroSaudeSchema.safeParse(data);
@@ -190,19 +178,16 @@ export async function createRegistroSaude(
     return { error: firstValidationError(parsed.error) };
   }
 
-  const animal = await prisma.animal.findUnique({
-    where: { id: animalId },
-    select: { organizacaoId: true, acolhedorId: true },
+  const animal = await prisma.animal.findFirst({
+    where: { id: animalId, ...ownershipFilter(sessionResult.context) },
+    select: { id: true },
   });
 
   if (!animal) {
     return { error: "Animal nao encontrado" };
   }
 
-  if (!ownsAnimal(sessionResult.session, animal)) {
-    return { error: "Acesso negado" };
-  }
-
+  let recordId: string | undefined;
   await prisma.$transaction(async (tx) => {
     const record = await tx.registroSaude.create({
       data: {
@@ -211,20 +196,22 @@ export async function createRegistroSaude(
       },
       select: { id: true },
     });
+    recordId = record.id;
     await syncPlannedCare(tx, record.id, animalId, parsed.data);
   });
 
-  return { success: true };
+  return { success: true, id: recordId };
 }
 
 export async function updateRegistroSaude(
   id: string,
   data: RegistroSaudeInput,
+  providedContext?: ResponsibleContext,
 ): Promise<ActionResult> {
-  const sessionResult = await requireResponsibleSession();
+  const sessionResult = await resolveResponsibleContext(providedContext);
 
   if ("error" in sessionResult) {
-    return { error: sessionResult.error };
+    return sessionResult;
   }
 
   const parsed = registroSaudeSchema.safeParse(data);
@@ -233,22 +220,18 @@ export async function updateRegistroSaude(
     return { error: firstValidationError(parsed.error) };
   }
 
-  const registro = await prisma.registroSaude.findUnique({
-    where: { id },
+  const registro = await prisma.registroSaude.findFirst({
+    where: {
+      id,
+      animal: ownershipFilter(sessionResult.context),
+    },
     select: {
       animalId: true,
-      animal: {
-        select: { organizacaoId: true, acolhedorId: true },
-      },
     },
   });
 
-  if (!registro?.animal) {
+  if (!registro) {
     return { error: "Registro de saude nao encontrado" };
-  }
-
-  if (!ownsAnimal(sessionResult.session, registro.animal)) {
-    return { error: "Acesso negado" };
   }
 
   await prisma.$transaction(async (tx) => {
@@ -262,28 +245,26 @@ export async function updateRegistroSaude(
   return { success: true };
 }
 
-export async function deleteRegistroSaude(id: string): Promise<ActionResult> {
-  const sessionResult = await requireResponsibleSession();
+export async function deleteRegistroSaude(
+  id: string,
+  providedContext?: ResponsibleContext,
+): Promise<ActionResult> {
+  const sessionResult = await resolveResponsibleContext(providedContext);
 
   if ("error" in sessionResult) {
-    return { error: sessionResult.error };
+    return sessionResult;
   }
 
-  const registro = await prisma.registroSaude.findUnique({
-    where: { id },
-    select: {
-      animal: {
-        select: { organizacaoId: true, acolhedorId: true },
-      },
+  const registro = await prisma.registroSaude.findFirst({
+    where: {
+      id,
+      animal: ownershipFilter(sessionResult.context),
     },
+    select: { id: true },
   });
 
-  if (!registro?.animal) {
+  if (!registro) {
     return { error: "Registro de saude nao encontrado" };
-  }
-
-  if (!ownsAnimal(sessionResult.session, registro.animal)) {
-    return { error: "Acesso negado" };
   }
 
   await prisma.$transaction(async (tx) => {

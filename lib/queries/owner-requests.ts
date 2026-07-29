@@ -54,3 +54,14 @@ export async function getOwnerRequests(
 }
 
 export type OwnerRequest = NonNullable<Awaited<ReturnType<typeof getOwnerRequests>>>[number];
+
+export function toOwnerRequestDTO(request: OwnerRequest) {
+  return {
+    id: request.id,
+    status: request.status,
+    dataSolicitacao: request.dataSolicitacao.toISOString(),
+    dataAtualizacao: request.dataAtualizacao.toISOString(),
+    animal: request.animal,
+    adotante: request.adotante,
+  };
+}

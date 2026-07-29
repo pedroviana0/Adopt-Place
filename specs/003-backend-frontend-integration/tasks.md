@@ -191,8 +191,8 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 ### Tests for User Story 3 Health and Requests
 
-- [ ] T074 [P] [US3] Add failing backend tests for owner-only request review and decision in `__tests__/queries/owner-requests.test.ts` and `__tests__/actions/solicitacoes.test.ts` (Owner: Pedro)
-- [ ] T075 [P] [US3] Add failing backend tests for health date validation and no adopter/visitor health mutation in `__tests__/actions/registro-saude.test.ts` (Owner: Pedro)
+- [X] T074 [P] [US3] Add failing backend tests for owner-only request review and decision in `__tests__/queries/owner-requests.test.ts` and `__tests__/actions/solicitacoes.test.ts` (Owner: Pedro)
+- [X] T075 [P] [US3] Add failing backend tests for health date validation and no adopter/visitor health mutation in `__tests__/actions/registro-saude.test.ts` (Owner: Pedro)
 
 ### Implementation for User Story 3 Health and Requests
 

@@ -1,9 +1,12 @@
 "use server";
 
 import { StatusAnimal, StatusSolicitacao } from "@prisma/client";
-import type { Session } from "next-auth";
 import type { ZodError } from "zod";
 
+import {
+  getResponsibleContext,
+  type ResponsibleContext,
+} from "@/lib/api/responsible-context";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { adoptionRequestSchema } from "@/lib/schemas/solicitacao";
@@ -12,90 +15,53 @@ import {
   type RequestDecisionInput,
 } from "@/lib/schemas/solicitacao-decisao";
 
-type ResponsibleRole = "ORGANIZACAO" | "ACOLHEDOR";
+type ActionResult = { success?: boolean; error?: string; code?: string };
 
-type ResponsibleSession = Session & {
-  user: Session["user"] & {
-    tipoPerfil: ResponsibleRole;
-  };
-};
-
-type OwnedAnimal = {
-  organizacaoId: string | null;
-  acolhedorId: string | null;
-};
+class InvalidTransitionError extends Error {}
 
 function firstValidationError(error: ZodError): string {
   return error.issues[0]?.message ?? "Dados invalidos.";
 }
 
-function isResponsibleRole(role: Session["user"]["tipoPerfil"]): role is ResponsibleRole {
-  return role === "ORGANIZACAO" || role === "ACOLHEDOR";
+function ownershipFilter(context: ResponsibleContext) {
+  return context.tipoPerfil === "ORGANIZACAO"
+    ? { organizacaoId: context.responsavelId }
+    : { acolhedorId: context.responsavelId };
 }
 
-async function requireResponsibleSession(): Promise<
-  { session: ResponsibleSession } | { error: string }
-> {
-  const session = await getServerSession();
-
-  if (!session?.user?.id) {
-    return { error: "NÃ£o autenticado" };
-  }
-
-  if (!session.user.ativo) {
-    return { error: "Conta desativada" };
-  }
-
-  if (!isResponsibleRole(session.user.tipoPerfil)) {
-    return { error: "Apenas organizaÃ§Ãµes ou acolhedores podem decidir solicitaÃ§Ãµes" };
-  }
-
-  return { session: session as ResponsibleSession };
-}
-
-function ownsAnimal(session: ResponsibleSession, animal: OwnedAnimal): boolean {
-  return (
-    (Boolean(session.user.organizacaoId) &&
-      animal.organizacaoId === session.user.organizacaoId) ||
-    (Boolean(session.user.acolhedorId) && animal.acolhedorId === session.user.acolhedorId)
-  );
+async function resolveResponsibleContext(
+  provided?: ResponsibleContext,
+): Promise<{ context: ResponsibleContext } | { error: string; code: string }> {
+  if (provided) return { context: provided };
+  const current = await getResponsibleContext();
+  return "error" in current
+    ? { error: current.error.message, code: current.error.code }
+    : current;
 }
 
 export async function createAdoptionRequest(
   animalId: string,
-): Promise<{ success?: boolean; error?: string }> {
+): Promise<ActionResult> {
   const session = await getServerSession();
 
-  if (!session?.user?.id) {
-    return { error: "Não autenticado" };
-  }
-
-  if (!session.user.ativo) {
-    return { error: "Conta desativada" };
-  }
-
+  if (!session?.user?.id) return { error: "Não autenticado" };
+  if (!session.user.ativo) return { error: "Conta desativada" };
   if (session.user.tipoPerfil !== "ADOTANTE") {
     return { error: "Apenas adotantes podem solicitar adoção" };
   }
 
   const parsed = adoptionRequestSchema.safeParse({ animalId });
-
-  if (!parsed.success) {
-    return { error: "Identificador do animal inválido." };
-  }
-
+  if (!parsed.success) return { error: "Identificador do animal inválido." };
   if (!session.user.adotanteId) {
     return { error: "Perfil de adotante não encontrado." };
   }
 
-  const validatedAnimalId = parsed.data.animalId;
   const adotanteId = session.user.adotanteId;
-
+  const validatedAnimalId = parsed.data.animalId;
   const adotante = await prisma.adotante.findUnique({
     where: { id: adotanteId },
     select: { triagemConcluida: true },
   });
-
   if (!adotante?.triagemConcluida) {
     return {
       error: "Conclua a triagem em /dashboard/triagem antes de solicitar adoção",
@@ -106,7 +72,6 @@ export async function createAdoptionRequest(
     where: { id: validatedAnimalId },
     select: { status: true },
   });
-
   if (animal?.status !== StatusAnimal.DISPONIVEL) {
     return { error: "Animal indisponível para adoção" };
   }
@@ -119,7 +84,6 @@ export async function createAdoptionRequest(
     },
     select: { id: true },
   });
-
   if (existingRequest) {
     return { error: "Você já tem uma solicitação ativa para este animal" };
   }
@@ -131,68 +95,77 @@ export async function createAdoptionRequest(
       status: StatusSolicitacao.EM_ANALISE,
     },
   });
-
   return { success: true };
 }
 
 export async function decideAdoptionRequest(
   solicitacaoId: string,
   data: RequestDecisionInput,
-): Promise<{ success?: boolean; error?: string }> {
-  const sessionResult = await requireResponsibleSession();
-
-  if ("error" in sessionResult) {
-    return { error: sessionResult.error };
-  }
+  providedContext?: ResponsibleContext,
+): Promise<ActionResult> {
+  const current = await resolveResponsibleContext(providedContext);
+  if ("error" in current) return current;
 
   const parsed = requestDecisionSchema.safeParse(data);
-
   if (!parsed.success) {
-    return { error: firstValidationError(parsed.error) };
+    return {
+      error: firstValidationError(parsed.error),
+      code: "VALIDATION_ERROR",
+    };
   }
 
-  const solicitacao = await prisma.solicitacaoAdocao.findUnique({
-    where: { id: solicitacaoId },
+  const request = await prisma.solicitacaoAdocao.findFirst({
+    where: {
+      id: solicitacaoId,
+      animal: ownershipFilter(current.context),
+    },
     select: {
       id: true,
       animalId: true,
+      status: true,
       adotante: { select: { usuarioId: true } },
-      animal: {
-        select: {
-          id: true,
-          organizacaoId: true,
-          acolhedorId: true,
-        },
-      },
+      animal: { select: { id: true } },
     },
   });
 
-  if (!solicitacao) {
-    return { error: "SolicitaÃ§Ã£o nÃ£o encontrada" };
+  if (!request) {
+    return { error: "Solicitacao nao encontrada", code: "NOT_FOUND" };
+  }
+  if (request.status !== StatusSolicitacao.EM_ANALISE) {
+    return {
+      error: "Apenas solicitacoes em analise podem receber uma decisao",
+      code: "INVALID_TRANSITION",
+    };
   }
 
-  if (!ownsAnimal(sessionResult.session, solicitacao.animal)) {
-    return { error: "Acesso negado" };
-  }
-
-  if (parsed.data.decision === "APROVADA") {
+  try {
     await prisma.$transaction(async (tx) => {
-      await tx.solicitacaoAdocao.update({
-        where: { id: solicitacaoId },
+      const changed = await tx.solicitacaoAdocao.updateMany({
+        where: {
+          id: solicitacaoId,
+          status: StatusSolicitacao.EM_ANALISE,
+        },
         data: {
-          status: StatusSolicitacao.APROVADA,
+          status: parsed.data.decision,
           observacoes: parsed.data.observacoes,
         },
       });
+      if (changed.count !== 1) throw new InvalidTransitionError();
 
-      await tx.animal.update({
-        where: { id: solicitacao.animalId },
+      if (parsed.data.decision === StatusSolicitacao.RECUSADA) return;
+
+      const animalChanged = await tx.animal.updateMany({
+        where: {
+          id: request.animalId,
+          status: StatusAnimal.DISPONIVEL,
+        },
         data: { status: StatusAnimal.EM_PROCESSO_ADOCAO },
       });
+      if (animalChanged.count !== 1) throw new InvalidTransitionError();
 
       await tx.solicitacaoAdocao.updateMany({
         where: {
-          animalId: solicitacao.animalId,
+          animalId: request.animalId,
           status: StatusSolicitacao.EM_ANALISE,
           id: { not: solicitacaoId },
         },
@@ -209,86 +182,87 @@ export async function decideAdoptionRequest(
         data: [
           {
             conversaId: conversation.id,
-            usuarioId: solicitacao.adotante.usuarioId,
+            usuarioId: request.adotante.usuarioId,
           },
           {
             conversaId: conversation.id,
-            usuarioId: sessionResult.session.user.id,
+            usuarioId: current.context.userId,
           },
         ],
         skipDuplicates: true,
       });
     });
-
-    return { success: true };
+  } catch (error) {
+    if (error instanceof InvalidTransitionError) {
+      return {
+        error: "A solicitacao ou o animal mudou durante a decisao",
+        code: "INVALID_TRANSITION",
+      };
+    }
+    throw error;
   }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.solicitacaoAdocao.update({
-      where: { id: solicitacaoId },
-      data: {
-        status: StatusSolicitacao.RECUSADA,
-        observacoes: parsed.data.observacoes,
-      },
-    });
-  });
 
   return { success: true };
 }
 
 export async function completeAdoption(
   solicitacaoId: string,
-): Promise<{ success?: boolean; error?: string }> {
-  const sessionResult = await requireResponsibleSession();
+  providedContext?: ResponsibleContext,
+): Promise<ActionResult> {
+  const current = await resolveResponsibleContext(providedContext);
+  if ("error" in current) return current;
 
-  if ("error" in sessionResult) {
-    return { error: sessionResult.error };
-  }
-
-  const solicitacao = await prisma.solicitacaoAdocao.findUnique({
-    where: { id: solicitacaoId },
-    select: {
-      id: true,
-      animalId: true,
-      status: true,
-      animal: {
-        select: {
-          id: true,
-          organizacaoId: true,
-          acolhedorId: true,
-        },
-      },
+  const request = await prisma.solicitacaoAdocao.findFirst({
+    where: {
+      id: solicitacaoId,
+      animal: ownershipFilter(current.context),
     },
+    select: { id: true, animalId: true, status: true },
   });
-
-  if (!solicitacao) {
-    return { error: "Solicitacao nao encontrada" };
+  if (!request) {
+    return { error: "Solicitacao nao encontrada", code: "NOT_FOUND" };
+  }
+  if (request.status !== StatusSolicitacao.APROVADA) {
+    return {
+      error: "Apenas solicitacoes aprovadas podem ser concluidas",
+      code: "INVALID_TRANSITION",
+    };
   }
 
-  if (!ownsAnimal(sessionResult.session, solicitacao.animal)) {
-    return { error: "Acesso negado" };
+  try {
+    await prisma.$transaction(async (tx) => {
+      const changed = await tx.solicitacaoAdocao.updateMany({
+        where: {
+          id: solicitacaoId,
+          status: StatusSolicitacao.APROVADA,
+        },
+        data: { status: StatusSolicitacao.CONCLUIDA },
+      });
+      if (changed.count !== 1) throw new InvalidTransitionError();
+
+      const animalChanged = await tx.animal.updateMany({
+        where: {
+          id: request.animalId,
+          status: StatusAnimal.EM_PROCESSO_ADOCAO,
+        },
+        data: { status: StatusAnimal.ADOTADO },
+      });
+      if (animalChanged.count !== 1) throw new InvalidTransitionError();
+
+      await tx.conversaAdocao.updateMany({
+        where: { solicitacaoId },
+        data: { status: "ARQUIVADA", arquivadaEm: new Date() },
+      });
+    });
+  } catch (error) {
+    if (error instanceof InvalidTransitionError) {
+      return {
+        error: "A solicitacao ou o animal mudou durante a conclusao",
+        code: "INVALID_TRANSITION",
+      };
+    }
+    throw error;
   }
-
-  if (solicitacao.status !== StatusSolicitacao.APROVADA) {
-    return { error: "Apenas solicitacoes aprovadas podem ser concluidas" };
-  }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.solicitacaoAdocao.update({
-      where: { id: solicitacaoId },
-      data: { status: StatusSolicitacao.CONCLUIDA },
-    });
-
-    await tx.animal.update({
-      where: { id: solicitacao.animalId },
-      data: { status: StatusAnimal.ADOTADO },
-    });
-
-    await tx.conversaAdocao.updateMany({
-      where: { solicitacaoId },
-      data: { status: "ARQUIVADA", arquivadaEm: new Date() },
-    });
-  });
 
   return { success: true };
 }

@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 type TipoPerfil = "ORGANIZACAO" | "ACOLHEDOR";
 
@@ -7,28 +7,29 @@ export async function getOwnerRequestDetail(
   responsavelId: string,
   tipoPerfil: TipoPerfil,
 ) {
-  // Ownership enforced at query level (FR-047)
-  const solicitacao = await prisma.solicitacaoAdocao.findUnique({
-    where: { id: solicitacaoId },
-    include: {
-      animal: {
-        select: {
-          id: true,
-          nome: true,
-          organizacaoId: true,
-          acolhedorId: true,
-        },
-      },
+  const ownership =
+    tipoPerfil === "ORGANIZACAO"
+      ? { organizacaoId: responsavelId }
+      : { acolhedorId: responsavelId };
+
+  // Ownership is applied before any private screening field is selected.
+  const request = await prisma.solicitacaoAdocao.findFirst({
+    where: { id: solicitacaoId, animal: ownership },
+    select: {
+      id: true,
+      status: true,
+      dataSolicitacao: true,
+      dataAtualizacao: true,
+      observacoes: true,
+      animal: { select: { id: true, nome: true } },
       adotante: {
         select: {
           id: true,
           nomeCompleto: true,
-          cpf: true,
           telefone: true,
-          instagram: true,
-          endereco: true,
           cidade: true,
           estado: true,
+          triagemConcluida: true,
           motivoAdocao: true,
           tipoAnimalDesejado: true,
           podeArcarCustosVet: true,
@@ -64,31 +65,31 @@ export async function getOwnerRequestDetail(
     },
   });
 
-  // Return null if unauthorized (animal does not belong to this responsavel)
-  if (!solicitacao?.animal) {
+  if (!request) {
     return null;
   }
 
-  const isAuthorized =
-    (tipoPerfil === "ORGANIZACAO" && solicitacao.animal.organizacaoId === responsavelId) ||
-    (tipoPerfil === "ACOLHEDOR" && solicitacao.animal.acolhedorId === responsavelId);
-
-  if (!isAuthorized) {
-    return null;
-  }
+  const {
+    todosConordamAdocao,
+    ciendeNaoRepassar,
+    ...screening
+  } = request.adotante;
 
   return {
-    id: solicitacao.id,
-    status: solicitacao.status,
-    dataSolicitacao: solicitacao.dataSolicitacao,
-    dataAtualizacao: solicitacao.dataAtualizacao,
-    observacoes: solicitacao.observacoes,
-    animal: {
-      id: solicitacao.animal.id,
-      nome: solicitacao.animal.nome,
+    id: request.id,
+    status: request.status,
+    dataSolicitacao: request.dataSolicitacao.toISOString(),
+    dataAtualizacao: request.dataAtualizacao.toISOString(),
+    observacoes: request.observacoes,
+    animal: request.animal,
+    adotante: {
+      ...screening,
+      todosConcordamAdocao: todosConordamAdocao,
+      cienteNaoRepassar: ciendeNaoRepassar,
     },
-    adotante: solicitacao.adotante,
   };
 }
 
-export type OwnerRequestDetail = NonNullable<Awaited<ReturnType<typeof getOwnerRequestDetail>>>;
+export type OwnerRequestDetail = NonNullable<
+  Awaited<ReturnType<typeof getOwnerRequestDetail>>
+>;

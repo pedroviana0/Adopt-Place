@@ -19,7 +19,7 @@ export const vacinaRegistroSchema = z.object({
   dataAplicacao: pastOrTodayDateSchema,
   dataProximaDose: z.date().optional(),
   ...optionalHealthDetails,
-});
+}).strict();
 
 export type VacinaRegistroInput = z.infer<typeof vacinaRegistroSchema>;
 
@@ -30,7 +30,7 @@ export const parasitaRegistroSchema = z.object({
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,
-});
+}).strict();
 
 export type ParasitaRegistroInput = z.infer<typeof parasitaRegistroSchema>;
 
@@ -42,7 +42,7 @@ export const testeDoencaSchema = z.object({
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,
-});
+}).strict();
 
 export type TesteDoencaInput = z.infer<typeof testeDoencaSchema>;
 
@@ -52,7 +52,7 @@ export const medicamentoTratamentoSchema = z.object({
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,
-});
+}).strict();
 
 export type MedicamentoTratamentoInput = z.infer<
   typeof medicamentoTratamentoSchema
@@ -64,7 +64,7 @@ export const procedimentoRegistroSchema = z.object({
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,
-});
+}).strict();
 
 export type ProcedimentoRegistroInput = z.infer<
   typeof procedimentoRegistroSchema
@@ -136,3 +136,38 @@ export const registroSaudeSchema = z.discriminatedUnion("tipoRegistro", [
 });
 
 export type RegistroSaudeInput = z.infer<typeof registroSaudeSchema>;
+
+const isoDateSchema = z
+  .string()
+  .datetime({ offset: true })
+  .transform((value) => new Date(value));
+
+export const registroSaudeHttpSchema = z.discriminatedUnion("tipoRegistro", [
+  vacinaRegistroSchema.extend({
+    dataAplicacao: isoDateSchema,
+    dataProximaDose: isoDateSchema.optional(),
+  }),
+  parasitaRegistroSchema.extend({
+    dataAplicacao: isoDateSchema,
+    dataProxima: isoDateSchema.optional(),
+  }),
+  testeDoencaSchema.extend({
+    dataAplicacao: isoDateSchema,
+    dataProxima: isoDateSchema.optional(),
+  }),
+  medicamentoTratamentoSchema.extend({
+    dataAplicacao: isoDateSchema,
+    dataProxima: isoDateSchema.optional(),
+  }),
+  procedimentoRegistroSchema.extend({
+    dataAplicacao: isoDateSchema,
+    dataProxima: isoDateSchema.optional(),
+  }),
+]).superRefine((data, ctx) => {
+  const parsed = registroSaudeSchema.safeParse(data);
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      ctx.addIssue(issue);
+    }
+  }
+});

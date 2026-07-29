@@ -1,6 +1,7 @@
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Star, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowDown, ArrowUp, Star, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -9,12 +10,12 @@ import {
   reordenarFotos,
   type OwnedFoto,
 } from "@/lib/data/animais";
+import { uploadAnimalPhoto, validateAnimalPhoto } from "@/lib/data/animal-photo-upload";
 
-// Manages EXISTING photos of an owned animal (Issue #40): set primary, reorder,
-// delete. Adding new photos requires the Uploadthing integration and is deferred
-// (recorded gap) — the "add" affordance is disabled with a note.
 export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos: OwnedFoto[] }) {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ["animal-gerenciado", animalId] });
 
@@ -55,23 +56,55 @@ export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos
     );
   };
 
+  const enviarFoto = async (file: File) => {
+    const validationError = validateAnimalPhoto(file);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await uploadAnimalPhoto(animalId, file);
+      await refresh();
+      toast.success("Foto adicionada");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao enviar a foto");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <Label>Fotos ({fotos.length})</Label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          aria-label="Selecionar foto do animal"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void enviarFoto(file);
+          }}
+        />
         <Button
           type="button"
           variant="outline"
           size="sm"
-          disabled
-          title="Envio de novas fotos em breve (homologação)"
+          disabled={uploading || fotos.length >= 10}
+          onClick={() => fileInputRef.current?.click()}
         >
-          Adicionar fotos (em breve)
+          <Upload className="mr-2 h-4 w-4" />
+          {uploading ? "Enviando..." : "Adicionar foto"}
         </Button>
       </div>
       {fotos.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Este animal ainda não tem fotos. O envio de fotos será habilitado em breve.
+          Este animal ainda nao tem fotos.
         </p>
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
