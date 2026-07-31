@@ -9,6 +9,7 @@ vi.mock("uploadthing/client", () => ({
 import {
   animalPhotoUploadErrorMessage,
   completeAnimalPrimaryPhoto,
+  uploadThingFetch,
   uploadAnimalPhoto,
   validateAnimalPhotoFile,
 } from "../../frontend/src/lib/data/animal-photo-upload";
@@ -21,6 +22,29 @@ beforeEach(() => {
 });
 
 describe("official frontend animal photo upload", () => {
+  it("sends credentials only to the local authenticated upload route", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await uploadThingFetch("/api/uploadthing?slug=animalPhoto", {
+      method: "POST",
+    });
+    await uploadThingFetch("https://example.ufs.sh/upload/file", {
+      method: "PUT",
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/uploadthing?slug=animalPhoto",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://example.ufs.sh/upload/file",
+      expect.objectContaining({ credentials: "omit" }),
+    );
+  });
+
   it("rejects invalid type and size before calling the provider", () => {
     expect(() =>
       validateAnimalPhotoFile(

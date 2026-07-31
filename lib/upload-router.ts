@@ -1,4 +1,5 @@
 ﻿import { TipoPerfil } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import { createUploadthing, type FileRouter, UTFiles } from "uploadthing/next";
 import { TipoDocumentoSaude } from "@prisma/client";
 import { UploadThingError } from "uploadthing/server";
@@ -25,6 +26,10 @@ const animalPhotoInputSchema = z
   .strict();
 
 export const MAX_ANIMAL_PHOTO_BYTES = 4 * 1024 * 1024;
+
+export function createAnimalPhotoCustomId(animalId: string): string {
+  return `${animalId}:${randomUUID()}`;
+}
 
 type AnimalPhotoFileDescriptor = {
   name: string;
@@ -174,7 +179,7 @@ export const uploadRouter = {
         ...metadata,
         [UTFiles]: files.map((file) => ({
           ...file,
-          customId: metadata.animalId,
+          customId: createAnimalPhotoCustomId(metadata.animalId),
         })),
       };
     })

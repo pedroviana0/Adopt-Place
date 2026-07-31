@@ -10,7 +10,10 @@ import {
 } from "@/lib/actions/fotos";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { authorizeAnimalPhotoUpload } from "@/lib/upload-router";
+import {
+  authorizeAnimalPhotoUpload,
+  createAnimalPhotoCustomId,
+} from "@/lib/upload-router";
 
 const userId = "cm00000000000000000000001";
 const organizacaoId = "cm00000000000000000000002";
@@ -56,6 +59,15 @@ beforeEach(() => {
 });
 
 describe("animal photo actions", () => {
+  it("creates a distinct UploadThing custom id for every photo of the same animal", () => {
+    const first = createAnimalPhotoCustomId(animalId);
+    const second = createAnimalPhotoCustomId(animalId);
+
+    expect(first).toMatch(new RegExp(`^${animalId}:`));
+    expect(second).toMatch(new RegExp(`^${animalId}:`));
+    expect(second).not.toBe(first);
+  });
+
   it("rejects upload without authentication before reading the animal", async () => {
     vi.mocked(getServerSession).mockResolvedValue(null);
 

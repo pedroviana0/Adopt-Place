@@ -20,14 +20,35 @@ type FrontendUploadRouter = {
   }>;
 };
 
+function isLocalUploadRoute(input: RequestInfo | URL): boolean {
+  const rawUrl =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
+  const browserOrigin =
+    typeof window === "undefined" ? undefined : window.location.origin;
+  const url = new URL(rawUrl, browserOrigin ?? "http://localhost");
+
+  return (
+    url.pathname === "/api/uploadthing" &&
+    (rawUrl.startsWith("/") || url.origin === browserOrigin)
+  );
+}
+
+export function uploadThingFetch(input: RequestInfo | URL, init?: RequestInit) {
+  return fetch(input, {
+    ...init,
+    // UploadThing returns a cross-origin storage URL after this authenticated call.
+    credentials: isLocalUploadRoute(input) ? "include" : "omit",
+  });
+}
+
 const uploader = genUploader<FrontendUploadRouter>({
   url: "/api/uploadthing",
   package: "uploadthing/client",
-  fetch: (input, init) =>
-    fetch(input, {
-      ...init,
-      credentials: "include",
-    }),
+  fetch: uploadThingFetch,
 });
 
 type AnimalPhotoUploadFiles = (

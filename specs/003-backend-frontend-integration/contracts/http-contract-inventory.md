@@ -639,10 +639,10 @@ owner IDs are never accepted.
 | Profile and screening | `usuarios.ts`, profile/triagem routes | profile/triagem handlers and schemas, auth/session | Authenticated, role scoped | `flow complete`; #29-#31; photo decision remains blocked |
 | Favorites | `favoritos.ts` | favorite action/query/schema and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
 | Adopter requests and dashboard | `solicitacoes.ts`, adopter routes | request actions/guards/queries/schemas and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
-| Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | implemented and validated; certification blocked by T073 dependency; #43 |
-| Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas and documented handlers | ORGANIZACAO/ACOLHEDOR owner scoped | `contract defined`; #35-#39 |
+| Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | `backend ready`; #43 |
+| Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas and documented handlers | ORGANIZACAO/ACOLHEDOR owner scoped | `flow complete`; #35-#42 |
 | Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | animal photo contract defined in #35; health document flow remains #51 |
-| Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | implemented and validated; certification blocked by T073 dependency; #44 |
+| Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | `backend ready`; #44 |
 | Feature 002 health center | incomplete frontend surface | planned-care action/query/schema | Owner scoped | blocked on audit #48, then #49 |
 | Health documents | missing frontend surface | document action/query/schema/upload | Owner scoped and private | blocked on audit #48, then #51 |
 | Dashboards | dashboard routes | adopter/operational/admin queries | Role and owner scoped | feature 002 slice blocked on #48, then #50 |
