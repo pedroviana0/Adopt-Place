@@ -10,6 +10,10 @@ import {
 } from "@/lib/actions/fotos";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  authorizeAnimalPhotoUpload,
+  createAnimalPhotoCustomId,
+} from "@/lib/upload-router";
 
 const userId = "cm00000000000000000000001";
 const organizacaoId = "cm00000000000000000000002";
@@ -50,9 +54,111 @@ function mockActiveOrganization() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(prisma.usuario.findUnique).mockReset();
+  vi.mocked(prisma.animal.findUnique).mockReset();
 });
 
 describe("animal photo actions", () => {
+  it("creates a distinct UploadThing custom id for every photo of the same animal", () => {
+    const first = createAnimalPhotoCustomId(animalId);
+    const second = createAnimalPhotoCustomId(animalId);
+
+    expect(first).toMatch(new RegExp(`^${animalId}:`));
+    expect(second).toMatch(new RegExp(`^${animalId}:`));
+    expect(second).not.toBe(first);
+  });
+
+  it("rejects upload without authentication before reading the animal", async () => {
+    vi.mocked(getServerSession).mockResolvedValue(null);
+
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
+      ),
+    ).rejects.toThrow("Unauthorized");
+    expect(prisma.animal.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects inactive and unauthorized roles before reading the animal", async () => {
+    vi.mocked(getServerSession).mockResolvedValue(session());
+    vi.mocked(prisma.usuario.findUnique).mockResolvedValueOnce({
+      ativo: false,
+      tipoPerfil: TipoPerfil.ORGANIZACAO,
+      organizacao: { id: organizacaoId },
+      acolhedor: null,
+    } as never);
+
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
+      ),
+    ).rejects.toThrow("Forbidden");
+
+    vi.mocked(prisma.usuario.findUnique).mockResolvedValueOnce({
+      ativo: true,
+      tipoPerfil: TipoPerfil.ADOTANTE,
+      organizacao: null,
+      acolhedor: null,
+    } as never);
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
+      ),
+    ).rejects.toThrow("Forbidden");
+    expect(prisma.animal.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-image and oversized files in the backend", async () => {
+    mockActiveOrganization();
+
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "notes.txt", type: "text/plain", size: 1024 }],
+      ),
+    ).rejects.toThrow("Apenas imagens");
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "large.jpg", type: "image/jpeg", size: 4 * 1024 * 1024 + 1 }],
+      ),
+    ).rejects.toThrow("4 MB");
+  });
+
+  it("rejects upload to an animal owned by another responsible party", async () => {
+    mockActiveOrganization();
+    vi.mocked(prisma.animal.findUnique).mockResolvedValue({
+      organizacaoId: "another-org",
+      acolhedorId: null,
+    } as never);
+
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
+      ),
+    ).rejects.toThrow("Forbidden");
+  });
+
+  it("returns server-derived metadata for a valid owned upload", async () => {
+    mockActiveOrganization();
+
+    await expect(
+      authorizeAnimalPhotoUpload(
+        { animalId },
+        [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
+      ),
+    ).resolves.toEqual({
+      userId,
+      organizacaoId,
+      acolhedorId: null,
+      animalId,
+    });
+  });
+
   it("rejects an incomplete order set before updating any photo", async () => {
     mockActiveOrganization();
     vi.mocked(prisma.fotoAnimal.findMany).mockResolvedValue([
@@ -98,7 +204,22 @@ describe("animal photo actions", () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
+  it("does not delete the only primary photo", async () => {
+    mockActiveOrganization();
+    vi.mocked(prisma.fotoAnimal.findMany).mockResolvedValue([
+      { id: photoOneId, principal: true },
+    ] as never);
+
+    const result = await deleteAnimalPhoto(animalId, photoOneId);
+
+    expect(result.code).toBe("LAST_PHOTO_REQUIRED");
+    expect(prisma.fotoAnimal.delete).not.toHaveBeenCalled();
+  });
+
   it("persists the first completed upload as primary and ordered", async () => {
+    vi.mocked(prisma.$transaction).mockImplementation(
+      async (callback) => callback(prisma as never),
+    );
     vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
       ativo: true,
       tipoPerfil: TipoPerfil.ORGANIZACAO,
@@ -142,5 +263,52 @@ describe("animal photo actions", () => {
       },
     });
     expect(result.principal).toBe(true);
+    expect(prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { isolationLevel: "Serializable" },
+    );
+  });
+
+  it("appends a later upload without creating another primary photo", async () => {
+    vi.mocked(prisma.$transaction).mockImplementation(
+      async (callback) => callback(prisma as never),
+    );
+    vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+      ativo: true,
+      tipoPerfil: TipoPerfil.ORGANIZACAO,
+      organizacao: { id: organizacaoId },
+      acolhedor: null,
+    } as never);
+    vi.mocked(prisma.animal.findUnique).mockResolvedValue({
+      organizacaoId,
+      acolhedorId: null,
+    } as never);
+    vi.mocked(prisma.fotoAnimal.findFirst).mockResolvedValue({
+      id: photoOneId,
+    } as never);
+    vi.mocked(prisma.fotoAnimal.count).mockResolvedValue(1);
+    vi.mocked(prisma.fotoAnimal.create).mockResolvedValue({
+      id: photoTwoId,
+      animalId,
+      urlFoto: "https://files.example/luna-2.jpg",
+      principal: false,
+      ordem: 1,
+      criadoEm: new Date("2026-07-29T00:00:00.000Z"),
+    } as never);
+
+    const result = await persistAnimalPhotoUpload(
+      { userId, organizacaoId, acolhedorId: null, animalId },
+      { url: "https://files.example/luna-2.jpg" },
+    );
+
+    expect(prisma.fotoAnimal.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          principal: false,
+          ordem: 1,
+        }),
+      }),
+    );
+    expect(result.principal).toBe(false);
   });
 });

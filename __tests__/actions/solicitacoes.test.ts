@@ -10,7 +10,6 @@ const animalId = "cm00000000000000000000001";
 const adotanteId = "cm00000000000000000000002";
 const solicitacaoId = "cm00000000000000000000007";
 const organizacaoId = "cm00000000000000000000008";
-const otherOrganizacaoId = "cm00000000000000000000009";
 const adopterUserId = "cm00000000000000000000010";
 const conversationId = "cm00000000000000000000011";
 
@@ -46,7 +45,7 @@ const findSolicitacao = prisma.solicitacaoAdocao.findFirst as unknown as {
 const createSolicitacao = prisma.solicitacaoAdocao.create as unknown as {
   mockResolvedValue(value: { id: string }): void;
 };
-const findSolicitacaoById = prisma.solicitacaoAdocao.findUnique as unknown as {
+const findSolicitacaoById = prisma.solicitacaoAdocao.findFirst as unknown as {
   mockResolvedValue(value: DecisionRequest | null): void;
 };
 const transactionMock = prisma.$transaction as unknown as {
@@ -76,6 +75,7 @@ type DecisionTransactionClient = {
   };
   animal: {
     update: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
   };
   conversaAdocao: {
     upsert: ReturnType<typeof vi.fn>;
@@ -90,7 +90,7 @@ function decisionRequest(ownerId = organizacaoId): DecisionRequest {
   return {
     id: solicitacaoId,
     animalId,
-    status: StatusSolicitacao.APROVADA,
+    status: StatusSolicitacao.EM_ANALISE,
     adotante: { usuarioId: adopterUserId },
     animal: {
       id: animalId,
@@ -104,10 +104,11 @@ function decisionTransactionClient(): DecisionTransactionClient {
   return {
     solicitacaoAdocao: {
       update: vi.fn().mockResolvedValue({ id: solicitacaoId }),
-      updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+      updateMany: vi.fn().mockResolvedValueOnce({ count: 1 }).mockResolvedValue({ count: 2 }),
     },
     animal: {
       update: vi.fn().mockResolvedValue({ id: animalId }),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
     conversaAdocao: {
       upsert: vi.fn().mockResolvedValue({ id: conversationId }),
@@ -127,6 +128,12 @@ function mockDecisionTransaction(tx: DecisionTransactionClient): void {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ORGANIZACAO,
+    organizacao: { id: organizacaoId },
+    acolhedor: null,
+  } as never);
 });
 
 describe("createAdoptionRequest", () => {
@@ -249,20 +256,26 @@ describe("decideAdoptionRequest", () => {
         decision: "APROVADA",
       });
 
-      expect(result).toEqual({ error: "NÃ£o autenticado" });
-      expect(prisma.solicitacaoAdocao.findUnique).not.toHaveBeenCalled();
+      expect(result.code).toBe("UNAUTHENTICATED");
+      expect(prisma.solicitacaoAdocao.findFirst).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
     it("returns an error for adopter users", async () => {
       mockedGetServerSession.mockResolvedValue(session());
+      vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+        ativo: true,
+        tipoPerfil: TipoPerfil.ADOTANTE,
+        organizacao: null,
+        acolhedor: null,
+      } as never);
 
       const result = await decideAdoptionRequest(solicitacaoId, {
         decision: "APROVADA",
       });
 
-      expect(result.error).toBe("Apenas organizaÃ§Ãµes ou acolhedores podem decidir solicitaÃ§Ãµes");
-      expect(prisma.solicitacaoAdocao.findUnique).not.toHaveBeenCalled();
+      expect(result.code).toBe("FORBIDDEN");
+      expect(prisma.solicitacaoAdocao.findFirst).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
@@ -274,13 +287,13 @@ describe("decideAdoptionRequest", () => {
           organizacaoId,
         }),
       );
-      findSolicitacaoById.mockResolvedValue(decisionRequest(otherOrganizacaoId));
+      findSolicitacaoById.mockResolvedValue(null);
 
       const result = await decideAdoptionRequest(solicitacaoId, {
         decision: "APROVADA",
       });
 
-      expect(result.error).toBe("Acesso negado");
+      expect(result.code).toBe("NOT_FOUND");
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
   });
@@ -301,12 +314,33 @@ describe("decideAdoptionRequest", () => {
       });
 
       expect(result.error).toContain("1000 caracteres");
-      expect(prisma.solicitacaoAdocao.findUnique).not.toHaveBeenCalled();
+      expect(prisma.solicitacaoAdocao.findFirst).not.toHaveBeenCalled();
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
   });
 
   describe("decision APROVADA", () => {
+    it("rejects a request that is no longer in analysis", async () => {
+      mockedGetServerSession.mockResolvedValue(
+        session({
+          tipoPerfil: TipoPerfil.ORGANIZACAO,
+          adotanteId: null,
+          organizacaoId,
+        }),
+      );
+      findSolicitacaoById.mockResolvedValue({
+        ...decisionRequest(),
+        status: StatusSolicitacao.APROVADA,
+      });
+
+      const result = await decideAdoptionRequest(solicitacaoId, {
+        decision: "RECUSADA",
+      });
+
+      expect(result.code).toBe("INVALID_TRANSITION");
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
     it("updates request, animal, and competing requests in one transaction", async () => {
       const tx = decisionTransactionClient();
       mockedGetServerSession.mockResolvedValue(
@@ -325,18 +359,21 @@ describe("decideAdoptionRequest", () => {
       });
 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
-      expect(tx.solicitacaoAdocao.update).toHaveBeenCalledWith({
-        where: { id: solicitacaoId },
+      expect(tx.solicitacaoAdocao.updateMany).toHaveBeenNthCalledWith(1, {
+        where: {
+          id: solicitacaoId,
+          status: StatusSolicitacao.EM_ANALISE,
+        },
         data: {
           status: StatusSolicitacao.APROVADA,
           observacoes: "Aprovado apos triagem.",
         },
       });
-      expect(tx.animal.update).toHaveBeenCalledWith({
-        where: { id: animalId },
+      expect(tx.animal.updateMany).toHaveBeenCalledWith({
+        where: { id: animalId, status: StatusAnimal.DISPONIVEL },
         data: { status: StatusAnimal.EM_PROCESSO_ADOCAO },
       });
-      expect(tx.solicitacaoAdocao.updateMany).toHaveBeenCalledWith({
+      expect(tx.solicitacaoAdocao.updateMany).toHaveBeenNthCalledWith(2, {
         where: {
           animalId,
           status: StatusSolicitacao.EM_ANALISE,
@@ -380,15 +417,18 @@ describe("decideAdoptionRequest", () => {
       });
 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
-      expect(tx.solicitacaoAdocao.update).toHaveBeenCalledWith({
-        where: { id: solicitacaoId },
+      expect(tx.solicitacaoAdocao.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: solicitacaoId,
+          status: StatusSolicitacao.EM_ANALISE,
+        },
         data: {
           status: StatusSolicitacao.RECUSADA,
           observacoes: "Perfil nao aderente.",
         },
       });
-      expect(tx.animal.update).not.toHaveBeenCalled();
-      expect(tx.solicitacaoAdocao.updateMany).not.toHaveBeenCalled();
+      expect(tx.animal.updateMany).not.toHaveBeenCalled();
+      expect(tx.solicitacaoAdocao.updateMany).toHaveBeenCalledTimes(1);
       expect(result).toEqual({ success: true });
     });
   });
@@ -398,7 +438,10 @@ describe("chat lifecycle in adoption transaction", () => {
   it("archives the conversation when the approved adoption is completed", async () => {
     const tx = decisionTransactionClient();
     mockedGetServerSession.mockResolvedValue(session({ tipoPerfil: TipoPerfil.ORGANIZACAO, adotanteId: null, organizacaoId }));
-    findSolicitacaoById.mockResolvedValue(decisionRequest());
+    findSolicitacaoById.mockResolvedValue({
+      ...decisionRequest(),
+      status: StatusSolicitacao.APROVADA,
+    });
     mockDecisionTransaction(tx);
 
     await expect(completeAdoption(solicitacaoId)).resolves.toEqual({ success: true });
@@ -408,17 +451,16 @@ describe("chat lifecycle in adoption transaction", () => {
     });
   });
 
-  it("uses conversation upsert and duplicate-safe participants on repeated approval", async () => {
+  it("creates conversation and duplicate-safe participants on approval", async () => {
     const tx = decisionTransactionClient();
     mockedGetServerSession.mockResolvedValue(session({ tipoPerfil: TipoPerfil.ORGANIZACAO, adotanteId: null, organizacaoId }));
     findSolicitacaoById.mockResolvedValue(decisionRequest());
     mockDecisionTransaction(tx);
 
     await decideAdoptionRequest(solicitacaoId, { decision: "APROVADA" });
-    await decideAdoptionRequest(solicitacaoId, { decision: "APROVADA" });
 
-    expect(tx.conversaAdocao.upsert).toHaveBeenCalledTimes(2);
-    expect(tx.conversaParticipante.createMany).toHaveBeenCalledTimes(2);
+    expect(tx.conversaAdocao.upsert).toHaveBeenCalledTimes(1);
+    expect(tx.conversaParticipante.createMany).toHaveBeenCalledTimes(1);
     expect(tx.conversaParticipante.createMany).toHaveBeenLastCalledWith(expect.objectContaining({ skipDuplicates: true }));
   });
 });

@@ -26,7 +26,7 @@ type AsyncMock = {
 
 const careFindManyMock = prisma.cuidadoPlanejado.findMany as unknown as AsyncMock;
 const healthFindManyMock = prisma.registroSaude.findMany as unknown as AsyncMock;
-const requestFindUniqueMock = prisma.solicitacaoAdocao.findUnique as unknown as AsyncMock;
+const requestFindFirstMock = prisma.solicitacaoAdocao.findFirst as unknown as AsyncMock;
 const animalFindManyMock = prisma.animal.findMany as unknown as AsyncMock;
 const requestFindManyMock = prisma.solicitacaoAdocao.findMany as unknown as AsyncMock;
 const participantFindManyMock = prisma.conversaParticipante.findMany as unknown as AsyncMock;
@@ -51,6 +51,12 @@ function responsibleSession(): Session {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSession).mockResolvedValue(responsibleSession());
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ORGANIZACAO,
+    organizacao: { id: organizationId },
+    acolhedor: null,
+  } as never);
 });
 
 describe("health, chat, and dashboard integrated flows", () => {
@@ -143,7 +149,7 @@ describe("health, chat, and dashboard integrated flows", () => {
     let animalStatus: StatusAnimal = StatusAnimal.DISPONIVEL;
     let conversationStatus: "ATIVA" | "ARQUIVADA" | null = null;
 
-    requestFindUniqueMock.mockImplementation(async () => ({
+    requestFindFirstMock.mockImplementation(async () => ({
       id: requestId,
       animalId,
       status: requestStatus,
@@ -161,12 +167,22 @@ describe("health, chat, and dashboard integrated flows", () => {
             requestStatus = data.status;
             return { id: requestId };
           }),
-          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+          updateMany: vi.fn(async ({ where, data }) => {
+            if (where.id === requestId) {
+              requestStatus = data.status;
+              return { count: 1 };
+            }
+            return { count: 0 };
+          }),
         },
         animal: {
           update: vi.fn(async ({ data }) => {
             animalStatus = data.status;
             return { id: animalId };
+          }),
+          updateMany: vi.fn(async ({ data }) => {
+            animalStatus = data.status;
+            return { count: 1 };
           }),
         },
         conversaAdocao: {

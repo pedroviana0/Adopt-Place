@@ -30,20 +30,20 @@ import {
   type AnimalInputDTO,
   type OwnedAnimalDetail,
 } from "@/lib/data/animais";
+import { completeAnimalPrimaryPhoto, validateAnimalPhoto } from "@/lib/data/animal-photo-upload";
 
 interface Props {
   animal?: OwnedAnimalDetail;
   mode: "create" | "edit";
 }
 
-// Photo upload is deferred (Uploadthing integration pending); this form handles
-// only the animal fields in the backend contract. Existing photos are managed
-// by AnimalPhotosPanel on the edit route.
 export function AnimalForm({ animal, mode }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const catalogos = useQuery({ queryKey: ["catalogos"], queryFn: fetchCatalogos });
   const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [createdAnimalId, setCreatedAnimalId] = useState<string | null>(null);
   const [form, setForm] = useState<AnimalInput>({
     nome: animal?.nome ?? "",
     especieId: animal?.especie.id ?? "",
@@ -65,6 +65,17 @@ export function AnimalForm({ animal, mode }: Props) {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "create" && !photo) {
+      toast.error("Selecione uma foto do animal.");
+      return;
+    }
+    if (photo) {
+      const photoError = validateAnimalPhoto(photo);
+      if (photoError) {
+        toast.error(photoError);
+        return;
+      }
+    }
     const parsed = animalSchema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
@@ -84,13 +95,26 @@ export function AnimalForm({ animal, mode }: Props) {
       descricao: parsed.data.descricao ?? "",
       status: parsed.data.status,
     };
+    let persistedAnimalId = createdAnimalId;
     setSaving(true);
     try {
       if (mode === "create") {
-        const id = await criarAnimal(input);
+        if (!persistedAnimalId) {
+          persistedAnimalId = await criarAnimal(input);
+          setCreatedAnimalId(persistedAnimalId);
+        } else {
+          await atualizarAnimalGerenciado(persistedAnimalId, input);
+        }
+        await completeAnimalPrimaryPhoto(persistedAnimalId, photo!);
         await queryClient.invalidateQueries({ queryKey: ["animais-gerenciados"] });
-        toast.success("Animal cadastrado. Agora você pode adicionar fotos e vínculos.");
-        navigate({ to: "/dashboard/animais/$animalId", params: { animalId: id } });
+        await queryClient.invalidateQueries({
+          queryKey: ["animal-gerenciado", persistedAnimalId],
+        });
+        toast.success("Animal cadastrado com foto");
+        navigate({
+          to: "/dashboard/animais/$animalId",
+          params: { animalId: persistedAnimalId },
+        });
       } else if (animal) {
         await atualizarAnimalGerenciado(animal.id, input);
         await queryClient.invalidateQueries({ queryKey: ["animal-gerenciado", animal.id] });
@@ -98,7 +122,12 @@ export function AnimalForm({ animal, mode }: Props) {
         toast.success("Animal atualizado");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao salvar");
+      const message = err instanceof Error ? err.message : "Erro ao salvar";
+      toast.error(
+        mode === "create" && persistedAnimalId
+          ? `O animal foi salvo, mas a foto nao foi concluida. Tente novamente. ${message}`
+          : message,
+      );
     } finally {
       setSaving(false);
     }
@@ -216,6 +245,15 @@ export function AnimalForm({ animal, mode }: Props) {
             onChange={(e) => set("descricao", e.target.value)}
           />
         </Field>
+        {mode === "create" && (
+          <Field label="Foto principal" required className="md:col-span-2">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
+            />
+          </Field>
+        )}
       </div>
 
       <div className="flex justify-end gap-2">
@@ -227,7 +265,13 @@ export function AnimalForm({ animal, mode }: Props) {
           Cancelar
         </Button>
         <Button type="submit" disabled={saving}>
-          {saving ? "Salvando..." : mode === "create" ? "Cadastrar animal" : "Salvar alterações"}
+          {saving
+            ? mode === "create"
+              ? "Salvando e enviando foto..."
+              : "Salvando..."
+            : mode === "create"
+              ? "Cadastrar animal"
+              : "Salvar alterações"}
         </Button>
       </div>
     </form>

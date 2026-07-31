@@ -16,7 +16,7 @@ function buildProcedureAlertWhere(
       : { acolhedorId: responsavelId };
 
   return {
-    tipo: { in: ['VACINA', 'CONTROLE_PARASITAS'] },
+    tipo: { in: ['VACINA', 'CONTROLE_PARASITAS', 'PROCEDIMENTO'] },
     dataProxima: {
       gte: hojeInicio,
       lte: limite,
@@ -60,3 +60,12 @@ export async function getUpcomingAlerts(
 export type UpcomingAlert = NonNullable<
   Awaited<ReturnType<typeof getUpcomingAlerts>>
 >[number];
+
+export function toUpcomingAlertDTO(alert: UpcomingAlert) {
+  return {
+    id: alert.id,
+    tipoRegistro: alert.tipo,
+    dataProxima: alert.dataProxima?.toISOString() ?? null,
+    animal: alert.animal,
+  };
+}

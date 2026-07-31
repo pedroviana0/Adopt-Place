@@ -31,16 +31,22 @@ function session(): Session {
   };
 }
 
-const findAnimal = prisma.animal.findUnique as unknown as {
-  mockResolvedValue(value: { organizacaoId: string | null; acolhedorId: string | null } | null): void;
+const findAnimal = prisma.animal.findFirst as unknown as {
+  mockResolvedValue(value: { id?: string; organizacaoId?: string | null; acolhedorId?: string | null } | null): void;
 };
-const findRecord = prisma.registroSaude.findUnique as unknown as {
-  mockResolvedValue(value: { animal: { organizacaoId: string | null; acolhedorId: string | null } } | null): void;
+const findRecord = prisma.registroSaude.findFirst as unknown as {
+  mockResolvedValue(value: { animalId?: string; id?: string } | null): void;
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSession).mockResolvedValue(session());
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ORGANIZACAO,
+    organizacao: { id: organizationId },
+    acolhedor: null,
+  } as never);
   vi.mocked(prisma.$transaction).mockImplementation(async (callback) =>
     callback(prisma as unknown as Prisma.TransactionClient),
   );
@@ -48,6 +54,24 @@ beforeEach(() => {
 });
 
 describe("health record actions", () => {
+  it("revalidates an inactive account before any health lookup", async () => {
+    vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+      ativo: false,
+      tipoPerfil: TipoPerfil.ORGANIZACAO,
+      organizacao: { id: organizationId },
+      acolhedor: null,
+    } as never);
+
+    const result = await createRegistroSaude(animalId, {
+      tipoRegistro: "PROCEDIMENTO",
+      procedimento: "Castracao",
+      dataAplicacao: new Date("2026-07-20T12:00:00.000Z"),
+    });
+
+    expect(result.code).toBe("INACTIVE_ACCOUNT");
+    expect(prisma.animal.findFirst).not.toHaveBeenCalled();
+  });
+
   it("creates MEDICAMENTO_TRATAMENTO with internal fields for an owned animal", async () => {
     findAnimal.mockResolvedValue({ organizacaoId: organizationId, acolhedorId: null });
 
@@ -60,7 +84,7 @@ describe("health record actions", () => {
       dataAplicacao: new Date("2026-07-20T12:00:00.000Z"),
     });
 
-    expect(result).toEqual({ success: true });
+    expect(result).toEqual({ success: true, id: recordId });
     expect(prisma.registroSaude.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         animalId,
@@ -76,10 +100,7 @@ describe("health record actions", () => {
 
   it("upserts one future care and removes it when next date is cleared", async () => {
     findAnimal.mockResolvedValue({ organizacaoId: organizationId, acolhedorId: null });
-    findRecord.mockResolvedValue({
-      animalId,
-      animal: { organizacaoId: organizationId, acolhedorId: null },
-    } as never);
+    findRecord.mockResolvedValue({ animalId });
     const nextDate = new Date("2026-08-20T12:00:00.000Z");
 
     await createRegistroSaude(animalId, {
@@ -115,9 +136,7 @@ describe("health record actions", () => {
   });
 
   it("updates PROCEDIMENTO only when the current responsible owns the animal", async () => {
-    findRecord.mockResolvedValue({
-      animal: { organizacaoId: organizationId, acolhedorId: null },
-    });
+    findRecord.mockResolvedValue({ animalId });
 
     const result = await updateRegistroSaude(recordId, {
       tipoRegistro: "PROCEDIMENTO",
@@ -137,16 +156,8 @@ describe("health record actions", () => {
   });
 
   it("denies create and delete for another responsible party", async () => {
-    findAnimal.mockResolvedValue({
-      organizacaoId: "cm00000000000000000000999",
-      acolhedorId: null,
-    });
-    findRecord.mockResolvedValue({
-      animal: {
-        organizacaoId: "cm00000000000000000000999",
-        acolhedorId: null,
-      },
-    });
+    findAnimal.mockResolvedValue(null);
+    findRecord.mockResolvedValue(null);
 
     await expect(
       createRegistroSaude(animalId, {
@@ -154,9 +165,9 @@ describe("health record actions", () => {
         procedimento: "Curativo",
         dataAplicacao: new Date("2026-07-20T12:00:00.000Z"),
       }),
-    ).resolves.toEqual({ error: "Acesso negado" });
+    ).resolves.toEqual({ error: "Animal nao encontrado" });
     await expect(deleteRegistroSaude(recordId)).resolves.toEqual({
-      error: "Acesso negado",
+      error: "Registro de saude nao encontrado",
     });
     expect(prisma.registroSaude.create).not.toHaveBeenCalled();
     expect(prisma.registroSaude.delete).not.toHaveBeenCalled();

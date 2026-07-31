@@ -1,4 +1,5 @@
 ﻿import { TipoPerfil } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import { createUploadthing, type FileRouter, UTFiles } from "uploadthing/next";
 import { TipoDocumentoSaude } from "@prisma/client";
 import { UploadThingError } from "uploadthing/server";
@@ -18,9 +19,61 @@ import {
 
 const f = createUploadthing();
 
-const animalPhotoInputSchema = z.object({
-  animalId: z.string().cuid(),
-});
+const animalPhotoInputSchema = z
+  .object({
+    animalId: z.string().cuid(),
+  })
+  .strict();
+
+export const MAX_ANIMAL_PHOTO_BYTES = 4 * 1024 * 1024;
+
+export function createAnimalPhotoCustomId(animalId: string): string {
+  return `${animalId}:${randomUUID()}`;
+}
+
+type AnimalPhotoFileDescriptor = {
+  name: string;
+  size: number;
+  type: string;
+};
+
+export async function authorizeAnimalPhotoUpload(
+  input: unknown,
+  files: readonly AnimalPhotoFileDescriptor[],
+) {
+  const parsed = animalPhotoInputSchema.safeParse(input);
+  if (!parsed.success || files.length === 0 || files.length > 10) {
+    throw new UploadThingError("Bad Request");
+  }
+  if (files.some((file) => !file.type.startsWith("image/"))) {
+    throw new UploadThingError("Apenas imagens sao permitidas");
+  }
+  if (files.some((file) => file.size > MAX_ANIMAL_PHOTO_BYTES)) {
+    throw new UploadThingError("Cada imagem deve ter no maximo 4 MB");
+  }
+
+  const current = await getResponsibleContext();
+  if ("error" in current) {
+    throw new UploadThingError(
+      current.error.status === 401 ? "Unauthorized" : "Forbidden",
+    );
+  }
+
+  const animal = await prisma.animal.findUnique({
+    where: { id: parsed.data.animalId },
+    select: { organizacaoId: true, acolhedorId: true },
+  });
+  if (!ownsAnimal(current.context, animal)) {
+    throw new UploadThingError("Forbidden");
+  }
+
+  return {
+    userId: current.context.userId,
+    organizacaoId: current.context.organizacaoId,
+    acolhedorId: current.context.acolhedorId,
+    animalId: parsed.data.animalId,
+  };
+}
 
 const healthDocumentInputSchema = z.object({
   animalId: z.string().cuid(),
@@ -120,33 +173,13 @@ export const uploadRouter = {
   animalPhoto: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
     .input(animalPhotoInputSchema)
     .middleware(async ({ files, input }) => {
-      const current = await getResponsibleContext();
-      if ("error" in current) {
-        throw new UploadThingError(
-          current.error.status === 401 ? "Unauthorized" : "Forbidden",
-        );
-      }
-
-      const animal = await prisma.animal.findUnique({
-        where: { id: input.animalId },
-        select: {
-          organizacaoId: true,
-          acolhedorId: true,
-        },
-      });
-
-      if (!ownsAnimal(current.context, animal)) {
-        throw new UploadThingError("Forbidden");
-      }
+      const metadata = await authorizeAnimalPhotoUpload(input, files);
 
       return {
-        userId: current.context.userId,
-        organizacaoId: current.context.organizacaoId,
-        acolhedorId: current.context.acolhedorId,
-        animalId: input.animalId,
+        ...metadata,
         [UTFiles]: files.map((file) => ({
           ...file,
-          customId: input.animalId,
+          customId: createAnimalPhotoCustomId(metadata.animalId),
         })),
       };
     })
@@ -154,9 +187,12 @@ export const uploadRouter = {
       try {
         const photo = await persistAnimalPhotoUpload(metadata, { url: file.url });
         return {
-          photoId: photo.id,
-          uploadedBy: metadata.userId,
-          animalId: metadata.animalId,
+          photo: {
+            id: photo.id,
+            animalId: photo.animalId,
+            principal: photo.principal,
+            ordem: photo.ordem,
+          },
         };
       } catch (error) {
         throw new UploadThingError(

@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import type { ZodError } from "zod";
 
 import {
@@ -208,6 +209,12 @@ export async function deleteAnimalPhoto(
       code: "PRIMARY_REPLACEMENT_REQUIRED",
     };
   }
+  if (target.principal && photos.length === 1) {
+    return {
+      error: "O animal precisa de pelo menos uma foto principal",
+      code: "LAST_PHOTO_REQUIRED",
+    };
+  }
 
   const operations = [];
   if (target.principal && replacement) {
@@ -233,8 +240,12 @@ export async function persistAnimalPhotoUpload(
   file: UploadedAnimalPhoto,
 ) {
   const parsed = idSchema.safeParse(metadata.animalId);
-  const parsedUrl = new URL(file.url);
-  if (!parsed.success || !["http:", "https:"].includes(parsedUrl.protocol)) {
+  const parsedUrl = URL.canParse(file.url) ? new URL(file.url) : null;
+  if (
+    !parsed.success ||
+    !parsedUrl ||
+    !["http:", "https:"].includes(parsedUrl.protocol)
+  ) {
     throw new Error("Bad Request");
   }
 
@@ -243,40 +254,55 @@ export async function persistAnimalPhotoUpload(
     throw new Error(contextResult.error.message);
   }
 
-  const animal = await prisma.animal.findUnique({
-    where: { id: parsed.data },
-    select: { organizacaoId: true, acolhedorId: true },
-  });
-  if (!ownsAnimal(contextResult.context, animal)) {
-    throw new Error("Acesso negado");
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await prisma.$transaction(
+        async (tx) => {
+          const animal = await tx.animal.findUnique({
+            where: { id: parsed.data },
+            select: { organizacaoId: true, acolhedorId: true },
+          });
+          if (!ownsAnimal(contextResult.context, animal)) {
+            throw new Error("Acesso negado");
+          }
+
+          const count = await tx.fotoAnimal.count({
+            where: { animalId: parsed.data },
+          });
+          if (count >= 10) {
+            throw new Error("Maximo de 10 fotos permitidas");
+          }
+          const primary = await tx.fotoAnimal.findFirst({
+            where: { animalId: parsed.data, principal: true },
+            select: { id: true },
+          });
+
+          return tx.fotoAnimal.create({
+            data: {
+              animalId: parsed.data,
+              urlFoto: file.url,
+              principal: !primary,
+              ordem: count,
+            },
+            select: {
+              id: true,
+              animalId: true,
+              urlFoto: true,
+              principal: true,
+              ordem: true,
+              criadoEm: true,
+            },
+          });
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      const retryable =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2034";
+      if (!retryable || attempt === 2) throw error;
+    }
   }
 
-  const count = await prisma.fotoAnimal.count({
-    where: { animalId: parsed.data },
-  });
-  if (count >= 10) {
-    throw new Error("Maximo de 10 fotos permitidas");
-  }
-
-  const primary = await prisma.fotoAnimal.findFirst({
-    where: { animalId: parsed.data, principal: true },
-    select: { id: true },
-  });
-
-  return prisma.fotoAnimal.create({
-    data: {
-      animalId: parsed.data,
-      urlFoto: file.url,
-      principal: !primary,
-      ordem: count,
-    },
-    select: {
-      id: true,
-      animalId: true,
-      urlFoto: true,
-      principal: true,
-      ordem: true,
-      criadoEm: true,
-    },
-  });
+  throw new Error("Upload failed");
 }

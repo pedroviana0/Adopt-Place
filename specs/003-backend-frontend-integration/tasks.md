@@ -181,7 +181,7 @@ T001 through T019 MUST be completed and verified before any implementation task 
 - [X] T070 [US3] Update animal management matrix rows to `backend ready` only where T065-T069 tests and acceptance evidence pass (Owner: Pedro; depends on T065-T069)
 - [ ] T071 [US3] Integrate real owner animal management in `frontend/src/lib/data/animais.ts`, `frontend/src/routes/_authenticated.dashboard.animais.*.tsx`, `frontend/src/components/app/AnimalForm.tsx`, and `frontend/src/components/app/RelatedAnimalsPanel.tsx` (Owner: Arthur; depends on T070)
 - [ ] T072 [US3] Remove owner animal management mock/localStorage dependency from completed functions in `frontend/src/lib/data/animais.ts` (Owner: Arthur; depends on T071)
-- [ ] T073 [US3] Update matrix animal management rows to `flow complete` with validation evidence (Owner: Pedro; depends on T072)
+- [X] T073 [US3] Update matrix animal management rows to `flow complete` with validation evidence (Owner: Pedro; depends on T072)
 
 ## Phase 10: Health and Requests (User Story 3 - P2)
 
@@ -191,15 +191,15 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 ### Tests for User Story 3 Health and Requests
 
-- [ ] T074 [P] [US3] Add failing backend tests for owner-only request review and decision in `__tests__/queries/owner-requests.test.ts` and `__tests__/actions/solicitacoes.test.ts` (Owner: Pedro)
-- [ ] T075 [P] [US3] Add failing backend tests for health date validation and no adopter/visitor health mutation in `__tests__/actions/registro-saude.test.ts` (Owner: Pedro)
+- [X] T074 [P] [US3] Add failing backend tests for owner-only request review and decision in `__tests__/queries/owner-requests.test.ts` and `__tests__/actions/solicitacoes.test.ts` (Owner: Pedro)
+- [X] T075 [P] [US3] Add failing backend tests for health date validation and no adopter/visitor health mutation in `__tests__/actions/registro-saude.test.ts` (Owner: Pedro)
 
 ### Implementation for User Story 3 Health and Requests
 
-- [ ] T076 [US3] Define owner request-decision and feature 001 health-record HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`; mark each corresponding matrix row `contract defined` only with evidence (Owner: Pedro; depends on T073)
-- [ ] T077 [US3] Implement only responsible-party request listing, detail, and decision contracts from T076 in `lib/actions/solicitacoes.ts`, `lib/queries/owner-requests.ts`, `lib/queries/owner-request-detail.ts`, and `lib/schemas/solicitacao-decisao.ts`, proving ownership and transition rules (Owner: Pedro; depends on T074, T076 and requires the owner-request matrix rows at `contract defined`)
-- [ ] T078 [US3] Implement only feature 001 health-record and procedure-alert contracts from T076 in `lib/actions/registro-saude.ts`, `lib/queries/procedure-alerts.ts`, and `lib/schemas/registro-saude.ts`, proving health authorization and date validation (Owner: Pedro; depends on T075-T076 and requires the health matrix rows at `contract defined`)
-- [ ] T079 [US3] Update health/request matrix rows to `backend ready` only where T077-T078 tests and acceptance evidence pass (Owner: Pedro; depends on T077-T078)
+- [X] T076 [US3] Define owner request-decision and feature 001 health-record HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`; mark each corresponding matrix row `contract defined` only with evidence (Owner: Pedro; depends on T073)
+- [X] T077 [US3] Implement only responsible-party request listing, detail, and decision contracts from T076 in `lib/actions/solicitacoes.ts`, `lib/queries/owner-requests.ts`, `lib/queries/owner-request-detail.ts`, and `lib/schemas/solicitacao-decisao.ts`, proving ownership and transition rules (Owner: Pedro; depends on T074, T076 and requires the owner-request matrix rows at `contract defined`)
+- [X] T078 [US3] Implement only feature 001 health-record and procedure-alert contracts from T076 in `lib/actions/registro-saude.ts`, `lib/queries/procedure-alerts.ts`, and `lib/schemas/registro-saude.ts`, proving health authorization and date validation (Owner: Pedro; depends on T075-T076 and requires the health matrix rows at `contract defined`)
+- [X] T079 [US3] Update health/request matrix rows to `backend ready` only where T077-T078 tests and acceptance evidence pass (Owner: Pedro; depends on T077-T078)
 - [ ] T080 [US3] Integrate real health and owner request flows in `frontend/src/lib/data/saude.ts`, `frontend/src/lib/data/solicitacoes.ts`, `frontend/src/routes/_authenticated.dashboard.solicitacoes.*.tsx`, `frontend/src/routes/_authenticated.dashboard.animais.$animalId.tsx`, `frontend/src/components/app/HealthPanel.tsx`, and `frontend/src/components/app/TriagemReadOnly.tsx` (Owner: Arthur; depends on T079)
 - [ ] T081 [US3] Remove completed health/request mock/localStorage dependency from `frontend/src/lib/data/saude.ts` and relevant functions in `frontend/src/lib/data/solicitacoes.ts` (Owner: Arthur; depends on T080)
 - [ ] T082 [US3] Update matrix health/request rows to `flow complete` with validation evidence (Owner: Pedro; depends on T081)
