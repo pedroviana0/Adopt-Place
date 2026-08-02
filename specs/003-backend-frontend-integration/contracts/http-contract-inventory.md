@@ -629,6 +629,45 @@ owner IDs are never accepted.
 - No Prisma model, enum, migration, seed or database reset is added by these
   contracts. Frontend consumption remains assigned to Issues #45 and #46.
 
+## Feature 002 Health Center Contract (T087) — Issue #49
+
+`HEALTH-CENTER-01`. Every endpoint requires a currently active `ORGANIZACAO` or
+`ACOLHEDOR` and is scoped to that owner's animals; the route rejects an
+unauthenticated, inactive, or non-responsible caller before any read or write.
+This contract is a thin HTTP exposure of the existing, already-tested planned-care
+Server Actions (`lib/actions/cuidados-planejados.ts`) and health query
+(`lib/queries/health-dashboard.ts`); it adds no new behavior. Dates are ISO 8601.
+
+### HEALTH-CENTER-01 — planned care and health overview
+
+- `GET /api/saude/visao-geral` returns `{ overview }` with overdue / today /
+  next-7-day / next-30-day planned-care groups, animals without history, and
+  positive-test animals, all owner-scoped (`getHealthOverview`).
+- `GET /api/saude/agenda` accepts the validated agenda filters `animalId`,
+  `tipo`, `situacao`, `from`, `to` and returns `{ items }` newest-relevant-first
+  (`getHealthAgenda`). Invalid filters return `400 VALIDATION_ERROR`.
+- `POST /api/saude/cuidados` creates a manual future `CONSULTA` from strict
+  `{ animalId, dataHoraPlanejada, titulo, observacoes?, localProfissional? }`.
+  A `CONSULTA` is an agenda-only event and never becomes health history.
+- `POST /api/saude/cuidados/[id]/concluir` completes the planned care. For a
+  `CONSULTA` the body is empty and no `RegistroSaude` is created; for the five
+  history categories the body is the strict ISO health record, and the existing
+  action persists the matching record plus at most one derived next care.
+  Completion is idempotent: a second attempt returns `409`.
+- `PATCH /api/saude/cuidados/[id]` reschedules the single planned occurrence
+  (`{ dataHoraPlanejada }`, must be future). `DELETE /api/saude/cuidados/[id]`
+  cancels/discards it and requires `{ confirmado: true }`; completed history is
+  preserved.
+- Stable errors: 400 `VALIDATION_ERROR`, 401 `UNAUTHENTICATED`, 403
+  `INACTIVE_ACCOUNT`/`FORBIDDEN`, 404 `NOT_FOUND`, 409 (already concluded/
+  cancelled). Ownership and the `CONSULTA`-not-history and idempotency rules are
+  enforced by the underlying action, not re-implemented in the route.
+- Evidence: `__tests__/api/health-center.test.ts` (auth, CONSULTA-not-history,
+  idempotency 409, owner-scoped overview), plus the existing
+  `__tests__/actions/cuidados-planejados.test.ts` and
+  `__tests__/queries/health-dashboard.test.ts`. No Prisma model, enum, migration,
+  seed, or database reset is added. Frontend consumption remains Issue #55.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
@@ -643,7 +682,7 @@ owner IDs are never accepted.
 | Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas and documented handlers | ORGANIZACAO/ACOLHEDOR owner scoped | `flow complete`; #35-#42 |
 | Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | animal photo contract defined in #35; health document flow remains #51 |
 | Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | `backend ready`; #44 |
-| Feature 002 health center | incomplete frontend surface | planned-care action/query/schema | Owner scoped | blocked on audit #48, then #49 |
+| Feature 002 health center | incomplete frontend surface | planned-care action/query/schema + `HEALTH-CENTER-01` routes | Owner scoped | `backend ready`; #49 (T087/T091); frontend #55 |
 | Health documents | missing frontend surface | document action/query/schema/upload | Owner scoped and private | blocked on audit #48, then #51 |
 | Dashboards | dashboard routes | adopter/operational/admin queries | Role and owner scoped | feature 002 slice blocked on #48, then #50 |
 | Chat | missing frontend surface | message actions/queries/schema and polling route | Participant scoped | blocked on audit #48, then #52 |
