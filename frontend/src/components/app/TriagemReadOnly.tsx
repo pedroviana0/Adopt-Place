@@ -1,7 +1,9 @@
-import type { Adotante } from "@/lib/domain/types";
+import type { OwnerRequestAdotante } from "@/lib/data/solicitacoes";
 import { tipoMoradiaLabel } from "@/lib/domain/enums";
 
-interface Props { adotante: Adotante }
+interface Props {
+  adotante: OwnerRequestAdotante;
+}
 
 const yn = (v: boolean | null | undefined) => (v === true ? "Sim" : v === false ? "Não" : "—");
 const tx = (v: string | null | undefined) => (v && v.trim() ? v : "—");
@@ -26,14 +28,21 @@ export function TriagemReadOnly({ adotante }: Props) {
         <Row label="Tipo de animal desejado" value={tx(adotante.tipoAnimalDesejado)} />
         <Row label="Pode arcar com custos veterinários" value={yn(adotante.podeArcarCustosVet)} />
         <Row label="É adoção para presentear" value={yn(adotante.adocaoParaPresente)} />
-        {adotante.adocaoParaPresente && <Row label="Detalhe do presente" value={tx(adotante.adocaoParaPresenteDetalhe)} />}
+        {adotante.adocaoParaPresente && (
+          <Row label="Detalhe do presente" value={tx(adotante.adocaoParaPresenteDetalhe)} />
+        )}
       </Section>
       <Section title="Moradia">
-        <Row label="Tipo de moradia" value={adotante.tipoMoradia ? tipoMoradiaLabel[adotante.tipoMoradia] : "—"} />
+        <Row
+          label="Tipo de moradia"
+          value={adotante.tipoMoradia ? tipoMoradiaLabel[adotante.tipoMoradia] : "—"}
+        />
         <Row label="Moradia própria" value={yn(adotante.moradiaPropria)} />
         <Row label="Nº de adultos na casa" value={adotante.numAdultosCasa?.toString() ?? "—"} />
         <Row label="Há crianças" value={yn(adotante.temCriancas)} />
-        {adotante.temCriancas && <Row label="Faixa etária das crianças" value={tx(adotante.criancasFaixaEtaria)} />}
+        {adotante.temCriancas && (
+          <Row label="Faixa etária das crianças" value={tx(adotante.criancasFaixaEtaria)} />
+        )}
         <Row label="Todos concordam com a adoção" value={yn(adotante.todosConcordamAdocao)} />
         <Row label="Condomínio permite animal" value={tx(adotante.condominioPermiteAnimal)} />
         <Row label="Janelas teladas / protegidas" value={yn(adotante.janelasTeladas)} />
@@ -46,13 +55,22 @@ export function TriagemReadOnly({ adotante }: Props) {
         <Row label="Plano em caso de gravidez" value={tx(adotante.planoEmGravidez)} />
         <Row label="Plano em caso de mudança" value={tx(adotante.planoMudanca)} />
         <Row label="Alguém alérgico na casa" value={yn(adotante.alergicosNaCasa)} />
-        {adotante.alergicosNaCasa && <Row label="Detalhes alergias" value={tx(adotante.alergicosNaCasaDetalhe)} />}
+        {adotante.alergicosNaCasa && (
+          <Row label="Detalhes alergias" value={tx(adotante.alergicosNaCasaDetalhe)} />
+        )}
       </Section>
       <Section title="Histórico">
         <Row label="Já teve animais antes" value={yn(adotante.teveAnimaisAntes)} />
-        {adotante.teveAnimaisAntes && <Row label="Descrição de animais anteriores" value={tx(adotante.animaisAnterioresDescricao)} />}
+        {adotante.teveAnimaisAntes && (
+          <Row
+            label="Descrição de animais anteriores"
+            value={tx(adotante.animaisAnterioresDescricao)}
+          />
+        )}
         <Row label="Tem outros animais atualmente" value={yn(adotante.temOutrosAnimais)} />
-        {adotante.temOutrosAnimais && <Row label="Descrição dos outros animais" value={tx(adotante.outrosAnimaisDescricao)} />}
+        {adotante.temOutrosAnimais && (
+          <Row label="Descrição dos outros animais" value={tx(adotante.outrosAnimaisDescricao)} />
+        )}
         <Row label="Histórico de devolução" value={tx(adotante.historicoDevolucao)} />
         <Row label="Histórico de perda/descuido" value={tx(adotante.historicoPercaDescuido)} />
       </Section>

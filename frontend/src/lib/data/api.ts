@@ -1,6 +1,9 @@
 // Shared HTTP helper for the official frontend → backend contracts.
 // Calls relative `/api/*` with cookies (same-origin/proxy boundary, T019) and
-// unwraps the standard `{ error: { code, message, fieldErrors } }` envelope.
+// unwraps the standard error envelope. Two backend surfaces coexist: the
+// adopter/public helpers expose field errors under `error.fieldErrors`, while
+// the responsible-side helpers (`lib/api/responsible-http.ts`, used by
+// solicitações/saúde) expose them under `error.details`. We surface either.
 
 export interface ApiError extends Error {
   code?: string;
@@ -29,12 +32,13 @@ export async function apiRequest<T>(
           code?: string;
           message?: string;
           fieldErrors?: Record<string, string[] | undefined>;
+          details?: Record<string, string[] | undefined>;
         };
       }
     )?.error;
     const err: ApiError = new Error(envelope?.message ?? "Não foi possível concluir a operação");
     err.code = envelope?.code;
-    err.fieldErrors = envelope?.fieldErrors;
+    err.fieldErrors = envelope?.fieldErrors ?? envelope?.details;
     throw err;
   }
   return data as T;
