@@ -511,3 +511,15 @@ document, and chat send/list contracts are not yet defined or implemented.
   Issue #54 (T097) must add MEDICAMENTO_TRATAMENTO and PROCEDIMENTO.
 - Result: feature 002 is cleared to proceed to contract definition; the
   health-center contract is the first slice (Issue #49).
+
+**HEALTH-CENTER-01 (Issue #49, T087/T091): `backend ready`.** The health-center
+HTTP contract is defined in `contracts/http-contract-inventory.md` and
+implemented as thin route handlers over the existing action/query:
+`GET /api/saude/visao-geral`, `GET /api/saude/agenda`, `POST /api/saude/cuidados`,
+`POST /api/saude/cuidados/[id]/concluir`, and `PATCH|DELETE
+/api/saude/cuidados/[id]`. Ownership, the `CONSULTA`-not-history rule and
+completion idempotency are enforced by the underlying action and covered by
+`__tests__/api/health-center.test.ts` (5 tests) plus the existing action/query
+tests; full suite 191 tests green, backend `tsc` and targeted `eslint` clean.
+Frontend consumption (Central de Saúde) remains Issue #55; the operational
+dashboard, document, and chat contracts (T088-T090) stay out of this slice.
