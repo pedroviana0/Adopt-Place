@@ -1,28 +1,60 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Trash2, Plus } from "lucide-react";
-import { useDbVersion } from "@/lib/data/hooks";
-import { listRegistros, createRegistro, deleteRegistro } from "@/lib/data/saude";
-import { listVacinas, listDoencas } from "@/lib/data/catalogos";
-import { registroSaudeSchema } from "@/lib/schemas/registroSaude";
-import { ResultadoTeste, TipoRegistroSaude } from "@/lib/domain/enums";
+import {
+  fetchRegistrosSaude,
+  criarRegistroSaude,
+  excluirRegistroSaude,
+  type NovoRegistroSaude,
+} from "@/lib/data/saude";
+import { ResultadoTeste } from "@/lib/domain/enums";
 
-interface Props { animalId: string }
+interface Props {
+  animalId: string;
+}
 
-const OUTRA = "__outra__";
+// The date input yields "YYYY-MM-DD"; the contract expects ISO datetime + offset.
+function toIso(date: string): string {
+  return new Date(date).toISOString();
+}
+
+function fmt(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
 
 export function HealthPanel({ animalId }: Props) {
-  useDbVersion();
-  const registros = listRegistros(animalId);
-  const vacinas = registros.filter((r) => r.tipo === "VACINA");
-  const parasitas = registros.filter((r) => r.tipo === "CONTROLE_PARASITAS");
-  const testes = registros.filter((r) => r.tipo === "TESTE_DOENCA");
+  const queryClient = useQueryClient();
+  const registrosQuery = useQuery({
+    queryKey: ["registros-saude", animalId],
+    queryFn: () => fetchRegistrosSaude(animalId),
+  });
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ["registros-saude", animalId] });
+
+  if (registrosQuery.isLoading) {
+    return <p className="text-sm text-muted-foreground">Carregando…</p>;
+  }
+  if (registrosQuery.isError) {
+    return (
+      <p className="text-sm text-destructive">
+        {registrosQuery.error instanceof Error
+          ? registrosQuery.error.message
+          : "Não foi possível carregar os registros."}
+      </p>
+    );
+  }
+
+  const registros = registrosQuery.data ?? [];
+  const vacinas = registros.filter((r) => r.tipoRegistro === "VACINA");
+  const parasitas = registros.filter((r) => r.tipoRegistro === "CONTROLE_PARASITAS");
+  const testes = registros.filter((r) => r.tipoRegistro === "TESTE_DOENCA");
 
   return (
     <div>
@@ -35,34 +67,40 @@ export function HealthPanel({ animalId }: Props) {
           <TabsTrigger value="testes">Testes ({testes.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="vacinas" className="mt-4 space-y-4">
-          <VacinaForm animalId={animalId} />
+          <VacinaForm animalId={animalId} onSaved={invalidate} />
           <RegistroList
+            animalId={animalId}
+            onDeleted={invalidate}
             items={vacinas.map((r) => ({
               id: r.id,
               titulo: r.nomeVacina ?? "—",
-              subtitulo: `Aplicada em ${fmt(r.dataRegistro)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Aplicada em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
         </TabsContent>
         <TabsContent value="parasitas" className="mt-4 space-y-4">
-          <ParasitaForm animalId={animalId} />
+          <ParasitaForm animalId={animalId} onSaved={invalidate} />
           <RegistroList
+            animalId={animalId}
+            onDeleted={invalidate}
             items={parasitas.map((r) => ({
               id: r.id,
               titulo: r.tipoMedicamento ?? "—",
-              subtitulo: `Aplicada em ${fmt(r.dataRegistro)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Aplicada em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
               extra: `${r.frequencia ?? ""} · Responsável: ${r.responsavelRegistro}`.trim(),
             }))}
           />
         </TabsContent>
         <TabsContent value="testes" className="mt-4 space-y-4">
-          <TesteForm animalId={animalId} />
+          <TesteForm animalId={animalId} onSaved={invalidate} />
           <RegistroList
+            animalId={animalId}
+            onDeleted={invalidate}
             items={testes.map((r) => ({
               id: r.id,
               titulo: r.nomeDoenca ?? "—",
-              subtitulo: `Testado em ${fmt(r.dataRegistro)} · Resultado: ${r.resultado ?? "—"}`,
+              subtitulo: `Testado em ${fmt(r.dataAplicacao)} · Resultado: ${r.resultado ?? "—"}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -72,16 +110,29 @@ export function HealthPanel({ animalId }: Props) {
   );
 }
 
-function fmt(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
-}
-
-function RegistroList({ items }: { items: { id: string; titulo: string; subtitulo: string; extra?: string }[] }) {
+function RegistroList({
+  animalId,
+  items,
+  onDeleted,
+}: {
+  animalId: string;
+  items: { id: string; titulo: string; subtitulo: string; extra?: string }[];
+  onDeleted: () => void;
+}) {
+  const [deleting, setDeleting] = useState<string | null>(null);
   if (items.length === 0) return <p className="text-sm text-muted-foreground">Nenhum registro.</p>;
-  const onDelete = (id: string) => {
+  const onDelete = async (id: string) => {
     if (!confirm("Excluir este registro?")) return;
-    try { deleteRegistro(id); toast.success("Registro excluído"); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    setDeleting(id);
+    try {
+      await excluirRegistroSaude(animalId, id);
+      onDeleted();
+      toast.success("Registro excluído");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setDeleting(null);
+    }
   };
   return (
     <ul className="divide-y rounded-xl border bg-card">
@@ -92,7 +143,13 @@ function RegistroList({ items }: { items: { id: string; titulo: string; subtitul
             <p className="text-xs text-muted-foreground">{it.subtitulo}</p>
             {it.extra && <p className="text-xs text-muted-foreground">{it.extra}</p>}
           </div>
-          <Button size="icon" variant="ghost" aria-label="Excluir registro" onClick={() => onDelete(it.id)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label="Excluir registro"
+            disabled={deleting === it.id}
+            onClick={() => onDelete(it.id)}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </li>
@@ -103,40 +160,44 @@ function RegistroList({ items }: { items: { id: string; titulo: string; subtitul
 
 function useBaseState() {
   const hoje = new Date().toISOString().slice(0, 10);
-  const [dataRegistro, setDataRegistro] = useState(hoje);
+  const [dataAplicacao, setDataAplicacao] = useState(hoje);
   const [dataProxima, setDataProxima] = useState("");
-  const [responsavel, setResponsavel] = useState("");
   const [saving, setSaving] = useState(false);
-  const reset = () => { setDataRegistro(hoje); setDataProxima(""); setResponsavel(""); };
-  return { dataRegistro, setDataRegistro, dataProxima, setDataProxima, responsavel, setResponsavel, saving, setSaving, reset };
+  const reset = () => {
+    setDataAplicacao(hoje);
+    setDataProxima("");
+  };
+  return { dataAplicacao, setDataAplicacao, dataProxima, setDataProxima, saving, setSaving, reset };
 }
 
-function VacinaForm({ animalId }: { animalId: string }) {
+function VacinaForm({ animalId, onSaved }: { animalId: string; onSaved: () => void }) {
   const base = useBaseState();
-  const [vacinaSel, setVacinaSel] = useState("");
-  const [vacinaCustom, setVacinaCustom] = useState("");
-  const catalogo = listVacinas();
+  const [nome, setNome] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const custom = vacinaSel === OUTRA;
-    const nomeVacina = custom ? vacinaCustom.trim() : catalogo.find((v) => v.id === vacinaSel)?.nome ?? "";
-    const parsed = registroSaudeSchema.safeParse({
-      tipo: TipoRegistroSaude.VACINA,
-      nomeVacina,
-      ehVacinaCustomizada: custom,
-      dataRegistro: base.dataRegistro,
-      dataProxima: base.dataProxima || null,
-      responsavelRegistro: base.responsavel,
-    });
-    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos"); return; }
+    if (!nome.trim()) {
+      toast.error("Informe o nome da vacina");
+      return;
+    }
+    const input: NovoRegistroSaude = {
+      tipoRegistro: "VACINA",
+      nomeCustom: nome.trim(),
+      dataAplicacao: toIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProximaDose: toIso(base.dataProxima) } : {}),
+    };
     base.setSaving(true);
     try {
-      createRegistro({ ...parsed.data, animalId });
+      await criarRegistroSaude(animalId, input);
+      onSaved();
       toast.success("Vacina registrada");
-      base.reset(); setVacinaSel(""); setVacinaCustom("");
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
-    finally { base.setSaving(false); }
+      base.reset();
+      setNome("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      base.setSaving(false);
+    }
   };
 
   return (
@@ -144,53 +205,63 @@ function VacinaForm({ animalId }: { animalId: string }) {
       <p className="mb-3 text-sm font-medium">Nova vacina</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor="v-nome" className="mb-1 block text-xs">Vacina</Label>
-          <Select value={vacinaSel} onValueChange={setVacinaSel}>
-            <SelectTrigger id="v-nome"><SelectValue placeholder="Selecione" /></SelectTrigger>
-            <SelectContent>
-              {catalogo.map((v) => <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>)}
-              <SelectItem value={OUTRA}>Outra…</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="v-nome" className="mb-1 block text-xs">
+            Vacina
+          </Label>
+          <Input
+            id="v-nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Ex.: V10"
+          />
         </div>
-        {vacinaSel === OUTRA && (
-          <div>
-            <Label htmlFor="v-cust" className="mb-1 block text-xs">Nome da vacina</Label>
-            <Input id="v-cust" value={vacinaCustom} onChange={(e) => setVacinaCustom(e.target.value)} />
-          </div>
-        )}
-        <BaseFields base={base} prefix="v" />
+        <DateFields base={base} prefix="v" nextLabel="Próxima dose (opcional)" />
       </div>
       <div className="mt-3 flex justify-end">
-        <Button type="submit" size="sm" disabled={base.saving}><Plus className="mr-1 h-4 w-4" />{base.saving ? "Salvando..." : "Adicionar"}</Button>
+        <Button type="submit" size="sm" disabled={base.saving}>
+          <Plus className="mr-1 h-4 w-4" />
+          {base.saving ? "Salvando..." : "Adicionar"}
+        </Button>
       </div>
     </form>
   );
 }
 
-function ParasitaForm({ animalId }: { animalId: string }) {
+function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => void }) {
   const base = useBaseState();
   const [medicamento, setMedicamento] = useState("");
   const [frequencia, setFrequencia] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = registroSaudeSchema.safeParse({
-      tipo: TipoRegistroSaude.CONTROLE_PARASITAS,
-      tipoMedicamento: medicamento,
-      frequencia: frequencia || null,
-      dataRegistro: base.dataRegistro,
-      dataProxima: base.dataProxima || null,
-      responsavelRegistro: base.responsavel,
-    });
-    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos"); return; }
+    if (!medicamento.trim()) {
+      toast.error("Informe o tipo de medicamento");
+      return;
+    }
+    if (!frequencia.trim()) {
+      toast.error("Informe a frequência");
+      return;
+    }
+    const input: NovoRegistroSaude = {
+      tipoRegistro: "CONTROLE_PARASITAS",
+      tipoMedicacao: medicamento.trim(),
+      frequencia: frequencia.trim(),
+      dataAplicacao: toIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+    };
     base.setSaving(true);
     try {
-      createRegistro({ ...parsed.data, animalId });
+      await criarRegistroSaude(animalId, input);
+      onSaved();
       toast.success("Controle de parasitas registrado");
-      base.reset(); setMedicamento(""); setFrequencia("");
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
-    finally { base.setSaving(false); }
+      base.reset();
+      setMedicamento("");
+      setFrequencia("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      base.setSaving(false);
+    }
   };
 
   return (
@@ -198,50 +269,74 @@ function ParasitaForm({ animalId }: { animalId: string }) {
       <p className="mb-3 text-sm font-medium">Novo controle de parasitas</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor="p-med" className="mb-1 block text-xs">Tipo de medicamento</Label>
-          <Input id="p-med" value={medicamento} onChange={(e) => setMedicamento(e.target.value)} placeholder="Ex.: Bravecto" />
+          <Label htmlFor="p-med" className="mb-1 block text-xs">
+            Tipo de medicamento
+          </Label>
+          <Input
+            id="p-med"
+            value={medicamento}
+            onChange={(e) => setMedicamento(e.target.value)}
+            placeholder="Ex.: Bravecto"
+          />
         </div>
         <div>
-          <Label htmlFor="p-freq" className="mb-1 block text-xs">Frequência (opcional)</Label>
-          <Input id="p-freq" value={frequencia} onChange={(e) => setFrequencia(e.target.value)} placeholder="Ex.: A cada 3 meses" />
+          <Label htmlFor="p-freq" className="mb-1 block text-xs">
+            Frequência
+          </Label>
+          <Input
+            id="p-freq"
+            value={frequencia}
+            onChange={(e) => setFrequencia(e.target.value)}
+            placeholder="Ex.: A cada 3 meses"
+          />
         </div>
-        <BaseFields base={base} prefix="p" />
+        <DateFields base={base} prefix="p" nextLabel="Próxima data (opcional)" />
       </div>
       <div className="mt-3 flex justify-end">
-        <Button type="submit" size="sm" disabled={base.saving}><Plus className="mr-1 h-4 w-4" />{base.saving ? "Salvando..." : "Adicionar"}</Button>
+        <Button type="submit" size="sm" disabled={base.saving}>
+          <Plus className="mr-1 h-4 w-4" />
+          {base.saving ? "Salvando..." : "Adicionar"}
+        </Button>
       </div>
     </form>
   );
 }
 
-function TesteForm({ animalId }: { animalId: string }) {
+function TesteForm({ animalId, onSaved }: { animalId: string; onSaved: () => void }) {
   const base = useBaseState();
-  const [doencaSel, setDoencaSel] = useState("");
-  const [doencaCustom, setDoencaCustom] = useState("");
+  const [nome, setNome] = useState("");
   const [resultado, setResultado] = useState<ResultadoTeste | "">("");
-  const catalogo = listDoencas();
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const custom = doencaSel === OUTRA;
-    const nomeDoenca = custom ? doencaCustom.trim() : catalogo.find((d) => d.id === doencaSel)?.nome ?? "";
-    const parsed = registroSaudeSchema.safeParse({
-      tipo: TipoRegistroSaude.TESTE_DOENCA,
-      nomeDoenca,
-      ehDoencaCustomizada: custom,
-      resultado: resultado || undefined,
-      dataRegistro: base.dataRegistro,
-      dataProxima: base.dataProxima || null,
-      responsavelRegistro: base.responsavel,
-    });
-    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos"); return; }
+    if (!nome.trim()) {
+      toast.error("Informe o nome da doença");
+      return;
+    }
+    if (resultado !== "POSITIVO" && resultado !== "NEGATIVO") {
+      toast.error("Selecione o resultado");
+      return;
+    }
+    const input: NovoRegistroSaude = {
+      tipoRegistro: "TESTE_DOENCA",
+      nomeCustom: nome.trim(),
+      resultado,
+      dataAplicacao: toIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+    };
     base.setSaving(true);
     try {
-      createRegistro({ ...parsed.data, animalId });
+      await criarRegistroSaude(animalId, input);
+      onSaved();
       toast.success("Teste registrado");
-      base.reset(); setDoencaSel(""); setDoencaCustom(""); setResultado("");
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
-    finally { base.setSaving(false); }
+      base.reset();
+      setNome("");
+      setResultado("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      base.setSaving(false);
+    }
   };
 
   return (
@@ -249,51 +344,77 @@ function TesteForm({ animalId }: { animalId: string }) {
       <p className="mb-3 text-sm font-medium">Novo teste de doença</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor="t-doenca" className="mb-1 block text-xs">Doença testada</Label>
-          <Select value={doencaSel} onValueChange={setDoencaSel}>
-            <SelectTrigger id="t-doenca"><SelectValue placeholder="Selecione" /></SelectTrigger>
-            <SelectContent>
-              {catalogo.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
-              <SelectItem value={OUTRA}>Outra…</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="t-nome" className="mb-1 block text-xs">
+            Doença testada
+          </Label>
+          <Input
+            id="t-nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Ex.: FIV/FeLV"
+          />
         </div>
-        {doencaSel === OUTRA && (
-          <div>
-            <Label htmlFor="t-cust" className="mb-1 block text-xs">Nome da doença</Label>
-            <Input id="t-cust" value={doencaCustom} onChange={(e) => setDoencaCustom(e.target.value)} />
-          </div>
-        )}
         <div className="sm:col-span-2">
           <Label className="mb-1 block text-xs">Resultado</Label>
-          <RadioGroup value={resultado} onValueChange={(v) => setResultado(v as ResultadoTeste)} className="flex gap-4">
-            <div className="flex items-center gap-2"><RadioGroupItem value={ResultadoTeste.POSITIVO} id="t-pos" /><Label htmlFor="t-pos">Positivo</Label></div>
-            <div className="flex items-center gap-2"><RadioGroupItem value={ResultadoTeste.NEGATIVO} id="t-neg" /><Label htmlFor="t-neg">Negativo</Label></div>
+          <RadioGroup
+            value={resultado}
+            onValueChange={(v) => setResultado(v as ResultadoTeste)}
+            className="flex gap-4"
+          >
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value={ResultadoTeste.POSITIVO} id="t-pos" />
+              <Label htmlFor="t-pos">Positivo</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value={ResultadoTeste.NEGATIVO} id="t-neg" />
+              <Label htmlFor="t-neg">Negativo</Label>
+            </div>
           </RadioGroup>
         </div>
-        <BaseFields base={base} prefix="t" />
+        <DateFields base={base} prefix="t" nextLabel="Próxima data (opcional)" />
       </div>
       <div className="mt-3 flex justify-end">
-        <Button type="submit" size="sm" disabled={base.saving}><Plus className="mr-1 h-4 w-4" />{base.saving ? "Salvando..." : "Adicionar"}</Button>
+        <Button type="submit" size="sm" disabled={base.saving}>
+          <Plus className="mr-1 h-4 w-4" />
+          {base.saving ? "Salvando..." : "Adicionar"}
+        </Button>
       </div>
     </form>
   );
 }
 
-function BaseFields({ base, prefix }: { base: ReturnType<typeof useBaseState>; prefix: string }) {
+function DateFields({
+  base,
+  prefix,
+  nextLabel,
+}: {
+  base: ReturnType<typeof useBaseState>;
+  prefix: string;
+  nextLabel: string;
+}) {
   return (
     <>
       <div>
-        <Label htmlFor={`${prefix}-data`} className="mb-1 block text-xs">Data do registro</Label>
-        <Input id={`${prefix}-data`} type="date" value={base.dataRegistro} onChange={(e) => base.setDataRegistro(e.target.value)} />
+        <Label htmlFor={`${prefix}-data`} className="mb-1 block text-xs">
+          Data do registro
+        </Label>
+        <Input
+          id={`${prefix}-data`}
+          type="date"
+          value={base.dataAplicacao}
+          onChange={(e) => base.setDataAplicacao(e.target.value)}
+        />
       </div>
       <div>
-        <Label htmlFor={`${prefix}-prox`} className="mb-1 block text-xs">Próxima data (opcional)</Label>
-        <Input id={`${prefix}-prox`} type="date" value={base.dataProxima} onChange={(e) => base.setDataProxima(e.target.value)} />
-      </div>
-      <div className="sm:col-span-2">
-        <Label htmlFor={`${prefix}-resp`} className="mb-1 block text-xs">Responsável pelo registro</Label>
-        <Input id={`${prefix}-resp`} value={base.responsavel} onChange={(e) => base.setResponsavel(e.target.value)} placeholder="Ex.: Dr. Carlos" />
+        <Label htmlFor={`${prefix}-prox`} className="mb-1 block text-xs">
+          {nextLabel}
+        </Label>
+        <Input
+          id={`${prefix}-prox`}
+          type="date"
+          value={base.dataProxima}
+          onChange={(e) => base.setDataProxima(e.target.value)}
+        />
       </div>
     </>
   );
