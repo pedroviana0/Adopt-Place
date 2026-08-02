@@ -478,3 +478,36 @@ Result: SHOWCASE-01 is `flow complete`; T035-T043 are complete.
   made no change under that path, and no active flow may depend on it.
 - The stash named `pre-003-local-speckit-state-do-not-apply` remains preserved
   and must not be applied or deleted by this Issue.
+
+## Feature 002 Audit (T083) — Issue #48
+
+Audit of the existing feature 002 backend against
+`specs/002-health-dashboard-chat/spec.md` before defining any integration
+contract. Status uses `pass` (behavior implemented and covered), `partial`
+(behavior implemented but not yet exposed as an HTTP contract for the separated
+frontend), or `blocked` (missing capability). No endpoint, model, or enum value
+is presumed: server actions and queries are **not** treated as HTTP contracts.
+
+**Summary:** the feature 002 business rules are implemented as trusted
+server-side Server Actions and queries and are covered by automated tests, so
+the CR-009/FR-079 critical paths (ownership isolation, `CONSULTA`-not-history,
+planned-care completion idempotency, chat authorization/archiving) are `pass`.
+The consistent gap is the **HTTP contract layer** for the separated frontend:
+only message polling is exposed today; health-center, operational-dashboard,
+document, and chat send/list contracts are not yet defined or implemented.
+
+| Area | Backend capability (real paths) | Rules verified | HTTP contract today | Status | Next contract task |
+|------|----------------------------------|----------------|---------------------|--------|--------------------|
+| Health Center | `lib/actions/cuidados-planejados.ts` (create CONSULTA, complete/reschedule/cancel), `lib/queries/health-dashboard.ts` (`getHealthOverview`, `getHealthAgenda`, `getAnimalHealthTimeline`) | Ownership via `responsibleSession`/`requireResponsible`+owner filter; completing `CONSULTA` never creates `RegistroSaude` (FR-017/FR-022); completion idempotent via `updateMany where PENDENTE`+`count===1` (FR-014); single planned occurrence upserted on `origemRegistroSaudeId` (FR-007/FR-012); timeline limited to the 5 history categories (FR-019/FR-020). Tests: `__tests__/actions/cuidados-planejados.test.ts`, `__tests__/queries/health-dashboard.test.ts`, `__tests__/queries/health-agenda.test.ts`. | **Absent.** Only feature 001 `/api/animais/gerenciados/[id]/saude` and `/api/saude/alertas` exist; no route wraps the agenda/overview/planned-care actions. | `partial` | T087/T091 (Issue #49) |
+| Operational Dashboard | `lib/queries/operational-dashboard.ts` (`getOperationalDashboard`) | Owner-scoped metrics, funnel, prioritized pending, animal summary, recent activity from existing timestamps (FR-041/FR-046/FR-047/FR-048/FR-053). Test: `__tests__/queries/operational-dashboard.test.ts`. | **Absent.** No `GET /api/dashboard/...` responsible route (only `/api/dashboard/adotante`). | `partial` | T088/T092 (out of #49) |
+| Health Documents | `lib/actions/documentos-saude.ts` (`deleteDocumentoSaude`, ownership); upload path via `documento-upload` + `/api/uploadthing`. | Ownership before delete; provider cleanup best-effort; internal-only (FR-037). Tests: `__tests__/actions/documentos-saude.test.ts`, `__tests__/actions/documento-upload.test.ts`. | **Partial.** Upload rides the shared `/api/uploadthing` route; list/delete are Server Actions with no dedicated HTTP contract. | `partial` | T089/T093 (out of #49) |
+| Chat | `lib/actions/mensagens.ts` (`sendMensagem`, `markConversationRead`), `lib/queries/mensagens.ts` (`getConversationList`, `getConversationDetail`, `getUnreadMessageCount`) | Participant-only authorization; archived conversation blocks sends (FR-067); empty/2000-char rejection via `mensagemSchema` (FR-062/FR-063); per-participant read state (FR-065/FR-066). Tests: `__tests__/actions/mensagens.test.ts`, `__tests__/queries/mensagens-polling.test.ts`, `__tests__/actions/health-chat-dashboard-flow.test.ts`. | **Partial.** `GET /api/mensagens/[id]` polling exists; send and conversation list/detail are Server Actions with no HTTP contract. | `partial` | T090/T094 (out of #49) |
+
+**Recorded gaps (not presumed capabilities):**
+- No health-center, operational-dashboard, chat-send, or conversation-list HTTP
+  route exists yet; these are gaps to be defined by T087-T090, not assumed.
+- The frontend `TipoRegistroSaude` still exposes 3 of 5 categories (tracked under
+  HEALTH-BASIC-01); feature 002 history uses all 5, so the frontend alignment in
+  Issue #54 (T097) must add MEDICAMENTO_TRATAMENTO and PROCEDIMENTO.
+- Result: feature 002 is cleared to proceed to contract definition; the
+  health-center contract is the first slice (Issue #49).
