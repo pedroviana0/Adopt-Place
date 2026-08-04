@@ -1,16 +1,23 @@
 import { Prisma, TipoDocumentoSaude, TipoPerfil } from "@prisma/client";
 
 import { requireResponsible } from "@/lib/actions/auth-guards";
+import type { ResponsibleContext } from "@/lib/api/responsible-context";
 import { prisma } from "@/lib/prisma";
 
 type ResponsibleSession = Awaited<ReturnType<typeof requireResponsible>>;
+type ResponsibleOwner = ResponsibleSession | ResponsibleContext;
 
-function ownedAnimalWhere(session: ResponsibleSession): Prisma.AnimalWhereInput {
-  if (session.user.tipoPerfil === TipoPerfil.ORGANIZACAO) {
-    return { organizacaoId: session.user.organizacaoId! };
+function ownedAnimalWhere(owner: ResponsibleOwner): Prisma.AnimalWhereInput {
+  if ("user" in owner) {
+    if (owner.user.tipoPerfil === TipoPerfil.ORGANIZACAO) {
+      return { organizacaoId: owner.user.organizacaoId! };
+    }
+    return { acolhedorId: owner.user.acolhedorId! };
   }
 
-  return { acolhedorId: session.user.acolhedorId! };
+  return owner.tipoPerfil === TipoPerfil.ORGANIZACAO
+    ? { organizacaoId: owner.responsavelId }
+    : { acolhedorId: owner.responsavelId };
 }
 
 const documentSelect = {
@@ -57,11 +64,14 @@ export type HealthDocumentFilters = {
   tipo?: TipoDocumentoSaude;
 };
 
-export async function getHealthDocuments(filters: HealthDocumentFilters = {}) {
-  const session = await requireResponsible();
+export async function getHealthDocuments(
+  filters: HealthDocumentFilters = {},
+  responsible?: ResponsibleContext,
+) {
+  const owner = responsible ?? (await requireResponsible());
   const documents = await prisma.documentoSaude.findMany({
     where: {
-      animal: ownedAnimalWhere(session),
+      animal: ownedAnimalWhere(owner),
       ...(filters.animalId ? { animalId: filters.animalId } : {}),
       ...(filters.tipo ? { tipo: filters.tipo } : {}),
     },
@@ -72,12 +82,15 @@ export async function getHealthDocuments(filters: HealthDocumentFilters = {}) {
   return documents.map(mapDocument);
 }
 
-export async function getHealthDocumentDetail(documentId: string) {
-  const session = await requireResponsible();
+export async function getHealthDocumentDetail(
+  documentId: string,
+  responsible?: ResponsibleContext,
+) {
+  const owner = responsible ?? (await requireResponsible());
   const document = await prisma.documentoSaude.findFirst({
     where: {
       id: documentId,
-      animal: ownedAnimalWhere(session),
+      animal: ownedAnimalWhere(owner),
     },
     select: documentSelect,
   });

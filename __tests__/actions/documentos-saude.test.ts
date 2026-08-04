@@ -27,7 +27,7 @@ function session(): Session {
   };
 }
 
-const findDocument = prisma.documentoSaude.findUnique as unknown as {
+const findDocument = prisma.documentoSaude.findFirst as unknown as {
   mockResolvedValue(value: {
     id: string;
     chaveArquivo: string | null;
@@ -38,23 +38,24 @@ const findDocument = prisma.documentoSaude.findUnique as unknown as {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSession).mockResolvedValue(session());
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ORGANIZACAO,
+    organizacao: { id: organizationId },
+    acolhedor: null,
+  } as never);
 });
 
 describe("health document actions", () => {
   it("denies deletion when the document belongs to another responsible", async () => {
-    findDocument.mockResolvedValue({
-      id: documentId,
-      chaveArquivo: "provider-key",
-      animal: {
-        organizacaoId: "cm00000000000000000000999",
-        acolhedorId: null,
-      },
-    });
+    findDocument.mockResolvedValue(null);
 
     await expect(deleteDocumentoSaude(documentId)).resolves.toEqual({
-      error: "Acesso negado",
+      error: "Documento nao encontrado",
     });
     expect(prisma.documentoSaude.delete).not.toHaveBeenCalled();
+    expect(JSON.stringify(vi.mocked(prisma.documentoSaude.findFirst).mock.calls[0]?.[0]))
+      .toContain(organizationId);
   });
 
   it("rejects invalid upload metadata before persistence", () => {

@@ -668,6 +668,72 @@ Server Actions (`lib/actions/cuidados-planejados.ts`) and health query
   `__tests__/queries/health-dashboard.test.ts`. No Prisma model, enum, migration,
   seed, or database reset is added. Frontend consumption remains Issue #55.
 
+## Feature 002 Dashboard, Document and Chat Contracts (T088-T090) - Issues #50-#52
+
+All protected endpoints below reload the current `Usuario` before accessing
+private data. Session claims do not decide whether an account is active or which
+responsible profile currently owns an animal. No endpoint accepts a user,
+organization, foster or participant ID from the browser.
+
+### OPERATIONAL-DASHBOARD-01
+
+- `GET /api/dashboard/operacional` requires an active `ORGANIZACAO` or
+  `ACOLHEDOR` and returns `{ dashboard }` from
+  `getOperationalDashboard(reference, responsibleContext)`.
+- The DTO contains only owner-scoped indicators, priority items, adoption
+  funnel, animal-status counts, recent activity and unread-message count. It
+  excludes raw rows, owner IDs, contacts, screening, document URLs and message
+  contents.
+- Evidence: `__tests__/api/operational-dashboard.test.ts` and
+  `__tests__/queries/operational-dashboard.test.ts` prove 401/403 handling and
+  organization/foster ownership predicates on every aggregate source.
+
+### HEALTH-DOCUMENTS-01
+
+- `GET /api/saude/documentos` accepts optional validated `animalId` and `tipo`
+  filters and returns `{ documents }`, newest first, only for animals owned by
+  the current responsible profile.
+- `GET /api/saude/documentos/[id]` returns `{ document }` only after combining
+  the document ID and current ownership in the read; another owner's document
+  is indistinguishable from a missing document.
+- `DELETE /api/saude/documentos/[id]` deletes only owned metadata. UploadThing
+  file cleanup remains best-effort and never deletes a health-history record.
+- Upload continues through `POST /api/uploadthing`, endpoint
+  `healthDocument`, with strict `animalId`, optional matching
+  `registroSaudeId`, `tipoDocumento`, one image/PDF and the existing 10 MB
+  application limit. Authorization reloads the current account and ownership;
+  each provider upload receives a unique custom ID.
+- The protected DTO allowlists document/animal/optional-record display fields
+  and `openHref`. Provider key `chaveArquivo`, owner IDs and document data from
+  other owners are excluded. Documents remain absent from every public DTO.
+- Evidence: `__tests__/api/health-documents.test.ts`,
+  `__tests__/actions/documentos-saude.test.ts`,
+  `__tests__/actions/documento-upload.test.ts` and document query tests.
+
+### ADOPTION-CHAT-01
+
+- `GET /api/conversas?status=ativas|arquivadas|todas` returns
+  `{ conversations, unreadCount }` for the current active participant.
+- `GET /api/conversas/[id]` returns `{ conversation }` only to a participant.
+  `POST /api/conversas/[id]/mensagens` accepts strict `{ texto }` and sends only
+  while the conversation is `ATIVA`. `PATCH /api/conversas/[id]/leitura`
+  updates only the current participant's read marker.
+- `GET /api/mensagens/[id]?after=<ISO-8601>` remains the polling contract and
+  returns `{ messages: [{ id, text, sentAt, authorIsMe }], status }`. It no
+  longer exposes `autorUsuarioId`.
+- Conversations are created only by the existing transactional request
+  approval and archived by adoption completion. Therefore requests in analysis
+  or refused states have no chat; archived history remains readable but sends
+  return `409 CONVERSATION_ARCHIVED`. `ADMIN` has no implicit access.
+- Evidence: `__tests__/api/chat.test.ts`,
+  `__tests__/queries/mensagens-polling.test.ts`, existing message action/query
+  tests and `__tests__/actions/health-chat-dashboard-flow.test.ts`.
+
+Shared errors are 400 `VALIDATION_ERROR`/`INVALID_JSON`, 401
+`UNAUTHENTICATED`, 403 `INACTIVE_ACCOUNT`/`FORBIDDEN`, 404 `NOT_FOUND`, and 409
+`CONVERSATION_ARCHIVED`. These contracts add no Prisma model, enum, migration,
+seed or database reset. Frontend consumption remains Issues #54-#58.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
@@ -680,12 +746,12 @@ Server Actions (`lib/actions/cuidados-planejados.ts`) and health query
 | Adopter requests and dashboard | `solicitacoes.ts`, adopter routes | request actions/guards/queries/schemas and documented handlers | ADOTANTE only | `backend ready`; #32; frontend #33 |
 | Owner request review | `solicitacoes.ts`, owner request routes | owner request queries/action/decision schema | ORGANIZACAO/ACOLHEDOR owner scoped | `backend ready`; #43 |
 | Animal management | `animais.ts`, owner animal routes | animal/photo/relationship/search actions, owner query, schemas and documented handlers | ORGANIZACAO/ACOLHEDOR owner scoped | `flow complete`; #35-#42 |
-| Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | animal photo contract defined in #35; health document flow remains #51 |
+| Uploads | `frontend/src/lib/upload.ts` and future document UI | upload router and Uploadthing route | Owner scoped where protected | animal photo contract defined in #35; health document backend ready in #51 |
 | Feature 001 health | `saude.ts` | health action, alerts query, schema | ORGANIZACAO/ACOLHEDOR owner scoped | `backend ready`; #44 |
 | Feature 002 health center | incomplete frontend surface | planned-care action/query/schema + `HEALTH-CENTER-01` routes | Owner scoped | `backend ready`; #49 (T087/T091); frontend #55 |
-| Health documents | missing frontend surface | document action/query/schema/upload | Owner scoped and private | blocked on audit #48, then #51 |
-| Dashboards | dashboard routes | adopter/operational/admin queries | Role and owner scoped | feature 002 slice blocked on #48, then #50 |
-| Chat | missing frontend surface | message actions/queries/schema and polling route | Participant scoped | blocked on audit #48, then #52 |
+| Health documents | missing frontend surface | document action/query/schema/upload + `HEALTH-DOCUMENTS-01` routes | Owner scoped and private | `backend ready`; #51; frontend #54/#57 |
+| Dashboards | dashboard routes | adopter/operational/admin queries + `OPERATIONAL-DASHBOARD-01` route | Role and owner scoped | feature 002 operational slice `backend ready`; #50; frontend #54/#56 |
+| Chat | missing frontend surface | message actions/queries/schema + `ADOPTION-CHAT-01` routes | Participant scoped | `backend ready`; #52; frontend #54/#58 |
 | Admin users | `usuarios.ts`, admin route | admin action/query/schema | ADMIN only | `to define`; #60 |
 
 ## Initial Gate Evidence

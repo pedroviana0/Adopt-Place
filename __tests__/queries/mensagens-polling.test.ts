@@ -17,6 +17,10 @@ function session(): Session {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSession).mockResolvedValue(session());
+  vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+    ativo: true,
+    tipoPerfil: TipoPerfil.ADOTANTE,
+  } as never);
 });
 
 describe("message polling route", () => {
@@ -26,13 +30,33 @@ describe("message polling route", () => {
     const request = new NextRequest(`http://localhost/api/mensagens/${conversationId}?after=2026-07-22T10:00:00.000Z`);
     const response = await GET(request, { params: Promise.resolve({ id: conversationId }) });
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ messages: [{ texto: "<b>texto</b>" }], status: "ATIVA" });
+    const body = await response.json();
+    expect(body).toMatchObject({
+      messages: [{ text: "<b>texto</b>", authorIsMe: false }],
+      status: "ATIVA",
+    });
+    expect(JSON.stringify(body)).not.toContain("autorUsuarioId");
     expect(JSON.stringify(vi.mocked(prisma.mensagemAdocao.findMany).mock.calls[0]?.[0])).toContain("2026-07-22");
   });
 
   it("denies a non-participant", async () => {
     vi.mocked(prisma.conversaParticipante.findUnique).mockResolvedValue(null);
     const response = await GET(new NextRequest(`http://localhost/api/mensagens/${conversationId}`), { params: Promise.resolve({ id: conversationId }) });
+    expect(response.status).toBe(404);
+  });
+
+  it("blocks an account deactivated after the session was issued", async () => {
+    vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+      ativo: false,
+      tipoPerfil: TipoPerfil.ADOTANTE,
+    } as never);
+
+    const response = await GET(
+      new NextRequest(`http://localhost/api/mensagens/${conversationId}`),
+      { params: Promise.resolve({ id: conversationId }) },
+    );
+
     expect(response.status).toBe(403);
+    expect(prisma.conversaParticipante.findUnique).not.toHaveBeenCalled();
   });
 });
