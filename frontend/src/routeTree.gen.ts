@@ -28,6 +28,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardAdotantesRouteImport } from './routes/_authenticated.dashboard.adotantes'
 import { Route as AuthenticatedDashboardAnimaisRouteImport } from './routes/_authenticated.dashboard.animais'
 import { Route as AuthenticatedDashboardDocumentosRouteImport } from './routes/_authenticated.dashboard.documentos'
+import { Route as AuthenticatedDashboardMensagensRouteImport } from './routes/_authenticated.dashboard.mensagens'
 import { Route as AuthenticatedDashboardPerfilRouteImport } from './routes/_authenticated.dashboard.perfil'
 import { Route as AuthenticatedDashboardSaudeRouteImport } from './routes/_authenticated.dashboard.saude'
 import { Route as AuthenticatedDashboardSolicitacoesRouteImport } from './routes/_authenticated.dashboard.solicitacoes'
@@ -36,6 +37,8 @@ import { Route as AuthenticatedDashboardAnimaisIndexRouteImport } from './routes
 import { Route as AuthenticatedDashboardAnimaisAnimalIdRouteImport } from './routes/_authenticated.dashboard.animais.$animalId'
 import { Route as AuthenticatedDashboardAnimaisNovoRouteImport } from './routes/_authenticated.dashboard.animais.novo'
 import { Route as AuthenticatedDashboardDocumentosIndexRouteImport } from './routes/_authenticated.dashboard.documentos.index'
+import { Route as AuthenticatedDashboardMensagensIndexRouteImport } from './routes/_authenticated.dashboard.mensagens.index'
+import { Route as AuthenticatedDashboardMensagensConversaIdRouteImport } from './routes/_authenticated.dashboard.mensagens.$conversaId'
 import { Route as AuthenticatedDashboardSaudeIndexRouteImport } from './routes/_authenticated.dashboard.saude.index'
 import { Route as AuthenticatedDashboardSolicitacoesIndexRouteImport } from './routes/_authenticated.dashboard.solicitacoes.index'
 import { Route as AuthenticatedDashboardSolicitacoesSolicitacaoIdRouteImport } from './routes/_authenticated.dashboard.solicitacoes.$solicitacaoId'
@@ -140,6 +143,12 @@ const AuthenticatedDashboardDocumentosRoute =
     path: '/documentos',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardMensagensRoute =
+  AuthenticatedDashboardMensagensRouteImport.update({
+    id: '/mensagens',
+    path: '/mensagens',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardPerfilRoute =
   AuthenticatedDashboardPerfilRouteImport.update({
     id: '/perfil',
@@ -188,6 +197,18 @@ const AuthenticatedDashboardDocumentosIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardDocumentosRoute,
   } as any)
+const AuthenticatedDashboardMensagensIndexRoute =
+  AuthenticatedDashboardMensagensIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardMensagensRoute,
+  } as any)
+const AuthenticatedDashboardMensagensConversaIdRoute =
+  AuthenticatedDashboardMensagensConversaIdRouteImport.update({
+    id: '/$conversaId',
+    path: '/$conversaId',
+    getParentRoute: () => AuthenticatedDashboardMensagensRoute,
+  } as any)
 const AuthenticatedDashboardSaudeIndexRoute =
   AuthenticatedDashboardSaudeIndexRouteImport.update({
     id: '/',
@@ -225,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/adotantes': typeof AuthenticatedDashboardAdotantesRoute
   '/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
   '/dashboard/documentos': typeof AuthenticatedDashboardDocumentosRouteWithChildren
+  '/dashboard/mensagens': typeof AuthenticatedDashboardMensagensRouteWithChildren
   '/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
   '/dashboard/saude': typeof AuthenticatedDashboardSaudeRouteWithChildren
   '/dashboard/solicitacoes': typeof AuthenticatedDashboardSolicitacoesRouteWithChildren
@@ -232,9 +254,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
+  '/dashboard/mensagens/$conversaId': typeof AuthenticatedDashboardMensagensConversaIdRoute
   '/dashboard/solicitacoes/$solicitacaoId': typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute
   '/dashboard/animais/': typeof AuthenticatedDashboardAnimaisIndexRoute
   '/dashboard/documentos/': typeof AuthenticatedDashboardDocumentosIndexRoute
+  '/dashboard/mensagens/': typeof AuthenticatedDashboardMensagensIndexRoute
   '/dashboard/saude/': typeof AuthenticatedDashboardSaudeIndexRoute
   '/dashboard/solicitacoes/': typeof AuthenticatedDashboardSolicitacoesIndexRoute
 }
@@ -257,9 +281,11 @@ export interface FileRoutesByTo {
   '/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
+  '/dashboard/mensagens/$conversaId': typeof AuthenticatedDashboardMensagensConversaIdRoute
   '/dashboard/solicitacoes/$solicitacaoId': typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute
   '/dashboard/animais': typeof AuthenticatedDashboardAnimaisIndexRoute
   '/dashboard/documentos': typeof AuthenticatedDashboardDocumentosIndexRoute
+  '/dashboard/mensagens': typeof AuthenticatedDashboardMensagensIndexRoute
   '/dashboard/saude': typeof AuthenticatedDashboardSaudeIndexRoute
   '/dashboard/solicitacoes': typeof AuthenticatedDashboardSolicitacoesIndexRoute
 }
@@ -283,6 +309,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/adotantes': typeof AuthenticatedDashboardAdotantesRoute
   '/_authenticated/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
   '/_authenticated/dashboard/documentos': typeof AuthenticatedDashboardDocumentosRouteWithChildren
+  '/_authenticated/dashboard/mensagens': typeof AuthenticatedDashboardMensagensRouteWithChildren
   '/_authenticated/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
   '/_authenticated/dashboard/saude': typeof AuthenticatedDashboardSaudeRouteWithChildren
   '/_authenticated/dashboard/solicitacoes': typeof AuthenticatedDashboardSolicitacoesRouteWithChildren
@@ -290,9 +317,11 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/_authenticated/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/_authenticated/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
+  '/_authenticated/dashboard/mensagens/$conversaId': typeof AuthenticatedDashboardMensagensConversaIdRoute
   '/_authenticated/dashboard/solicitacoes/$solicitacaoId': typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute
   '/_authenticated/dashboard/animais/': typeof AuthenticatedDashboardAnimaisIndexRoute
   '/_authenticated/dashboard/documentos/': typeof AuthenticatedDashboardDocumentosIndexRoute
+  '/_authenticated/dashboard/mensagens/': typeof AuthenticatedDashboardMensagensIndexRoute
   '/_authenticated/dashboard/saude/': typeof AuthenticatedDashboardSaudeIndexRoute
   '/_authenticated/dashboard/solicitacoes/': typeof AuthenticatedDashboardSolicitacoesIndexRoute
 }
@@ -316,6 +345,7 @@ export interface FileRouteTypes {
     | '/dashboard/adotantes'
     | '/dashboard/animais'
     | '/dashboard/documentos'
+    | '/dashboard/mensagens'
     | '/dashboard/perfil'
     | '/dashboard/saude'
     | '/dashboard/solicitacoes'
@@ -323,9 +353,11 @@ export interface FileRouteTypes {
     | '/dashboard/admin/usuarios'
     | '/dashboard/animais/$animalId'
     | '/dashboard/animais/novo'
+    | '/dashboard/mensagens/$conversaId'
     | '/dashboard/solicitacoes/$solicitacaoId'
     | '/dashboard/animais/'
     | '/dashboard/documentos/'
+    | '/dashboard/mensagens/'
     | '/dashboard/saude/'
     | '/dashboard/solicitacoes/'
   fileRoutesByTo: FileRoutesByTo
@@ -348,9 +380,11 @@ export interface FileRouteTypes {
     | '/dashboard/admin/usuarios'
     | '/dashboard/animais/$animalId'
     | '/dashboard/animais/novo'
+    | '/dashboard/mensagens/$conversaId'
     | '/dashboard/solicitacoes/$solicitacaoId'
     | '/dashboard/animais'
     | '/dashboard/documentos'
+    | '/dashboard/mensagens'
     | '/dashboard/saude'
     | '/dashboard/solicitacoes'
   id:
@@ -373,6 +407,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/adotantes'
     | '/_authenticated/dashboard/animais'
     | '/_authenticated/dashboard/documentos'
+    | '/_authenticated/dashboard/mensagens'
     | '/_authenticated/dashboard/perfil'
     | '/_authenticated/dashboard/saude'
     | '/_authenticated/dashboard/solicitacoes'
@@ -380,9 +415,11 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/admin/usuarios'
     | '/_authenticated/dashboard/animais/$animalId'
     | '/_authenticated/dashboard/animais/novo'
+    | '/_authenticated/dashboard/mensagens/$conversaId'
     | '/_authenticated/dashboard/solicitacoes/$solicitacaoId'
     | '/_authenticated/dashboard/animais/'
     | '/_authenticated/dashboard/documentos/'
+    | '/_authenticated/dashboard/mensagens/'
     | '/_authenticated/dashboard/saude/'
     | '/_authenticated/dashboard/solicitacoes/'
   fileRoutesById: FileRoutesById
@@ -531,6 +568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardDocumentosRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/mensagens': {
+      id: '/_authenticated/dashboard/mensagens'
+      path: '/mensagens'
+      fullPath: '/dashboard/mensagens'
+      preLoaderRoute: typeof AuthenticatedDashboardMensagensRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/perfil': {
       id: '/_authenticated/dashboard/perfil'
       path: '/perfil'
@@ -586,6 +630,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/documentos/'
       preLoaderRoute: typeof AuthenticatedDashboardDocumentosIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardDocumentosRoute
+    }
+    '/_authenticated/dashboard/mensagens/': {
+      id: '/_authenticated/dashboard/mensagens/'
+      path: '/'
+      fullPath: '/dashboard/mensagens/'
+      preLoaderRoute: typeof AuthenticatedDashboardMensagensIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardMensagensRoute
+    }
+    '/_authenticated/dashboard/mensagens/$conversaId': {
+      id: '/_authenticated/dashboard/mensagens/$conversaId'
+      path: '/$conversaId'
+      fullPath: '/dashboard/mensagens/$conversaId'
+      preLoaderRoute: typeof AuthenticatedDashboardMensagensConversaIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardMensagensRoute
     }
     '/_authenticated/dashboard/saude/': {
       id: '/_authenticated/dashboard/saude/'
@@ -647,6 +705,24 @@ const AuthenticatedDashboardDocumentosRouteWithChildren =
     AuthenticatedDashboardDocumentosRouteChildren,
   )
 
+interface AuthenticatedDashboardMensagensRouteChildren {
+  AuthenticatedDashboardMensagensConversaIdRoute: typeof AuthenticatedDashboardMensagensConversaIdRoute
+  AuthenticatedDashboardMensagensIndexRoute: typeof AuthenticatedDashboardMensagensIndexRoute
+}
+
+const AuthenticatedDashboardMensagensRouteChildren: AuthenticatedDashboardMensagensRouteChildren =
+  {
+    AuthenticatedDashboardMensagensConversaIdRoute:
+      AuthenticatedDashboardMensagensConversaIdRoute,
+    AuthenticatedDashboardMensagensIndexRoute:
+      AuthenticatedDashboardMensagensIndexRoute,
+  }
+
+const AuthenticatedDashboardMensagensRouteWithChildren =
+  AuthenticatedDashboardMensagensRoute._addFileChildren(
+    AuthenticatedDashboardMensagensRouteChildren,
+  )
+
 interface AuthenticatedDashboardSaudeRouteChildren {
   AuthenticatedDashboardSaudeIndexRoute: typeof AuthenticatedDashboardSaudeIndexRoute
 }
@@ -684,6 +760,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAdotantesRoute: typeof AuthenticatedDashboardAdotantesRoute
   AuthenticatedDashboardAnimaisRoute: typeof AuthenticatedDashboardAnimaisRouteWithChildren
   AuthenticatedDashboardDocumentosRoute: typeof AuthenticatedDashboardDocumentosRouteWithChildren
+  AuthenticatedDashboardMensagensRoute: typeof AuthenticatedDashboardMensagensRouteWithChildren
   AuthenticatedDashboardPerfilRoute: typeof AuthenticatedDashboardPerfilRoute
   AuthenticatedDashboardSaudeRoute: typeof AuthenticatedDashboardSaudeRouteWithChildren
   AuthenticatedDashboardSolicitacoesRoute: typeof AuthenticatedDashboardSolicitacoesRouteWithChildren
@@ -698,6 +775,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardAnimaisRouteWithChildren,
     AuthenticatedDashboardDocumentosRoute:
       AuthenticatedDashboardDocumentosRouteWithChildren,
+    AuthenticatedDashboardMensagensRoute:
+      AuthenticatedDashboardMensagensRouteWithChildren,
     AuthenticatedDashboardPerfilRoute: AuthenticatedDashboardPerfilRoute,
     AuthenticatedDashboardSaudeRoute:
       AuthenticatedDashboardSaudeRouteWithChildren,

@@ -1,5 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useSessao } from "@/lib/data/hooks";
+import { fetchUnreadCount } from "@/lib/data/mensagens";
 import {
   PawPrint,
   ClipboardList,
@@ -9,6 +11,7 @@ import {
   UserCog,
   HeartPulse,
   FileText,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +25,14 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashLayout() {
   const s = useSessao();
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const isResponsible = s?.tipoPerfil === "ORGANIZACAO" || s?.tipoPerfil === "ACOLHEDOR";
+  const unreadQuery = useQuery({
+    queryKey: ["mensagens-unread"],
+    queryFn: fetchUnreadCount,
+    enabled: isResponsible,
+    refetchInterval: 30_000,
+  });
+  const unread = unreadQuery.data ?? 0;
 
   if (
     !s ||
@@ -42,6 +53,7 @@ function DashLayout() {
           { to: "/dashboard/animais", label: "Meus animais", icon: PawPrint },
           { to: "/dashboard/saude", label: "Saúde", icon: HeartPulse },
           { to: "/dashboard/documentos", label: "Documentos", icon: FileText },
+          { to: "/dashboard/mensagens", label: "Mensagens", icon: MessageCircle },
           { to: "/dashboard/solicitacoes", label: "Solicitações", icon: ClipboardList },
           { to: "/dashboard/adotantes", label: "Adotantes", icon: Users },
           { to: "/dashboard/perfil", label: "Meu perfil", icon: UserCog },
@@ -66,6 +78,11 @@ function DashLayout() {
                 )}
               >
                 <Icon className="h-4 w-4" /> {it.label}
+                {it.to === "/dashboard/mensagens" && unread > 0 && (
+                  <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                    {unread}
+                  </span>
+                )}
               </Link>
             );
           })}
