@@ -10,11 +10,11 @@ import {
   getResponsibleContext,
   ownsAnimal,
 } from "@/lib/api/responsible-context";
-import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   MAX_HEALTH_DOCUMENT_BYTES,
   documentoSaudeUploadSchema,
+  healthDocumentMimeSchema,
 } from "@/lib/schemas/documento-saude";
 
 const f = createUploadthing();
@@ -75,29 +75,15 @@ export async function authorizeAnimalPhotoUpload(
   };
 }
 
-const healthDocumentInputSchema = z.object({
-  animalId: z.string().cuid(),
-  registroSaudeId: z.string().cuid().optional(),
-  tipoDocumento: z.nativeEnum(TipoDocumentoSaude),
-});
+const healthDocumentInputSchema = z
+  .object({
+    animalId: z.string().cuid(),
+    registroSaudeId: z.string().cuid().optional(),
+    tipoDocumento: z.nativeEnum(TipoDocumentoSaude),
+  })
+  .strict();
 
 type ResponsibleRole = typeof TipoPerfil.ORGANIZACAO | typeof TipoPerfil.ACOLHEDOR;
-
-function isResponsibleRole(tipoPerfil: TipoPerfil): tipoPerfil is ResponsibleRole {
-  return tipoPerfil === TipoPerfil.ORGANIZACAO || tipoPerfil === TipoPerfil.ACOLHEDOR;
-}
-
-function getResponsavelId(
-  tipoPerfil: ResponsibleRole,
-  sessionUser: {
-    organizacaoId: string | null;
-    acolhedorId: string | null;
-  },
-): string | null {
-  return tipoPerfil === TipoPerfil.ORGANIZACAO
-    ? sessionUser.organizacaoId
-    : sessionUser.acolhedorId;
-}
 
 type HealthUploadMetadata = {
   userId: string;
@@ -115,6 +101,60 @@ type UploadedHealthFile = {
   key: string;
   ufsUrl: string;
 };
+
+export function createHealthDocumentCustomId(animalId: string): string {
+  return `${animalId}:document:${randomUUID()}`;
+}
+
+export async function authorizeHealthDocumentUpload(
+  input: unknown,
+  files: readonly AnimalPhotoFileDescriptor[],
+): Promise<HealthUploadMetadata> {
+  const parsed = healthDocumentInputSchema.safeParse(input);
+  if (!parsed.success || files.length !== 1) {
+    throw new UploadThingError("Bad Request");
+  }
+  if (files[0].size > MAX_HEALTH_DOCUMENT_BYTES) {
+    throw new UploadThingError("Arquivo deve ter no maximo 10 MB");
+  }
+  if (!healthDocumentMimeSchema.safeParse(files[0].type).success) {
+    throw new UploadThingError("Envie uma imagem ou arquivo PDF");
+  }
+
+  const current = await getResponsibleContext();
+  if ("error" in current) {
+    throw new UploadThingError(
+      current.error.status === 401 ? "Unauthorized" : "Forbidden",
+    );
+  }
+
+  const animal = await prisma.animal.findUnique({
+    where: { id: parsed.data.animalId },
+    select: { organizacaoId: true, acolhedorId: true },
+  });
+  if (!ownsAnimal(current.context, animal)) {
+    throw new UploadThingError("Forbidden");
+  }
+
+  if (parsed.data.registroSaudeId) {
+    const record = await prisma.registroSaude.findUnique({
+      where: { id: parsed.data.registroSaudeId },
+      select: { animalId: true },
+    });
+    if (!record || record.animalId !== parsed.data.animalId) {
+      throw new UploadThingError("Bad Request");
+    }
+  }
+
+  return {
+    userId: current.context.userId,
+    responsavelId: current.context.responsavelId,
+    tipoPerfil: current.context.tipoPerfil,
+    animalId: parsed.data.animalId,
+    registroSaudeId: parsed.data.registroSaudeId,
+    tipoDocumento: parsed.data.tipoDocumento,
+  };
+}
 
 export async function persistHealthDocumentUpload(
   metadata: HealthUploadMetadata,
@@ -206,59 +246,13 @@ export const uploadRouter = {
   })
     .input(healthDocumentInputSchema)
     .middleware(async ({ files, input }) => {
-      if (files.some((file) => file.size > MAX_HEALTH_DOCUMENT_BYTES)) {
-        throw new UploadThingError("Arquivo deve ter no maximo 10 MB");
-      }
-
-      const session = await getServerSession();
-
-      if (!session?.user?.id) {
-        throw new UploadThingError("Unauthorized");
-      }
-
-      if (!session.user.ativo || !isResponsibleRole(session.user.tipoPerfil)) {
-        throw new UploadThingError("Forbidden");
-      }
-
-      const responsavelId = getResponsavelId(session.user.tipoPerfil, session.user);
-      if (!responsavelId) {
-        throw new UploadThingError("Forbidden");
-      }
-
-      const animal = await prisma.animal.findUnique({
-        where: { id: input.animalId },
-        select: { organizacaoId: true, acolhedorId: true },
-      });
-      const ownsAnimal =
-        session.user.tipoPerfil === TipoPerfil.ORGANIZACAO
-          ? animal?.organizacaoId === responsavelId
-          : animal?.acolhedorId === responsavelId;
-
-      if (!ownsAnimal) {
-        throw new UploadThingError("Forbidden");
-      }
-
-      if (input.registroSaudeId) {
-        const record = await prisma.registroSaude.findUnique({
-          where: { id: input.registroSaudeId },
-          select: { animalId: true },
-        });
-
-        if (!record || record.animalId !== input.animalId) {
-          throw new UploadThingError("Bad Request");
-        }
-      }
+      const metadata = await authorizeHealthDocumentUpload(input, files);
 
       return {
-        userId: session.user.id,
-        responsavelId,
-        tipoPerfil: session.user.tipoPerfil,
-        animalId: input.animalId,
-        registroSaudeId: input.registroSaudeId,
-        tipoDocumento: input.tipoDocumento,
+        ...metadata,
         [UTFiles]: files.map((file) => ({
           ...file,
-          customId: input.animalId,
+          customId: createHealthDocumentCustomId(metadata.animalId),
         })),
       };
     })

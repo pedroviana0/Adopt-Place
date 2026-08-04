@@ -29,6 +29,13 @@ export const documentoSaudeUploadSchema = documentoSaudeMetadataSchema.extend({
     .max(MAX_HEALTH_DOCUMENT_BYTES, "O arquivo deve ter no maximo 10 MB."),
 });
 
+export const documentoSaudeFilterSchema = z
+  .object({
+    animalId: idSchema.optional(),
+    tipo: z.nativeEnum(TipoDocumentoSaude).optional(),
+  })
+  .strict();
+
 export type DocumentoSaudeMetadataInput = z.infer<
   typeof documentoSaudeMetadataSchema
 >;

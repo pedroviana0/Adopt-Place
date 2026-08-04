@@ -1,15 +1,23 @@
 import { Prisma, StatusAnimal, TipoPerfil } from "@prisma/client";
 
 import { requireResponsible } from "@/lib/actions/auth-guards";
+import type { ResponsibleContext } from "@/lib/api/responsible-context";
 import { classifyHealthDate, getUpcomingRange } from "@/lib/date-utils";
 import { prisma } from "@/lib/prisma";
 
 type ResponsibleSession = Awaited<ReturnType<typeof requireResponsible>>;
+type ResponsibleOwner = ResponsibleSession | ResponsibleContext;
 
-function ownerWhere(session: ResponsibleSession): Prisma.AnimalWhereInput {
-  return session.user.tipoPerfil === TipoPerfil.ORGANIZACAO
-    ? { organizacaoId: session.user.organizacaoId! }
-    : { acolhedorId: session.user.acolhedorId! };
+function ownerWhere(owner: ResponsibleOwner): Prisma.AnimalWhereInput {
+  if ("user" in owner) {
+    return owner.user.tipoPerfil === TipoPerfil.ORGANIZACAO
+      ? { organizacaoId: owner.user.organizacaoId! }
+      : { acolhedorId: owner.user.acolhedorId! };
+  }
+
+  return owner.tipoPerfil === TipoPerfil.ORGANIZACAO
+    ? { organizacaoId: owner.responsavelId }
+    : { acolhedorId: owner.responsavelId };
 }
 
 type PriorityItem = {
@@ -46,9 +54,12 @@ const statusInitial: Record<StatusAnimal, number> = {
   ADOTADO: 0,
 };
 
-export async function getOperationalDashboard(reference = new Date()) {
-  const session = await requireResponsible();
-  const animalOwner = ownerWhere(session);
+export async function getOperationalDashboard(
+  reference = new Date(),
+  responsible?: ResponsibleContext,
+) {
+  const owner = responsible ?? (await requireResponsible());
+  const animalOwner = ownerWhere(owner);
   const next7 = getUpcomingRange(7, reference);
   const periodStart = new Date(reference);
   periodStart.setUTCDate(periodStart.getUTCDate() - 30);
