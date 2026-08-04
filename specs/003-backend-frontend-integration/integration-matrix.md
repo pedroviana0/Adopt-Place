@@ -548,3 +548,69 @@ The remaining audited feature 002 backend slices are individually
 - **Database impact:** no schema, migration, seed, reset or database write was
   executed. Frontend audit, type alignment, consumption and per-flow mock
   removal remain T096-T106 / Issues #54-#59.
+
+## Feature 002 Frontend Audit and Type Alignment (T096/T097) — Issue #54
+
+**T096 — missing frontend surface.** The official frontend has **no** routes or
+components yet for the feature 002 areas; each is created by its own Arthur
+Issue in the exact areas below:
+
+| Area | Backend contract to consume | Frontend areas to create | Issue |
+|------|-----------------------------|--------------------------|-------|
+| Health Center (agenda + overview + planned care) | `HEALTH-CENTER-01` (`/api/saude/visao-geral`, `/api/saude/agenda`, `/api/saude/cuidados/**`) | new `frontend/src/routes/_authenticated.dashboard.saude.*.tsx`, components in `frontend/src/components/app/`, data module `frontend/src/lib/data/cuidados.ts` | #55 (T098/T102) |
+| Operational Dashboard | `GET /api/dashboard/operacional` | rework `_authenticated.dashboard.index.tsx`, dashboard components, data module `frontend/src/lib/data/dashboard.ts` | #56 (T099/T103) |
+| Health Documents | `/api/saude/documentos` (+ `[id]`) and the upload route | new document routes/components, data module `frontend/src/lib/data/documentos.ts` | #57 (T100/T104) |
+| Chat | `/api/conversas` (+ `[id]`, `[id]/mensagens`, `[id]/leitura`) | new `_authenticated.mensagens.*` routes, chat components, data module `frontend/src/lib/data/mensagens.ts` | #58 (T101/T105) |
+
+Today only `_authenticated.dashboard.index.tsx` exists (a mock operational
+summary using `listSolicitacoesPorResponsavel`/`alertasProximos`), and there is
+no health-center, document, or chat surface.
+
+**T097 — type alignment (done).** `frontend/src/lib/domain/enums.ts` now matches
+the Prisma source of truth for feature 002, with no divergence or presumed
+values:
+- `TipoRegistroSaude` completed to the five real categories (added
+  `MEDICAMENTO_TRATAMENTO`, `PROCEDIMENTO`), closing the 3-vs-5 gap recorded on
+  HEALTH-BASIC-01.
+- Added `TipoCuidadoPlanejado` (5 categories + `CONSULTA`),
+  `StatusCuidadoPlanejado`, `TipoDocumentoSaude`, and `StatusConversaAdocao`
+  with matching label maps, all derived from `prisma/schema.prisma`.
+- Evidence: `npx tsc --noEmit` clean. No `frontend/src/lib/data/` boundary types
+  exist yet for these flows (the data modules are created per flow by #55-#58),
+  so there is nothing further to align at this step.
+
+## Feature 002 End-to-End Certification (T106) — Issue #59
+
+The four feature 002 frontend flows are integrated against the real contracts
+and advance to **`frontend integrated`** (not `flow complete`, since the live
+homologation round-trip requires two servers plus a homologation database and is
+not run in this environment — it is not fabricated here). Per-flow evidence:
+
+| Flow | Frontend (Issue/PR) | Real contract consumed | Rule evidence |
+|------|---------------------|------------------------|---------------|
+| Health Center | #55 (`cuidados.ts`, `_authenticated.dashboard.saude.*`) | `HEALTH-CENTER-01` | CONSULTA completed with no body → no health record (backend `completeCuidadoPlanejado` + `__tests__/api/health-center.test.ts`); completion idempotency (409) |
+| Operational Dashboard | #56 (`dashboard.ts`, `dashboard.index.tsx`) | `GET /api/dashboard/operacional` | Owner-scoped indicators/funnel/pending/activity; drill-down links; `__tests__/api/operational-dashboard.test.ts` |
+| Health Documents | #57 (`documentos.ts`, `_authenticated.dashboard.documentos.*`) | `/api/saude/documentos` + `healthDocument` upload | Internal-only; owner list/upload/delete; image/PDF ≤10 MB; `__tests__/api/health-documents.test.ts` |
+| Chat | #58 (`mensagens.ts`, `_authenticated.dashboard.mensagens.*`) | `/api/conversas/**` | Participant-only; send disabled when archived (`canSend`); read markers; polling; `__tests__/api/chat.test.ts` |
+
+Frontend type alignment (T097/#54) is complete. Per-flow mock removal: health
+center, documents, and chat are new surfaces with no prior mock; the dashboard
+home no longer depends on the mock summary helpers.
+
+**Executable evidence:** frontend `npm run build`, `tsc --noEmit`, and targeted
+`eslint` clean across #54-#58; backend suite green. **Pending for `flow
+complete`:** the manual homologation round-trip (SC-006/T122) and the adopter-side
+chat entry (FR-071), which is recorded as a follow-up because `/dashboard` is
+responsible-only. Promotion of these rows to `flow complete` remains Pedro's,
+after homologation.
+
+## Admin Backend (T108/T109/T110) — Issue #60
+
+**ADMIN-01: `backend ready`.** The admin user contract is defined in
+`contracts/http-contract-inventory.md` and implemented as thin route handlers
+over the existing `getAllUsers` query and `setUserActive` action:
+`GET /api/admin/usuarios` and `PATCH /api/admin/usuarios/[id]`. An active-ADMIN
+guard (`lib/api/admin-http.ts`) runs before any read/write; the list DTO excludes
+`senhaHash` and private profile data. Evidence: `__tests__/api/admin-users.test.ts`
+(4 tests) + existing action tests; backend `tsc` clean, full suite green.
+Frontend consumption is Issue #61. No Prisma/schema/migration/seed change.
