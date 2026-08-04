@@ -255,8 +255,8 @@ T001 through T019 MUST be completed and verified before any implementation task 
 - [X] T108 [US3] Define admin user HTTP contracts in `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` and mark the corresponding matrix rows `contract defined` only with contract evidence (Owner: Pedro; depends on T030) — done (Issue #60): `ADMIN-01` section
 - [X] T109 [US3] Implement backend admin contracts using `lib/actions/admin-users.ts`, `lib/queries/admin-users.ts`, and `lib/schemas/admin-user.ts` or route handlers documented by T108 (Owner: Pedro; depends on T107-T108 and requires the admin matrix rows at `contract defined`) — done (Issue #60): `app/api/admin/usuarios/route.ts` (GET) + `[id]/route.ts` (PATCH) with `lib/api/admin-http.ts` guard
 - [X] T110 [US3] Update matrix admin rows to `backend ready` in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro; depends on T109) — done (Issue #60): ADMIN-01 `backend ready`
-- [ ] T111 [US3] Integrate real admin users in `frontend/src/lib/data/usuarios.ts` and `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx` (Owner: Arthur; depends on T110)
-- [ ] T112 [US3] Remove completed admin mock/localStorage dependency from admin functions in `frontend/src/lib/data/usuarios.ts` (Owner: Arthur; depends on T111)
+- [X] T111 [US3] Integrate real admin users in `frontend/src/lib/data/usuarios.ts` and `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx` (Owner: Arthur; depends on T110) — done (Issue #61): `fetchAdminUsuarios`/`setUsuarioAtivo` over ADMIN-01; admin route uses React Query
+- [X] T112 [US3] Remove completed admin mock/localStorage dependency from admin functions in `frontend/src/lib/data/usuarios.ts` (Owner: Arthur; depends on T111) — done (Issue #61): removed mock `listUsuarios` and `setAtivo`
 - [ ] T113 [US3] Update matrix admin rows to `flow complete` with validation evidence (Owner: Pedro; depends on T112)
 
 ## Phase 13: Final Mock Removal (User Story 5 - P3)

@@ -147,14 +147,30 @@ export async function salvarTriagem(input: TriagemInput): Promise<void> {
   });
 }
 
-// ============================================================================
-// Mock read helpers kept for still-mock flows (admin #61, owner dashboards #45).
-// ============================================================================
+// ---- Admin users: GET /api/admin/usuarios, PATCH .../[id] (ADMIN-01, #61) ----
 
-export function listUsuarios(): Usuario[] {
-  const db = loadDB();
-  return db.usuarios.slice().sort((a, b) => a.email.localeCompare(b.email));
+export interface AdminUserDTO {
+  id: string;
+  email: string;
+  tipoPerfil: "ADOTANTE" | "ORGANIZACAO" | "ACOLHEDOR" | "ADMIN";
+  ativo: boolean;
+  criadoEm: string;
 }
+
+export async function fetchAdminUsuarios(): Promise<AdminUserDTO[]> {
+  const data = (await apiFetch("/api/admin/usuarios", { method: "GET" })) as {
+    users: AdminUserDTO[];
+  };
+  return data.users;
+}
+
+export async function setUsuarioAtivo(id: string, ativo: boolean): Promise<void> {
+  await apiFetch(`/api/admin/usuarios/${id}`, { method: "PATCH", json: { ativo } });
+}
+
+// ============================================================================
+// Mock read helpers kept for still-mock flows (owner dashboards, adopters list).
+// ============================================================================
 
 export function nomeDoUsuario(u: Usuario): string {
   const db = loadDB();
@@ -164,13 +180,6 @@ export function nomeDoUsuario(u: Usuario): string {
     db.acolhedores.find((a) => a.usuarioId === u.id)?.nomeCompleto ??
     u.email
   );
-}
-
-export function setAtivo(usuarioId: string, ativo: boolean): void {
-  mutate((db) => {
-    const u = db.usuarios.find((x) => x.id === usuarioId);
-    if (u) u.ativo = ativo;
-  });
 }
 
 export function getAdotante(id: string): Adotante | undefined {
