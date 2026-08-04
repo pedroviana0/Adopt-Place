@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   UserCog,
   HeartPulse,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ function DashLayout() {
           { to: "/dashboard", label: "Painel", icon: LayoutDashboard, exact: true },
           { to: "/dashboard/animais", label: "Meus animais", icon: PawPrint },
           { to: "/dashboard/saude", label: "Saúde", icon: HeartPulse },
+          { to: "/dashboard/documentos", label: "Documentos", icon: FileText },
           { to: "/dashboard/solicitacoes", label: "Solicitações", icon: ClipboardList },
           { to: "/dashboard/adotantes", label: "Adotantes", icon: Users },
           { to: "/dashboard/perfil", label: "Meu perfil", icon: UserCog },
