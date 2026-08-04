@@ -734,6 +734,27 @@ Shared errors are 400 `VALIDATION_ERROR`/`INVALID_JSON`, 401
 `CONVERSATION_ARCHIVED`. These contracts add no Prisma model, enum, migration,
 seed or database reset. Frontend consumption remains Issues #54-#58.
 
+## Admin User Contract (T108) — Issue #60
+
+`ADMIN-01`. Every endpoint requires a currently active `ADMIN`; the route
+rejects unauthenticated, inactive, or non-admin callers before any read or
+write. Thin HTTP exposure of the existing `getAllUsers` query and `setUserActive`
+action (which also re-checks ADMIN); no new behavior.
+
+### ADMIN-01 — user administration
+
+- `GET /api/admin/usuarios` returns `{ users: AdminUserDTO[] }` newest-first.
+  `AdminUserDTO` is `{ id, email, tipoPerfil, ativo, criadoEm }` — the query
+  never selects `senhaHash` or private profile data.
+- `PATCH /api/admin/usuarios/[id]` accepts strict `{ ativo: boolean }` and sets
+  the target account's active state, returning `{ success: true }`.
+- Stable errors: 400 `VALIDATION_ERROR`, 401 `UNAUTHENTICATED`, 403
+  `INACTIVE_ACCOUNT`/`FORBIDDEN`.
+- Evidence: `__tests__/api/admin-users.test.ts` (401, non-admin 403, list without
+  password hash, active toggle) plus `__tests__/actions/admin-users.test.ts`.
+  No Prisma model, enum, migration, seed, or reset is added. Frontend
+  consumption is Issue #61.
+
 ## Remaining Contract Groups
 
 | Contract group | Frontend source today | Backend source of truth today | Auth mode | Status / next owner |
@@ -752,7 +773,7 @@ seed or database reset. Frontend consumption remains Issues #54-#58.
 | Health documents | missing frontend surface | document action/query/schema/upload + `HEALTH-DOCUMENTS-01` routes | Owner scoped and private | `backend ready`; #51; frontend #54/#57 |
 | Dashboards | dashboard routes | adopter/operational/admin queries + `OPERATIONAL-DASHBOARD-01` route | Role and owner scoped | feature 002 operational slice `backend ready`; #50; frontend #54/#56 |
 | Chat | missing frontend surface | message actions/queries/schema + `ADOPTION-CHAT-01` routes | Participant scoped | `backend ready`; #52; frontend #54/#58 |
-| Admin users | `usuarios.ts`, admin route | admin action/query/schema | ADMIN only | `to define`; #60 |
+| Admin users | `usuarios.ts`, admin route | admin action/query/schema + `ADMIN-01` routes | ADMIN only | `backend ready`; #60 (T108/T109); frontend #61 |
 
 ## Initial Gate Evidence
 

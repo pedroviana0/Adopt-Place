@@ -603,3 +603,14 @@ complete`:** the manual homologation round-trip (SC-006/T122) and the adopter-si
 chat entry (FR-071), which is recorded as a follow-up because `/dashboard` is
 responsible-only. Promotion of these rows to `flow complete` remains Pedro's,
 after homologation.
+
+## Admin Backend (T108/T109/T110) — Issue #60
+
+**ADMIN-01: `backend ready`.** The admin user contract is defined in
+`contracts/http-contract-inventory.md` and implemented as thin route handlers
+over the existing `getAllUsers` query and `setUserActive` action:
+`GET /api/admin/usuarios` and `PATCH /api/admin/usuarios/[id]`. An active-ADMIN
+guard (`lib/api/admin-http.ts`) runs before any read/write; the list DTO excludes
+`senhaHash` and private profile data. Evidence: `__tests__/api/admin-users.test.ts`
+(4 tests) + existing action tests; backend `tsc` clean, full suite green.
+Frontend consumption is Issue #61. No Prisma/schema/migration/seed change.
