@@ -548,3 +548,33 @@ The remaining audited feature 002 backend slices are individually
 - **Database impact:** no schema, migration, seed, reset or database write was
   executed. Frontend audit, type alignment, consumption and per-flow mock
   removal remain T096-T106 / Issues #54-#59.
+
+## Feature 002 Frontend Audit and Type Alignment (T096/T097) — Issue #54
+
+**T096 — missing frontend surface.** The official frontend has **no** routes or
+components yet for the feature 002 areas; each is created by its own Arthur
+Issue in the exact areas below:
+
+| Area | Backend contract to consume | Frontend areas to create | Issue |
+|------|-----------------------------|--------------------------|-------|
+| Health Center (agenda + overview + planned care) | `HEALTH-CENTER-01` (`/api/saude/visao-geral`, `/api/saude/agenda`, `/api/saude/cuidados/**`) | new `frontend/src/routes/_authenticated.dashboard.saude.*.tsx`, components in `frontend/src/components/app/`, data module `frontend/src/lib/data/cuidados.ts` | #55 (T098/T102) |
+| Operational Dashboard | `GET /api/dashboard/operacional` | rework `_authenticated.dashboard.index.tsx`, dashboard components, data module `frontend/src/lib/data/dashboard.ts` | #56 (T099/T103) |
+| Health Documents | `/api/saude/documentos` (+ `[id]`) and the upload route | new document routes/components, data module `frontend/src/lib/data/documentos.ts` | #57 (T100/T104) |
+| Chat | `/api/conversas` (+ `[id]`, `[id]/mensagens`, `[id]/leitura`) | new `_authenticated.mensagens.*` routes, chat components, data module `frontend/src/lib/data/mensagens.ts` | #58 (T101/T105) |
+
+Today only `_authenticated.dashboard.index.tsx` exists (a mock operational
+summary using `listSolicitacoesPorResponsavel`/`alertasProximos`), and there is
+no health-center, document, or chat surface.
+
+**T097 — type alignment (done).** `frontend/src/lib/domain/enums.ts` now matches
+the Prisma source of truth for feature 002, with no divergence or presumed
+values:
+- `TipoRegistroSaude` completed to the five real categories (added
+  `MEDICAMENTO_TRATAMENTO`, `PROCEDIMENTO`), closing the 3-vs-5 gap recorded on
+  HEALTH-BASIC-01.
+- Added `TipoCuidadoPlanejado` (5 categories + `CONSULTA`),
+  `StatusCuidadoPlanejado`, `TipoDocumentoSaude`, and `StatusConversaAdocao`
+  with matching label maps, all derived from `prisma/schema.prisma`.
+- Evidence: `npx tsc --noEmit` clean. No `frontend/src/lib/data/` boundary types
+  exist yet for these flows (the data modules are created per flow by #55-#58),
+  so there is nothing further to align at this step.
