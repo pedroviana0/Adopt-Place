@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ConversationListPage } from "@/components/app/messages/ConversationListPage";
 
-export const Route = createFileRoute("/_authenticated/dashboard/mensagens/")({
+export const Route = createFileRoute("/_authenticated/mensagens/")({
   head: () => ({
     meta: [
       { title: "Mensagens — AdoptPlace" },
-      { name: "description", content: "Conversas das adoções aprovadas." },
+      { name: "description", content: "Conversas das suas adoções aprovadas." },
     ],
   }),
-  component: () => <ConversationListPage audience="responsible" />,
+  component: () => <ConversationListPage audience="adopter" />,
 });

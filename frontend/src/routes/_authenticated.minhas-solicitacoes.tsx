@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchMinhasSolicitacoes } from "@/lib/data/solicitacoes";
+import { fetchConversas } from "@/lib/data/mensagens";
 import { StatusSolicitacaoBadge } from "@/components/app/StatusBadge";
 import { EmptyState } from "@/components/app/EmptyState";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/minhas-solicitacoes")({
   head: () => ({
@@ -19,7 +21,17 @@ function Page() {
     queryKey: ["minhas-solicitacoes"],
     queryFn: fetchMinhasSolicitacoes,
   });
+  const conversas = useQuery({
+    queryKey: ["conversas", "todas"],
+    queryFn: () => fetchConversas("todas"),
+  });
   const list = solicitacoes.data ?? [];
+  const conversationByRequest = new Map(
+    (conversas.data?.conversations ?? []).map((conversation) => [
+      conversation.requestId,
+      conversation.id,
+    ]),
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -43,7 +55,7 @@ function Page() {
       ) : (
         <ul className="mt-6 divide-y rounded-xl border bg-card">
           {list.map((s) => (
-            <li key={s.id} className="flex items-center justify-between gap-4 p-4">
+            <li key={s.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
               <div>
                 <Link
                   to="/animais/$animalId"
@@ -59,7 +71,20 @@ function Page() {
                   <p className="mt-1 text-xs text-muted-foreground">{s.observacoes}</p>
                 )}
               </div>
-              <StatusSolicitacaoBadge status={s.status} />
+              <div className="flex items-center gap-2">
+                <StatusSolicitacaoBadge status={s.status} />
+                {(s.status === "APROVADA" || s.status === "CONCLUIDA") &&
+                  conversationByRequest.has(s.id) && (
+                    <Button asChild size="sm" variant="outline">
+                      <Link
+                        to="/mensagens/$conversaId"
+                        params={{ conversaId: conversationByRequest.get(s.id)! }}
+                      >
+                        Abrir conversa
+                      </Link>
+                    </Button>
+                  )}
+              </div>
             </li>
           ))}
         </ul>

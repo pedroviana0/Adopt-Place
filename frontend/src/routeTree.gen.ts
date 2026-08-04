@@ -9,52 +9,45 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as CadastroRouteImport } from './routes/cadastro'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as VitrineRouteImport } from './routes/vitrine'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
-import { Route as AuthenticatedMeuPerfilRouteImport } from './routes/_authenticated.meu-perfil'
-import { Route as AuthenticatedMeusFavoritosRouteImport } from './routes/_authenticated.meus-favoritos'
-import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated.minhas-solicitacoes'
-import { Route as AuthenticatedTriagemRouteImport } from './routes/_authenticated.triagem'
-import { Route as AnimaisAnimalIdRouteImport } from './routes/animais.$animalId'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
-import { Route as CadastroAcolhedorRouteImport } from './routes/cadastro.acolhedor'
-import { Route as CadastroAdotanteRouteImport } from './routes/cadastro.adotante'
 import { Route as CadastroOrganizacaoRouteImport } from './routes/cadastro.organizacao'
+import { Route as CadastroAdotanteRouteImport } from './routes/cadastro.adotante'
+import { Route as CadastroAcolhedorRouteImport } from './routes/cadastro.acolhedor'
+import { Route as AnimaisAnimalIdRouteImport } from './routes/animais.$animalId'
+import { Route as AuthenticatedTriagemRouteImport } from './routes/_authenticated.triagem'
+import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated.minhas-solicitacoes'
+import { Route as AuthenticatedMeusFavoritosRouteImport } from './routes/_authenticated.meus-favoritos'
+import { Route as AuthenticatedMeuPerfilRouteImport } from './routes/_authenticated.meu-perfil'
+import { Route as AuthenticatedMensagensRouteImport } from './routes/_authenticated.mensagens'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedMensagensIndexRouteImport } from './routes/_authenticated.mensagens.index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated.dashboard.index'
-import { Route as AuthenticatedDashboardAdotantesRouteImport } from './routes/_authenticated.dashboard.adotantes'
-import { Route as AuthenticatedDashboardAnimaisRouteImport } from './routes/_authenticated.dashboard.animais'
-import { Route as AuthenticatedDashboardDocumentosRouteImport } from './routes/_authenticated.dashboard.documentos'
-import { Route as AuthenticatedDashboardMensagensRouteImport } from './routes/_authenticated.dashboard.mensagens'
-import { Route as AuthenticatedDashboardPerfilRouteImport } from './routes/_authenticated.dashboard.perfil'
-import { Route as AuthenticatedDashboardSaudeRouteImport } from './routes/_authenticated.dashboard.saude'
+import { Route as AuthenticatedMensagensConversaIdRouteImport } from './routes/_authenticated.mensagens.$conversaId'
 import { Route as AuthenticatedDashboardSolicitacoesRouteImport } from './routes/_authenticated.dashboard.solicitacoes'
-import { Route as AuthenticatedDashboardAdminUsuariosRouteImport } from './routes/_authenticated.dashboard.admin.usuarios'
-import { Route as AuthenticatedDashboardAnimaisIndexRouteImport } from './routes/_authenticated.dashboard.animais.index'
-import { Route as AuthenticatedDashboardAnimaisAnimalIdRouteImport } from './routes/_authenticated.dashboard.animais.$animalId'
-import { Route as AuthenticatedDashboardAnimaisNovoRouteImport } from './routes/_authenticated.dashboard.animais.novo'
-import { Route as AuthenticatedDashboardDocumentosIndexRouteImport } from './routes/_authenticated.dashboard.documentos.index'
-import { Route as AuthenticatedDashboardMensagensIndexRouteImport } from './routes/_authenticated.dashboard.mensagens.index'
-import { Route as AuthenticatedDashboardMensagensConversaIdRouteImport } from './routes/_authenticated.dashboard.mensagens.$conversaId'
-import { Route as AuthenticatedDashboardSaudeIndexRouteImport } from './routes/_authenticated.dashboard.saude.index'
+import { Route as AuthenticatedDashboardSaudeRouteImport } from './routes/_authenticated.dashboard.saude'
+import { Route as AuthenticatedDashboardPerfilRouteImport } from './routes/_authenticated.dashboard.perfil'
+import { Route as AuthenticatedDashboardMensagensRouteImport } from './routes/_authenticated.dashboard.mensagens'
+import { Route as AuthenticatedDashboardDocumentosRouteImport } from './routes/_authenticated.dashboard.documentos'
+import { Route as AuthenticatedDashboardAnimaisRouteImport } from './routes/_authenticated.dashboard.animais'
 import { Route as AuthenticatedDashboardSolicitacoesIndexRouteImport } from './routes/_authenticated.dashboard.solicitacoes.index'
+import { Route as AuthenticatedDashboardSaudeIndexRouteImport } from './routes/_authenticated.dashboard.saude.index'
+import { Route as AuthenticatedDashboardMensagensIndexRouteImport } from './routes/_authenticated.dashboard.mensagens.index'
+import { Route as AuthenticatedDashboardDocumentosIndexRouteImport } from './routes/_authenticated.dashboard.documentos.index'
+import { Route as AuthenticatedDashboardAnimaisIndexRouteImport } from './routes/_authenticated.dashboard.animais.index'
 import { Route as AuthenticatedDashboardSolicitacoesSolicitacaoIdRouteImport } from './routes/_authenticated.dashboard.solicitacoes.$solicitacaoId'
+import { Route as AuthenticatedDashboardMensagensConversaIdRouteImport } from './routes/_authenticated.dashboard.mensagens.$conversaId'
+import { Route as AuthenticatedDashboardAnimaisNovoRouteImport } from './routes/_authenticated.dashboard.animais.novo'
+import { Route as AuthenticatedDashboardAnimaisAnimalIdRouteImport } from './routes/_authenticated.dashboard.animais.$animalId'
+import { Route as AuthenticatedDashboardAdminUsuariosRouteImport } from './routes/_authenticated.dashboard.admin.usuarios'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CadastroRoute = CadastroRouteImport.update({
-  id: '/cadastro',
-  path: '/cadastro',
+const VitrineRoute = VitrineRouteImport.update({
+  id: '/vitrine',
+  path: '/vitrine',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -62,41 +55,18 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VitrineRoute = VitrineRouteImport.update({
-  id: '/vitrine',
-  path: '/vitrine',
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRoute,
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedMeuPerfilRoute = AuthenticatedMeuPerfilRouteImport.update({
-  id: '/meu-perfil',
-  path: '/meu-perfil',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMeusFavoritosRoute =
-  AuthenticatedMeusFavoritosRouteImport.update({
-    id: '/meus-favoritos',
-    path: '/meus-favoritos',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMinhasSolicitacoesRoute =
-  AuthenticatedMinhasSolicitacoesRouteImport.update({
-    id: '/minhas-solicitacoes',
-    path: '/minhas-solicitacoes',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedTriagemRoute = AuthenticatedTriagemRouteImport.update({
-  id: '/triagem',
-  path: '/triagem',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AnimaisAnimalIdRoute = AnimaisAnimalIdRouteImport.update({
-  id: '/animais/$animalId',
-  path: '/animais/$animalId',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroIndexRoute = CadastroIndexRouteImport.update({
@@ -104,9 +74,9 @@ const CadastroIndexRoute = CadastroIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CadastroRoute,
 } as any)
-const CadastroAcolhedorRoute = CadastroAcolhedorRouteImport.update({
-  id: '/acolhedor',
-  path: '/acolhedor',
+const CadastroOrganizacaoRoute = CadastroOrganizacaoRouteImport.update({
+  id: '/organizacao',
+  path: '/organizacao',
   getParentRoute: () => CadastroRoute,
 } as any)
 const CadastroAdotanteRoute = CadastroAdotanteRouteImport.update({
@@ -114,45 +84,70 @@ const CadastroAdotanteRoute = CadastroAdotanteRouteImport.update({
   path: '/adotante',
   getParentRoute: () => CadastroRoute,
 } as any)
-const CadastroOrganizacaoRoute = CadastroOrganizacaoRouteImport.update({
-  id: '/organizacao',
-  path: '/organizacao',
+const CadastroAcolhedorRoute = CadastroAcolhedorRouteImport.update({
+  id: '/acolhedor',
+  path: '/acolhedor',
   getParentRoute: () => CadastroRoute,
 } as any)
+const AnimaisAnimalIdRoute = AnimaisAnimalIdRouteImport.update({
+  id: '/animais/$animalId',
+  path: '/animais/$animalId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTriagemRoute = AuthenticatedTriagemRouteImport.update({
+  id: '/triagem',
+  path: '/triagem',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMinhasSolicitacoesRoute =
+  AuthenticatedMinhasSolicitacoesRouteImport.update({
+    id: '/minhas-solicitacoes',
+    path: '/minhas-solicitacoes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMeusFavoritosRoute =
+  AuthenticatedMeusFavoritosRouteImport.update({
+    id: '/meus-favoritos',
+    path: '/meus-favoritos',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMeuPerfilRoute = AuthenticatedMeuPerfilRouteImport.update({
+  id: '/meu-perfil',
+  path: '/meu-perfil',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMensagensRoute = AuthenticatedMensagensRouteImport.update({
+  id: '/mensagens',
+  path: '/mensagens',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMensagensIndexRoute =
+  AuthenticatedMensagensIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedMensagensRoute,
+  } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardAdotantesRoute =
-  AuthenticatedDashboardAdotantesRouteImport.update({
-    id: '/adotantes',
-    path: '/adotantes',
-    getParentRoute: () => AuthenticatedDashboardRoute,
+const AuthenticatedMensagensConversaIdRoute =
+  AuthenticatedMensagensConversaIdRouteImport.update({
+    id: '/$conversaId',
+    path: '/$conversaId',
+    getParentRoute: () => AuthenticatedMensagensRoute,
   } as any)
-const AuthenticatedDashboardAnimaisRoute =
-  AuthenticatedDashboardAnimaisRouteImport.update({
-    id: '/animais',
-    path: '/animais',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardDocumentosRoute =
-  AuthenticatedDashboardDocumentosRouteImport.update({
-    id: '/documentos',
-    path: '/documentos',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardMensagensRoute =
-  AuthenticatedDashboardMensagensRouteImport.update({
-    id: '/mensagens',
-    path: '/mensagens',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardPerfilRoute =
-  AuthenticatedDashboardPerfilRouteImport.update({
-    id: '/perfil',
-    path: '/perfil',
+const AuthenticatedDashboardSolicitacoesRoute =
+  AuthenticatedDashboardSolicitacoesRouteImport.update({
+    id: '/solicitacoes',
+    path: '/solicitacoes',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardSaudeRoute =
@@ -161,22 +156,76 @@ const AuthenticatedDashboardSaudeRoute =
     path: '/saude',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardSolicitacoesRoute =
-  AuthenticatedDashboardSolicitacoesRouteImport.update({
-    id: '/solicitacoes',
-    path: '/solicitacoes',
+const AuthenticatedDashboardPerfilRoute =
+  AuthenticatedDashboardPerfilRouteImport.update({
+    id: '/perfil',
+    path: '/perfil',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardAdminUsuariosRoute =
-  AuthenticatedDashboardAdminUsuariosRouteImport.update({
-    id: '/admin/usuarios',
-    path: '/admin/usuarios',
+const AuthenticatedDashboardMensagensRoute =
+  AuthenticatedDashboardMensagensRouteImport.update({
+    id: '/mensagens',
+    path: '/mensagens',
     getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardDocumentosRoute =
+  AuthenticatedDashboardDocumentosRouteImport.update({
+    id: '/documentos',
+    path: '/documentos',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardAnimaisRoute =
+  AuthenticatedDashboardAnimaisRouteImport.update({
+    id: '/animais',
+    path: '/animais',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardSolicitacoesIndexRoute =
+  AuthenticatedDashboardSolicitacoesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardSolicitacoesRoute,
+  } as any)
+const AuthenticatedDashboardSaudeIndexRoute =
+  AuthenticatedDashboardSaudeIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardSaudeRoute,
+  } as any)
+const AuthenticatedDashboardMensagensIndexRoute =
+  AuthenticatedDashboardMensagensIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardMensagensRoute,
+  } as any)
+const AuthenticatedDashboardDocumentosIndexRoute =
+  AuthenticatedDashboardDocumentosIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardDocumentosRoute,
   } as any)
 const AuthenticatedDashboardAnimaisIndexRoute =
   AuthenticatedDashboardAnimaisIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedDashboardAnimaisRoute,
+  } as any)
+const AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute =
+  AuthenticatedDashboardSolicitacoesSolicitacaoIdRouteImport.update({
+    id: '/$solicitacaoId',
+    path: '/$solicitacaoId',
+    getParentRoute: () => AuthenticatedDashboardSolicitacoesRoute,
+  } as any)
+const AuthenticatedDashboardMensagensConversaIdRoute =
+  AuthenticatedDashboardMensagensConversaIdRouteImport.update({
+    id: '/$conversaId',
+    path: '/$conversaId',
+    getParentRoute: () => AuthenticatedDashboardMensagensRoute,
+  } as any)
+const AuthenticatedDashboardAnimaisNovoRoute =
+  AuthenticatedDashboardAnimaisNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
     getParentRoute: () => AuthenticatedDashboardAnimaisRoute,
   } as any)
 const AuthenticatedDashboardAnimaisAnimalIdRoute =
@@ -185,47 +234,11 @@ const AuthenticatedDashboardAnimaisAnimalIdRoute =
     path: '/$animalId',
     getParentRoute: () => AuthenticatedDashboardAnimaisRoute,
   } as any)
-const AuthenticatedDashboardAnimaisNovoRoute =
-  AuthenticatedDashboardAnimaisNovoRouteImport.update({
-    id: '/novo',
-    path: '/novo',
-    getParentRoute: () => AuthenticatedDashboardAnimaisRoute,
-  } as any)
-const AuthenticatedDashboardDocumentosIndexRoute =
-  AuthenticatedDashboardDocumentosIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedDashboardDocumentosRoute,
-  } as any)
-const AuthenticatedDashboardMensagensIndexRoute =
-  AuthenticatedDashboardMensagensIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedDashboardMensagensRoute,
-  } as any)
-const AuthenticatedDashboardMensagensConversaIdRoute =
-  AuthenticatedDashboardMensagensConversaIdRouteImport.update({
-    id: '/$conversaId',
-    path: '/$conversaId',
-    getParentRoute: () => AuthenticatedDashboardMensagensRoute,
-  } as any)
-const AuthenticatedDashboardSaudeIndexRoute =
-  AuthenticatedDashboardSaudeIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedDashboardSaudeRoute,
-  } as any)
-const AuthenticatedDashboardSolicitacoesIndexRoute =
-  AuthenticatedDashboardSolicitacoesIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedDashboardSolicitacoesRoute,
-  } as any)
-const AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute =
-  AuthenticatedDashboardSolicitacoesSolicitacaoIdRouteImport.update({
-    id: '/$solicitacaoId',
-    path: '/$solicitacaoId',
-    getParentRoute: () => AuthenticatedDashboardSolicitacoesRoute,
+const AuthenticatedDashboardAdminUsuariosRoute =
+  AuthenticatedDashboardAdminUsuariosRouteImport.update({
+    id: '/admin/usuarios',
+    path: '/admin/usuarios',
+    getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -234,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/mensagens': typeof AuthenticatedMensagensRouteWithChildren
   '/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
@@ -243,14 +257,15 @@ export interface FileRoutesByFullPath {
   '/cadastro/adotante': typeof CadastroAdotanteRoute
   '/cadastro/organizacao': typeof CadastroOrganizacaoRoute
   '/cadastro/': typeof CadastroIndexRoute
-  '/dashboard/adotantes': typeof AuthenticatedDashboardAdotantesRoute
   '/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
   '/dashboard/documentos': typeof AuthenticatedDashboardDocumentosRouteWithChildren
   '/dashboard/mensagens': typeof AuthenticatedDashboardMensagensRouteWithChildren
   '/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
   '/dashboard/saude': typeof AuthenticatedDashboardSaudeRouteWithChildren
   '/dashboard/solicitacoes': typeof AuthenticatedDashboardSolicitacoesRouteWithChildren
+  '/mensagens/$conversaId': typeof AuthenticatedMensagensConversaIdRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/mensagens/': typeof AuthenticatedMensagensIndexRoute
   '/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
@@ -275,9 +290,10 @@ export interface FileRoutesByTo {
   '/cadastro/adotante': typeof CadastroAdotanteRoute
   '/cadastro/organizacao': typeof CadastroOrganizacaoRoute
   '/cadastro': typeof CadastroIndexRoute
-  '/dashboard/adotantes': typeof AuthenticatedDashboardAdotantesRoute
   '/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
+  '/mensagens/$conversaId': typeof AuthenticatedMensagensConversaIdRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/mensagens': typeof AuthenticatedMensagensIndexRoute
   '/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
@@ -297,6 +313,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/mensagens': typeof AuthenticatedMensagensRouteWithChildren
   '/_authenticated/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/_authenticated/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/_authenticated/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
@@ -306,14 +323,15 @@ export interface FileRoutesById {
   '/cadastro/adotante': typeof CadastroAdotanteRoute
   '/cadastro/organizacao': typeof CadastroOrganizacaoRoute
   '/cadastro/': typeof CadastroIndexRoute
-  '/_authenticated/dashboard/adotantes': typeof AuthenticatedDashboardAdotantesRoute
   '/_authenticated/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
   '/_authenticated/dashboard/documentos': typeof AuthenticatedDashboardDocumentosRouteWithChildren
   '/_authenticated/dashboard/mensagens': typeof AuthenticatedDashboardMensagensRouteWithChildren
   '/_authenticated/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
   '/_authenticated/dashboard/saude': typeof AuthenticatedDashboardSaudeRouteWithChildren
   '/_authenticated/dashboard/solicitacoes': typeof AuthenticatedDashboardSolicitacoesRouteWithChildren
+  '/_authenticated/mensagens/$conversaId': typeof AuthenticatedMensagensConversaIdRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/mensagens/': typeof AuthenticatedMensagensIndexRoute
   '/_authenticated/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/_authenticated/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/_authenticated/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
@@ -333,6 +351,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/vitrine'
     | '/dashboard'
+    | '/mensagens'
     | '/meu-perfil'
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
@@ -342,14 +361,15 @@ export interface FileRouteTypes {
     | '/cadastro/adotante'
     | '/cadastro/organizacao'
     | '/cadastro/'
-    | '/dashboard/adotantes'
     | '/dashboard/animais'
     | '/dashboard/documentos'
     | '/dashboard/mensagens'
     | '/dashboard/perfil'
     | '/dashboard/saude'
     | '/dashboard/solicitacoes'
+    | '/mensagens/$conversaId'
     | '/dashboard/'
+    | '/mensagens/'
     | '/dashboard/admin/usuarios'
     | '/dashboard/animais/$animalId'
     | '/dashboard/animais/novo'
@@ -374,9 +394,10 @@ export interface FileRouteTypes {
     | '/cadastro/adotante'
     | '/cadastro/organizacao'
     | '/cadastro'
-    | '/dashboard/adotantes'
     | '/dashboard/perfil'
+    | '/mensagens/$conversaId'
     | '/dashboard'
+    | '/mensagens'
     | '/dashboard/admin/usuarios'
     | '/dashboard/animais/$animalId'
     | '/dashboard/animais/novo'
@@ -395,6 +416,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/vitrine'
     | '/_authenticated/dashboard'
+    | '/_authenticated/mensagens'
     | '/_authenticated/meu-perfil'
     | '/_authenticated/meus-favoritos'
     | '/_authenticated/minhas-solicitacoes'
@@ -404,14 +426,15 @@ export interface FileRouteTypes {
     | '/cadastro/adotante'
     | '/cadastro/organizacao'
     | '/cadastro/'
-    | '/_authenticated/dashboard/adotantes'
     | '/_authenticated/dashboard/animais'
     | '/_authenticated/dashboard/documentos'
     | '/_authenticated/dashboard/mensagens'
     | '/_authenticated/dashboard/perfil'
     | '/_authenticated/dashboard/saude'
     | '/_authenticated/dashboard/solicitacoes'
+    | '/_authenticated/mensagens/$conversaId'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/mensagens/'
     | '/_authenticated/dashboard/admin/usuarios'
     | '/_authenticated/dashboard/animais/$animalId'
     | '/_authenticated/dashboard/animais/novo'
@@ -435,25 +458,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cadastro': {
-      id: '/cadastro'
-      path: '/cadastro'
-      fullPath: '/cadastro'
-      preLoaderRoute: typeof CadastroRouteImport
+    '/vitrine': {
+      id: '/vitrine'
+      path: '/vitrine'
+      fullPath: '/vitrine'
+      preLoaderRoute: typeof VitrineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -463,53 +472,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vitrine': {
-      id: '/vitrine'
-      path: '/vitrine'
-      fullPath: '/vitrine'
-      preLoaderRoute: typeof VitrineRouteImport
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/meu-perfil': {
-      id: '/_authenticated/meu-perfil'
-      path: '/meu-perfil'
-      fullPath: '/meu-perfil'
-      preLoaderRoute: typeof AuthenticatedMeuPerfilRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/meus-favoritos': {
-      id: '/_authenticated/meus-favoritos'
-      path: '/meus-favoritos'
-      fullPath: '/meus-favoritos'
-      preLoaderRoute: typeof AuthenticatedMeusFavoritosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/minhas-solicitacoes': {
-      id: '/_authenticated/minhas-solicitacoes'
-      path: '/minhas-solicitacoes'
-      fullPath: '/minhas-solicitacoes'
-      preLoaderRoute: typeof AuthenticatedMinhasSolicitacoesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/triagem': {
-      id: '/_authenticated/triagem'
-      path: '/triagem'
-      fullPath: '/triagem'
-      preLoaderRoute: typeof AuthenticatedTriagemRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/animais/$animalId': {
-      id: '/animais/$animalId'
-      path: '/animais/$animalId'
-      fullPath: '/animais/$animalId'
-      preLoaderRoute: typeof AnimaisAnimalIdRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro/': {
@@ -519,11 +500,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroIndexRouteImport
       parentRoute: typeof CadastroRoute
     }
-    '/cadastro/acolhedor': {
-      id: '/cadastro/acolhedor'
-      path: '/acolhedor'
-      fullPath: '/cadastro/acolhedor'
-      preLoaderRoute: typeof CadastroAcolhedorRouteImport
+    '/cadastro/organizacao': {
+      id: '/cadastro/organizacao'
+      path: '/organizacao'
+      fullPath: '/cadastro/organizacao'
+      preLoaderRoute: typeof CadastroOrganizacaoRouteImport
       parentRoute: typeof CadastroRoute
     }
     '/cadastro/adotante': {
@@ -533,12 +514,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroAdotanteRouteImport
       parentRoute: typeof CadastroRoute
     }
-    '/cadastro/organizacao': {
-      id: '/cadastro/organizacao'
-      path: '/organizacao'
-      fullPath: '/cadastro/organizacao'
-      preLoaderRoute: typeof CadastroOrganizacaoRouteImport
+    '/cadastro/acolhedor': {
+      id: '/cadastro/acolhedor'
+      path: '/acolhedor'
+      fullPath: '/cadastro/acolhedor'
+      preLoaderRoute: typeof CadastroAcolhedorRouteImport
       parentRoute: typeof CadastroRoute
+    }
+    '/animais/$animalId': {
+      id: '/animais/$animalId'
+      path: '/animais/$animalId'
+      fullPath: '/animais/$animalId'
+      preLoaderRoute: typeof AnimaisAnimalIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/triagem': {
+      id: '/_authenticated/triagem'
+      path: '/triagem'
+      fullPath: '/triagem'
+      preLoaderRoute: typeof AuthenticatedTriagemRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/minhas-solicitacoes': {
+      id: '/_authenticated/minhas-solicitacoes'
+      path: '/minhas-solicitacoes'
+      fullPath: '/minhas-solicitacoes'
+      preLoaderRoute: typeof AuthenticatedMinhasSolicitacoesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/meus-favoritos': {
+      id: '/_authenticated/meus-favoritos'
+      path: '/meus-favoritos'
+      fullPath: '/meus-favoritos'
+      preLoaderRoute: typeof AuthenticatedMeusFavoritosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/meu-perfil': {
+      id: '/_authenticated/meu-perfil'
+      path: '/meu-perfil'
+      fullPath: '/meu-perfil'
+      preLoaderRoute: typeof AuthenticatedMeuPerfilRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mensagens': {
+      id: '/_authenticated/mensagens'
+      path: '/mensagens'
+      fullPath: '/mensagens'
+      preLoaderRoute: typeof AuthenticatedMensagensRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mensagens/': {
+      id: '/_authenticated/mensagens/'
+      path: '/'
+      fullPath: '/mensagens/'
+      preLoaderRoute: typeof AuthenticatedMensagensIndexRouteImport
+      parentRoute: typeof AuthenticatedMensagensRoute
     }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
@@ -547,39 +584,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/adotantes': {
-      id: '/_authenticated/dashboard/adotantes'
-      path: '/adotantes'
-      fullPath: '/dashboard/adotantes'
-      preLoaderRoute: typeof AuthenticatedDashboardAdotantesRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
+    '/_authenticated/mensagens/$conversaId': {
+      id: '/_authenticated/mensagens/$conversaId'
+      path: '/$conversaId'
+      fullPath: '/mensagens/$conversaId'
+      preLoaderRoute: typeof AuthenticatedMensagensConversaIdRouteImport
+      parentRoute: typeof AuthenticatedMensagensRoute
     }
-    '/_authenticated/dashboard/animais': {
-      id: '/_authenticated/dashboard/animais'
-      path: '/animais'
-      fullPath: '/dashboard/animais'
-      preLoaderRoute: typeof AuthenticatedDashboardAnimaisRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/documentos': {
-      id: '/_authenticated/dashboard/documentos'
-      path: '/documentos'
-      fullPath: '/dashboard/documentos'
-      preLoaderRoute: typeof AuthenticatedDashboardDocumentosRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/mensagens': {
-      id: '/_authenticated/dashboard/mensagens'
-      path: '/mensagens'
-      fullPath: '/dashboard/mensagens'
-      preLoaderRoute: typeof AuthenticatedDashboardMensagensRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/perfil': {
-      id: '/_authenticated/dashboard/perfil'
-      path: '/perfil'
-      fullPath: '/dashboard/perfil'
-      preLoaderRoute: typeof AuthenticatedDashboardPerfilRouteImport
+    '/_authenticated/dashboard/solicitacoes': {
+      id: '/_authenticated/dashboard/solicitacoes'
+      path: '/solicitacoes'
+      fullPath: '/dashboard/solicitacoes'
+      preLoaderRoute: typeof AuthenticatedDashboardSolicitacoesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/saude': {
@@ -589,25 +605,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardSaudeRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/solicitacoes': {
-      id: '/_authenticated/dashboard/solicitacoes'
-      path: '/solicitacoes'
-      fullPath: '/dashboard/solicitacoes'
-      preLoaderRoute: typeof AuthenticatedDashboardSolicitacoesRouteImport
+    '/_authenticated/dashboard/perfil': {
+      id: '/_authenticated/dashboard/perfil'
+      path: '/perfil'
+      fullPath: '/dashboard/perfil'
+      preLoaderRoute: typeof AuthenticatedDashboardPerfilRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/admin/usuarios': {
-      id: '/_authenticated/dashboard/admin/usuarios'
-      path: '/admin/usuarios'
-      fullPath: '/dashboard/admin/usuarios'
-      preLoaderRoute: typeof AuthenticatedDashboardAdminUsuariosRouteImport
+    '/_authenticated/dashboard/mensagens': {
+      id: '/_authenticated/dashboard/mensagens'
+      path: '/mensagens'
+      fullPath: '/dashboard/mensagens'
+      preLoaderRoute: typeof AuthenticatedDashboardMensagensRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/documentos': {
+      id: '/_authenticated/dashboard/documentos'
+      path: '/documentos'
+      fullPath: '/dashboard/documentos'
+      preLoaderRoute: typeof AuthenticatedDashboardDocumentosRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/animais': {
+      id: '/_authenticated/dashboard/animais'
+      path: '/animais'
+      fullPath: '/dashboard/animais'
+      preLoaderRoute: typeof AuthenticatedDashboardAnimaisRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/solicitacoes/': {
+      id: '/_authenticated/dashboard/solicitacoes/'
+      path: '/'
+      fullPath: '/dashboard/solicitacoes/'
+      preLoaderRoute: typeof AuthenticatedDashboardSolicitacoesIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardSolicitacoesRoute
+    }
+    '/_authenticated/dashboard/saude/': {
+      id: '/_authenticated/dashboard/saude/'
+      path: '/'
+      fullPath: '/dashboard/saude/'
+      preLoaderRoute: typeof AuthenticatedDashboardSaudeIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardSaudeRoute
+    }
+    '/_authenticated/dashboard/mensagens/': {
+      id: '/_authenticated/dashboard/mensagens/'
+      path: '/'
+      fullPath: '/dashboard/mensagens/'
+      preLoaderRoute: typeof AuthenticatedDashboardMensagensIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardMensagensRoute
+    }
+    '/_authenticated/dashboard/documentos/': {
+      id: '/_authenticated/dashboard/documentos/'
+      path: '/'
+      fullPath: '/dashboard/documentos/'
+      preLoaderRoute: typeof AuthenticatedDashboardDocumentosIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardDocumentosRoute
     }
     '/_authenticated/dashboard/animais/': {
       id: '/_authenticated/dashboard/animais/'
       path: '/'
       fullPath: '/dashboard/animais/'
       preLoaderRoute: typeof AuthenticatedDashboardAnimaisIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardAnimaisRoute
+    }
+    '/_authenticated/dashboard/solicitacoes/$solicitacaoId': {
+      id: '/_authenticated/dashboard/solicitacoes/$solicitacaoId'
+      path: '/$solicitacaoId'
+      fullPath: '/dashboard/solicitacoes/$solicitacaoId'
+      preLoaderRoute: typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardSolicitacoesRoute
+    }
+    '/_authenticated/dashboard/mensagens/$conversaId': {
+      id: '/_authenticated/dashboard/mensagens/$conversaId'
+      path: '/$conversaId'
+      fullPath: '/dashboard/mensagens/$conversaId'
+      preLoaderRoute: typeof AuthenticatedDashboardMensagensConversaIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardMensagensRoute
+    }
+    '/_authenticated/dashboard/animais/novo': {
+      id: '/_authenticated/dashboard/animais/novo'
+      path: '/novo'
+      fullPath: '/dashboard/animais/novo'
+      preLoaderRoute: typeof AuthenticatedDashboardAnimaisNovoRouteImport
       parentRoute: typeof AuthenticatedDashboardAnimaisRoute
     }
     '/_authenticated/dashboard/animais/$animalId': {
@@ -617,54 +696,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAnimaisAnimalIdRouteImport
       parentRoute: typeof AuthenticatedDashboardAnimaisRoute
     }
-    '/_authenticated/dashboard/animais/novo': {
-      id: '/_authenticated/dashboard/animais/novo'
-      path: '/novo'
-      fullPath: '/dashboard/animais/novo'
-      preLoaderRoute: typeof AuthenticatedDashboardAnimaisNovoRouteImport
-      parentRoute: typeof AuthenticatedDashboardAnimaisRoute
-    }
-    '/_authenticated/dashboard/documentos/': {
-      id: '/_authenticated/dashboard/documentos/'
-      path: '/'
-      fullPath: '/dashboard/documentos/'
-      preLoaderRoute: typeof AuthenticatedDashboardDocumentosIndexRouteImport
-      parentRoute: typeof AuthenticatedDashboardDocumentosRoute
-    }
-    '/_authenticated/dashboard/mensagens/': {
-      id: '/_authenticated/dashboard/mensagens/'
-      path: '/'
-      fullPath: '/dashboard/mensagens/'
-      preLoaderRoute: typeof AuthenticatedDashboardMensagensIndexRouteImport
-      parentRoute: typeof AuthenticatedDashboardMensagensRoute
-    }
-    '/_authenticated/dashboard/mensagens/$conversaId': {
-      id: '/_authenticated/dashboard/mensagens/$conversaId'
-      path: '/$conversaId'
-      fullPath: '/dashboard/mensagens/$conversaId'
-      preLoaderRoute: typeof AuthenticatedDashboardMensagensConversaIdRouteImport
-      parentRoute: typeof AuthenticatedDashboardMensagensRoute
-    }
-    '/_authenticated/dashboard/saude/': {
-      id: '/_authenticated/dashboard/saude/'
-      path: '/'
-      fullPath: '/dashboard/saude/'
-      preLoaderRoute: typeof AuthenticatedDashboardSaudeIndexRouteImport
-      parentRoute: typeof AuthenticatedDashboardSaudeRoute
-    }
-    '/_authenticated/dashboard/solicitacoes/': {
-      id: '/_authenticated/dashboard/solicitacoes/'
-      path: '/'
-      fullPath: '/dashboard/solicitacoes/'
-      preLoaderRoute: typeof AuthenticatedDashboardSolicitacoesIndexRouteImport
-      parentRoute: typeof AuthenticatedDashboardSolicitacoesRoute
-    }
-    '/_authenticated/dashboard/solicitacoes/$solicitacaoId': {
-      id: '/_authenticated/dashboard/solicitacoes/$solicitacaoId'
-      path: '/$solicitacaoId'
-      fullPath: '/dashboard/solicitacoes/$solicitacaoId'
-      preLoaderRoute: typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRouteImport
-      parentRoute: typeof AuthenticatedDashboardSolicitacoesRoute
+    '/_authenticated/dashboard/admin/usuarios': {
+      id: '/_authenticated/dashboard/admin/usuarios'
+      path: '/admin/usuarios'
+      fullPath: '/dashboard/admin/usuarios'
+      preLoaderRoute: typeof AuthenticatedDashboardAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
     }
   }
 }
@@ -757,7 +794,6 @@ const AuthenticatedDashboardSolicitacoesRouteWithChildren =
   )
 
 interface AuthenticatedDashboardRouteChildren {
-  AuthenticatedDashboardAdotantesRoute: typeof AuthenticatedDashboardAdotantesRoute
   AuthenticatedDashboardAnimaisRoute: typeof AuthenticatedDashboardAnimaisRouteWithChildren
   AuthenticatedDashboardDocumentosRoute: typeof AuthenticatedDashboardDocumentosRouteWithChildren
   AuthenticatedDashboardMensagensRoute: typeof AuthenticatedDashboardMensagensRouteWithChildren
@@ -770,7 +806,6 @@ interface AuthenticatedDashboardRouteChildren {
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
-    AuthenticatedDashboardAdotantesRoute: AuthenticatedDashboardAdotantesRoute,
     AuthenticatedDashboardAnimaisRoute:
       AuthenticatedDashboardAnimaisRouteWithChildren,
     AuthenticatedDashboardDocumentosRoute:
@@ -792,8 +827,26 @@ const AuthenticatedDashboardRouteWithChildren =
     AuthenticatedDashboardRouteChildren,
   )
 
+interface AuthenticatedMensagensRouteChildren {
+  AuthenticatedMensagensConversaIdRoute: typeof AuthenticatedMensagensConversaIdRoute
+  AuthenticatedMensagensIndexRoute: typeof AuthenticatedMensagensIndexRoute
+}
+
+const AuthenticatedMensagensRouteChildren: AuthenticatedMensagensRouteChildren =
+  {
+    AuthenticatedMensagensConversaIdRoute:
+      AuthenticatedMensagensConversaIdRoute,
+    AuthenticatedMensagensIndexRoute: AuthenticatedMensagensIndexRoute,
+  }
+
+const AuthenticatedMensagensRouteWithChildren =
+  AuthenticatedMensagensRoute._addFileChildren(
+    AuthenticatedMensagensRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedMensagensRoute: typeof AuthenticatedMensagensRouteWithChildren
   AuthenticatedMeuPerfilRoute: typeof AuthenticatedMeuPerfilRoute
   AuthenticatedMeusFavoritosRoute: typeof AuthenticatedMeusFavoritosRoute
   AuthenticatedMinhasSolicitacoesRoute: typeof AuthenticatedMinhasSolicitacoesRoute
@@ -802,6 +855,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedMensagensRoute: AuthenticatedMensagensRouteWithChildren,
   AuthenticatedMeuPerfilRoute: AuthenticatedMeuPerfilRoute,
   AuthenticatedMeusFavoritosRoute: AuthenticatedMeusFavoritosRoute,
   AuthenticatedMinhasSolicitacoesRoute: AuthenticatedMinhasSolicitacoesRoute,

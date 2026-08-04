@@ -1,5 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { LogOut, MessageCircle } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSessao } from "@/lib/data/hooks";
 import { logout } from "@/lib/data/sessao";
+import { fetchUnreadCount } from "@/lib/data/mensagens";
 
 function initials(name: string): string {
   return name
@@ -25,6 +27,14 @@ function initials(name: string): string {
 export function Navbar() {
   const sessao = useSessao();
   const router = useRouter();
+  const isAdopter = sessao?.tipoPerfil === "ADOTANTE";
+  const unreadQuery = useQuery({
+    queryKey: ["mensagens-unread"],
+    queryFn: fetchUnreadCount,
+    enabled: isAdopter,
+    refetchInterval: 30_000,
+  });
+  const unread = unreadQuery.data ?? 0;
 
   const doLogout = async () => {
     await logout();
@@ -44,8 +54,21 @@ export function Navbar() {
             >
               Adotar
             </Link>
-            {(sessao?.tipoPerfil === "ORGANIZACAO" ||
-              sessao?.tipoPerfil === "ACOLHEDOR") && (
+            {isAdopter && (
+              <Link
+                to="/mensagens"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                activeProps={{ className: "text-foreground font-medium" }}
+              >
+                Mensagens
+                {unread > 0 && (
+                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                    {unread}
+                  </span>
+                )}
+              </Link>
+            )}
+            {(sessao?.tipoPerfil === "ORGANIZACAO" || sessao?.tipoPerfil === "ACOLHEDOR") && (
               <Link
                 to="/dashboard"
                 className="text-sm text-muted-foreground hover:text-foreground"
@@ -101,12 +124,22 @@ export function Navbar() {
                       <Link to="/minhas-solicitacoes">Minhas solicitações</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/mensagens" className="flex items-center gap-2">
+                        <MessageCircle className="h-4 w-4" />
+                        <span>Mensagens</span>
+                        {unread > 0 && (
+                          <span className="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                            {unread}
+                          </span>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/meus-favoritos">Meus favoritos</Link>
                     </DropdownMenuItem>
                   </>
                 )}
-                {(sessao.tipoPerfil === "ORGANIZACAO" ||
-                  sessao.tipoPerfil === "ACOLHEDOR") && (
+                {(sessao.tipoPerfil === "ORGANIZACAO" || sessao.tipoPerfil === "ACOLHEDOR") && (
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard">Meu painel</Link>
                   </DropdownMenuItem>
