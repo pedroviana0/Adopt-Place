@@ -1,6 +1,5 @@
-import type { Adotante, SolicitacaoAdocao } from "../domain/types";
+import type { Adotante } from "../domain/types";
 import type { StatusSolicitacao } from "../domain/enums";
-import { loadDB } from "./db";
 import { apiRequest } from "./api";
 
 // ============================================================================
@@ -139,29 +138,4 @@ export async function decidirSolicitacao(
 
 export async function concluirAdocao(id: string): Promise<void> {
   await apiRequest(`/api/solicitacoes/gerenciadas/${id}`, { method: "POST" });
-}
-
-// ---- Mock helpers kept for OTHER still-mock flows (out of #45 scope) --------
-// Consumed by the dashboard summary (`dashboard.index.tsx`) and the adopters
-// listing (`dashboard.adotantes.tsx`), whose own integration is not part of
-// this issue. Removed in mass only when those flows are integrated.
-
-function listSolicitacoes(): SolicitacaoAdocao[] {
-  return loadDB()
-    .solicitacoes.slice()
-    .sort((a, b) => b.dataSolicitacao.localeCompare(a.dataSolicitacao));
-}
-
-export function listSolicitacoesPorResponsavel(responsavel: {
-  organizacaoId?: string;
-  acolhedorId?: string;
-}): SolicitacaoAdocao[] {
-  const db = loadDB();
-  return listSolicitacoes().filter((s) => {
-    const a = db.animais.find((x) => x.id === s.animalId);
-    if (!a) return false;
-    if (responsavel.organizacaoId) return a.organizacaoId === responsavel.organizacaoId;
-    if (responsavel.acolhedorId) return a.acolhedorId === responsavel.acolhedorId;
-    return false;
-  });
 }

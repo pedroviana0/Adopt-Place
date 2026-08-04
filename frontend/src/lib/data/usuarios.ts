@@ -1,5 +1,3 @@
-import type { AcolhedorIndependente, Adotante, Organizacao, Usuario } from "../domain/types";
-import { loadDB, mutate } from "./db";
 import type { TriagemInput } from "../schemas/triagem";
 import type {
   CadastroAcolhedorInput,
@@ -11,9 +9,7 @@ import { login } from "./sessao";
 // ============================================================================
 // Issue #30 (T050/T051): real registration / profile / screening over /api.
 // Consumes the backend contracts implemented in Issue #29 (backend ready). No
-// localStorage/mock/session-forgery for these flows. The mock read helpers
-// (getAdotante/getOrganizacao/getAcolhedor/listUsuarios/setAtivo/...) are kept
-// because other, still-mock flows (admin #61, owner dashboards #45) use them.
+// localStorage/mock/session-forgery for these flows.
 // ============================================================================
 
 interface ApiError extends Error {
@@ -166,34 +162,4 @@ export async function fetchAdminUsuarios(): Promise<AdminUserDTO[]> {
 
 export async function setUsuarioAtivo(id: string, ativo: boolean): Promise<void> {
   await apiFetch(`/api/admin/usuarios/${id}`, { method: "PATCH", json: { ativo } });
-}
-
-// ============================================================================
-// Mock read helpers kept for still-mock flows (owner dashboards, adopters list).
-// ============================================================================
-
-export function nomeDoUsuario(u: Usuario): string {
-  const db = loadDB();
-  return (
-    db.adotantes.find((a) => a.usuarioId === u.id)?.nomeCompleto ??
-    db.organizacoes.find((o) => o.usuarioId === u.id)?.razaoSocial ??
-    db.acolhedores.find((a) => a.usuarioId === u.id)?.nomeCompleto ??
-    u.email
-  );
-}
-
-export function getAdotante(id: string): Adotante | undefined {
-  return loadDB().adotantes.find((a) => a.id === id);
-}
-export function getOrganizacao(id: string): Organizacao | undefined {
-  return loadDB().organizacoes.find((o) => o.id === id);
-}
-export function getAcolhedor(id: string): AcolhedorIndependente | undefined {
-  return loadDB().acolhedores.find((a) => a.id === id);
-}
-export function listOrganizacoes(): Organizacao[] {
-  return loadDB().organizacoes;
-}
-export function listAcolhedores(): AcolhedorIndependente[] {
-  return loadDB().acolhedores;
 }

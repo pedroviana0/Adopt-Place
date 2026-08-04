@@ -194,17 +194,17 @@ isolated homologation and validation evidence.
 | SHOWCASE-01 | Public routes use `fetchVitrine`, `fetchPublicAnimal`, `fetchPublicMetrics`, and `fetchCatalogos` through relative HTTP calls; their public read path no longer uses localStorage/mock data. Owner/favorite helpers remain isolated for later flows. | `GET /api/animais`, `/api/animais/[id]`, `/api/metrics`, and `/api/catalogos` return explicit public DTOs backed by the existing queries, schemas, and tags. | `Animal`, `FotoAnimal`, `AnimalRelacionado`, `Especie`, `Raca`, and allowlisted `RegistroSaude`; vaccine/disease catalogs remain outside the proven public contract. | One known Fast Refresh warning remains in `AnimalFilters.tsx`; it does not affect runtime or DTO privacy. Broader owner/favorite mocks are intentionally preserved outside this flow. | Keep public contracts stable while later owner/favorite flows replace their own mock helpers. | `flow complete`. Evidence: Issues #26-#28/PR #79; T035-T043; 8 public API/query tests; frontend semantic lint with 0 errors/1 warning; production build; real loading/error/empty/filter/detail UI and public sensitive-field exclusions. |
 | FAVORITES-01 | `favoritos.ts`, animal detail and `meus-favoritos.tsx` consume the real cookie-authenticated contracts; no favorite read/write uses localStorage or a browser-supplied adopter ID. | `GET /api/favoritos` and idempotent `PUT/DELETE /api/favoritos/[animalId]` revalidate the active adopter, derive identity from the session and return allowlisted animal summaries. | Composite `Favorito(adotanteId, animalId)` relation and ADOTANTE-only rule FR-014. | Production still depends on the documented same-origin/proxy deployment. | Keep the contract stable; owner-side animal work is a separate flow. | `flow complete`. Evidence: Issues #32-#34 and PRs #83/#84; backend authorization/idempotency tests and isolated PostgreSQL HTTP round trip; frontend real loading/error/empty states; targeted semantic lint and production build; favorite localStorage removed. |
 | REQUEST-ADOPTER-01 | `solicitacoes.ts` uses real HTTP only for adopter create/list; `minhas-solicitacoes.tsx` renders real status data. Mock helpers remain isolated to the future responsible-side flow and are not used by adopter routes. | `GET/POST /api/solicitacoes` and `GET /api/dashboard/adotante` derive the adopter from the active session, enforce screening/availability/duplicate guards and return narrow DTOs. | `SolicitacaoAdocao`, `Animal`, `Adotante`, `StatusSolicitacao`, screening/availability rules and composite uniqueness. | Responsible review/decision remains mock until its own Issues; the Prisma uniqueness constraint still blocks another request for the same adopter/animal after any prior state. | Keep adopter endpoints stable and defer owner decisions to REQUEST-OWNER-01. | `flow complete`. Evidence: Issues #32-#34 and PRs #83/#84; backend guard tests and isolated PostgreSQL 201/409/own-list validation; frontend real create/list, reload-safe persistence, targeted semantic lint and production build. |
-| REQUEST-OWNER-01 | Responsible dashboards consume the real protected contracts via React Query in `solicitacoes.ts` (`fetchSolicitacoesGerenciadas`/`fetchSolicitacaoGerenciada`/`decidirSolicitacao` PATCH/`concluirAdocao` POST); `TriagemReadOnly.tsx` renders the read-only owner DTO. The completed responsible-side mock (detail/decision/completion) was removed; `listSolicitacoesPorResponsavel` stays only for out-of-scope dashboard/adopter summaries. | Protected list/detail/decision/completion HTTP contracts revalidate the active responsible account, scope screening reads before selection, exclude CPF/address/user IDs, and enforce approval/refusal/completion transitions transactionally. | `SolicitacaoAdocao`, `Animal`, conversation entities, and the APROVADA/RECUSADA/CONCLUIDA transition rules. | Live HTTP round-trip against a homologation database remains pending (executed later under SC-006/T122). | Homologation round-trip approving/refusing/completing a real request. | `frontend integrated`. Evidence: backend Issue #43 (18 focused request tests; 401/inactive-account/ownership/privacy/repeated-transition and transactional coverage). Frontend Issue #45 / PR #88 (merged into `main`, tasks T080/T081): React Query integration, per-flow mock removal, and clean `tsc --noEmit` / targeted `eslint` / `npm run build`. Promotion to `flow complete` awaits the manual homologation round-trip. |
+| REQUEST-OWNER-01 | Responsible dashboards consume the real protected contracts via React Query and render the allowlisted screening DTO. No responsible-side request path uses mock storage. | Protected list/detail/decision/completion contracts revalidate the active owner, exclude CPF/address/user IDs, and enforce transitions transactionally. | `SolicitacaoAdocao`, `Animal`, conversation entities, and APROVADA/RECUSADA/CONCLUIDA rules. | No flow-specific mock remains. | Keep the owner-scoped DTO and transactional transitions stable. | `flow complete`. Evidence: Issues #43/#45/#47, focused security/transaction tests, and SC-006 owner approval/privacy/foreign-owner rejection round-trip through the frontend proxy. |
 | ANIMALS-CRUD-01 | Dashboard list/create/detail/update/delete uses protected HTTP. Create now persists the animal, uploads its selected primary photo and waits for a fresh protected read before reporting success; a failed upload keeps the existing animal ID for retry instead of creating a duplicate. Completed owner CRUD functions no longer use localStorage. | Protected animal handlers revalidate the active responsible account, derive exactly one owner server-side, prevent owner transfer and return allowlisted DTOs. | `Animal`, responsible profiles, taxonomy and exactly-one responsible rule. | No flow-specific mock remains in the completed management functions. | Keep the protected contract stable. | `flow complete`. Evidence: Issues #35/#36/#39/#40/#41/#42; focused unit tests/typechecks; isolated manual homologation on 2026-07-31 confirmed animal registration, provider upload and fresh real state. |
 | ANIMALS-PHOTOS-01 | `AnimalPhotosPanel.tsx` uploads new images through the canonical `/api/uploadthing` route and retains protected HTTP operations for reorder, primary selection and deletion. `AnimalForm.tsx` requires and confirms the first primary photo before create-flow success. | Upload middleware and completion revalidate active account, responsible role and current ownership; type/size limits are checked on both sides; a serializable transaction assigns first-primary/order; the only photo cannot be deleted. | `FotoAnimal`, max 10 photos, required primary photo and ordered gallery rule. | No open upload-provider gap remains in the homologated local isolated environment. | Keep the authorized upload contract stable; health-document upload remains a separate future flow. | `flow complete`. Evidence: Issues #35/#36/#39/#40/#41/#42; focused authorization/persistence tests; isolated manual homologation on 2026-07-31 confirmed first and additional UploadThing photos, provider registration, and photo reordering. CORS credential scope and per-file UploadThing custom IDs were corrected during this homologation. |
 | ANIMALS-RELATIONSHIPS-01 | `RelatedAnimalsPanel.tsx` lists candidates and links/unlinks through the real protected relationship contracts; completed relationship functions no longer use localStorage. | Protected list/link/unlink handlers require ownership of both animals; link and unlink update both directions transactionally, reject self-links and avoid duplicate pairs. | Paired `AnimalRelacionado` rows and ownership of both animals. | No flow-specific mock remains. | Keep the owner-safe relationship DTO stable. | `flow complete`. Evidence: Issues #35/#38/#39/#41, PR #86, relationship transaction tests, frontend semantic lint and production build. |
 | ANIMALS-SEARCH-01 | Dashboard filters and related-animal candidates call `GET /api/animais/gerenciados` with protected owner-scoped query parameters. | The contract combines `q`, status, taxonomy, porte and sexo while always retaining organization/foster ownership. | Indexed animal fields plus responsible ownership predicates. | No flow-specific mock remains. | Keep the protected filter contract stable. | `flow complete`. Evidence: Issues #35/#39/#40/#41, PR #86, owner/filter tests, frontend semantic lint and production build. |
-| HEALTH-BASIC-01 | `saude.ts` and `HealthPanel.tsx` consume the real protected contracts via React Query (`fetchRegistrosSaude`/`criarRegistroSaude`/`excluirRegistroSaude`); the create form aligns to the contract (name sent as `nomeCustom` since the backend ignores `vacinaId`/`doencaId`; no `responsavelRegistro` input as the backend stores "Sistema"; required `frequencia`; ISO datetime dates). Completed health mock (`createRegistro`/`deleteRegistro`) removed; `listRegistros`/`alertasProximos` stay for the orphan card and dashboard summary. | Protected health list/create/update/delete and 30-day alert contracts support the five Prisma history categories, reject `CONSULTA`, validate dates, revalidate ownership/account state and synchronize pending derived care transactionally. | `RegistroSaude`, `CuidadoPlanejado`, `TipoRegistroSaude`, owned `Animal`, and FR-017/FR-018/FR-051. | The frontend health UI still exposes only 3 of the 5 backend categories (VACINA/CONTROLE_PARASITAS/TESTE_DOENCA); MEDICAMENTO_TRATAMENTO/PROCEDIMENTO stay a recorded gap. Live HTTP round-trip against a homologation database remains pending. Feature 002 expanded health remains outside this slice and still requires T083. | Homologation round-trip creating/deleting a real health record; later align the 5 categories. | `frontend integrated`. Evidence: backend Issue #44 (15 focused health tests; 401/wrong-role/inactive/ownership/date/CONSULTA/transaction/alert coverage). Frontend Issue #46 / PR #88 (merged into `main`, tasks T080/T081): React Query integration, per-flow mock removal, and clean `tsc --noEmit` / targeted `eslint` / `npm run build`. Promotion to `flow complete` awaits the manual homologation round-trip. |
-| F002-HEALTH-01 | No complete dedicated Central de Saude data module or route is proven in the active frontend; existing health UI is based on `saude.ts` mock records/alerts. | `lib/actions/cuidados-planejados.ts`, `lib/queries/health-dashboard.ts`, and planned-care schemas support agenda, overview, timeline, reschedule/cancel/complete, including CONSULTA. | `CuidadoPlanejado`, `RegistroSaude`, their enums/relations, and the rule that CONSULTA never becomes clinical history. | **Critical**: feature 002 audit T083 is mandatory before contract definition; dedicated frontend surface and DTO alignment are gaps. | Audit feature 002, then define one health-center contract that preserves CONSULTA exclusion and idempotency. Inventory group: **Health records and agenda**. | `audited`. Evidence: backend files/tests exist; frontend gap recorded by plan and T004. No completion claim. |
-| F002-DASHBOARD-01 | `_authenticated.dashboard.index.tsx` still needs to consume the real contract; ADMIN behavior remains separate frontend route work. | `GET /api/dashboard/operacional` wraps `getOperationalDashboard` after current-account and responsible-profile revalidation. | Real owner-scoped aggregates over animals, requests, care and health; FR-020. | Frontend consumption and per-flow mock removal remain #54/#56. | Integrate only after the frontend audit identifies exact files. | `backend ready`. Evidence: Issues #50/#53, `OPERATIONAL-DASHBOARD-01`, API/query ownership tests. |
-| F002-DOCUMENTS-01 | No dedicated health-document route/data module is proven in `frontend/`. | Owner-scoped list/detail/delete routes plus the existing UploadThing route revalidate current ownership and return an allowlisted private DTO. | `DocumentoSaude`, owned `Animal`, optional `RegistroSaude`, private-document rule and unique provider upload IDs. | Frontend UI and per-flow mock removal remain #54/#57. | Integrate only after frontend type/surface audit. | `backend ready`. Evidence: Issues #51/#53, `HEALTH-DOCUMENTS-01`, API/action/query/upload privacy tests. |
-| F002-CHAT-01 | No dedicated chat route/data module is proven in `frontend/`. | Conversation list/detail/send/read routes and safe polling expose existing participant-scoped actions/queries; polling excludes sender IDs. | Approval creates chat; completion archives it; only participants read; archived sends are blocked; ADMIN has no implicit access. | Frontend UI and lifecycle integration remain #54/#58. | Integrate after frontend audit, preserving post-completion read-only behavior. | `backend ready`. Evidence: Issues #52/#53, `ADOPTION-CHAT-01`, API/action/query/polling/lifecycle tests. |
-| ADMIN-01 | `usuarios.ts` lists all mock users and toggles `ativo` locally; `dashboard.admin.usuarios.tsx` consumes it. | `lib/actions/admin-users.ts`, `lib/queries/admin-users.ts`, `lib/schemas/admin-user.ts`, and `requireAdmin` support real list/activation behavior. | `Usuario.ativo`, `TipoPerfil.ADMIN`, and no-password-hash rule. | **High**: ADMIN-only HTTP contracts and safe AdminUserDTO are undefined; frontend mock shape may include fields outside the allowlist. | Prove admin-only list/toggle and inactive-user block without exposing `senhaHash`. Inventory group: **Admin users**. | `audited`. Evidence: admin route/module, backend action/query/schema, and `admin-users.test.ts`. |
+| HEALTH-BASIC-01 | `saude.ts` and `HealthPanel.tsx` consume real protected contracts; all obsolete health mock helpers are removed. | Owner-scoped health contracts validate dates, reject `CONSULTA` as history and synchronize derived planned care transactionally. | `RegistroSaude`, `CuidadoPlanejado`, owned `Animal`, and FR-017/FR-018/FR-051. | No flow-specific mock remains. | Keep ownership and the CONSULTA exclusion stable. | `flow complete`. Evidence: Issue #44/#46/#47 tests plus SC-006 create/read/delete and foreign-owner rejection against isolated PostgreSQL. |
+| F002-HEALTH-01 | Dedicated health-center routes consume the real agenda, overview and timeline contracts. | Planned-care actions support reschedule/cancel/complete, with idempotency and CONSULTA exclusion from clinical history. | `CuidadoPlanejado`, `RegistroSaude`, enums and relations. | No prior mock existed for this new surface. | Preserve the CONSULTA rule and owner scope. | `flow complete`. Evidence: feature 002 audit, Issues #49/#53/#55/#59, focused tests, and SC-006 planned/completed CONSULTA with no history fact. |
+| F002-DASHBOARD-01 | The operational dashboard consumes the real owner-scoped contract and exposes drill-downs. | `GET /api/dashboard/operacional` revalidates account/profile and returns scoped aggregates. | Animals, requests, care and health aggregates; FR-020. | No dashboard mock dependency remains. | Keep owner scoping and narrow aggregates stable. | `flow complete`. Evidence: Issues #50/#53/#56/#59, ownership tests, and SC-006 operational read plus wrong-role block. |
+| F002-DOCUMENTS-01 | Dedicated document routes upload/list/open/delete private documents through the real HTTP and UploadThing contracts. | Owner-scoped handlers revalidate ownership and return allowlisted internal DTOs. | `DocumentoSaude`, owned `Animal`, optional `RegistroSaude`, unique provider IDs. | No prior mock existed for this new surface. | Keep files private and owner-scoped. | `flow complete`. Evidence: Issues #51/#53/#57/#59, privacy tests, SC-006 foreign-owner rejection and real UploadThing upload/list/open/delete. |
+| F002-CHAT-01 | Responsible and adopter routes consume participant-scoped conversation contracts; archived conversations remain visible and read-only. | Approval creates chat, completion archives it, participants alone read/send, and archived sends are rejected. | Conversation/message/read models and adoption lifecycle. | No prior mock existed for this new surface. | Preserve participant authorization and archived read-only behavior. | `flow complete`. Evidence: Issues #52/#53/#58/#59/#92, lifecycle tests, and SC-006 two-role send/read followed by completion and 409 archived send. |
+| ADMIN-01 | `usuarios.ts` calls the protected admin HTTP contract and `dashboard.admin.usuarios.tsx` lists/toggles real accounts through React Query; completed admin helpers no longer use mock/localStorage state. | `GET /api/admin/usuarios` and `PATCH /api/admin/usuarios/[id]` run behind `requireAdmin`, reuse the validated action/query/schema layer, and return an allowlisted AdminUserDTO. | `Usuario.ativo`, `TipoPerfil.ADMIN`, active-account revalidation, and no-password-hash/private-profile rule. | Manual SC-006 timing remains a final product-level check, not a missing admin contract or mock dependency. | Keep ADMIN-only authorization, inactive-account revalidation, and the narrow DTO stable. Inventory group: **Admin users**. | `flow complete`. Evidence: Issues #60-#62; backend HTTP/action tests cover 401, non-admin 403, safe list, toggle, and inactive block; focused admin/chat run passes 10/10; frontend typecheck, focused lint, and production build pass; no Prisma/schema/migration/seed change. |
 | ROUTES-01 | Route structure resolves, but F1-F4 document SSR session flash, blank protected leaves, inconsistent wrong-role handling, and an ADMIN zero-dashboard state. | Backend auth/role rules exist, but root visual routes are not a fallback UI and no backend route change is required by this audit. | TanStack route tree plus FR-027/FR-028 and the single-public-interface rule. | **Medium**: route acceptance depends on the real session contract and consistent frontend role handling. | Correct F1 after AUTH-01 backend readiness, then record remaining defects. No standalone HTTP inventory group; dependency is **Session/login/logout**. | `audited`. Evidence: T005 structural checks and findings F1-F4. |
 
 ## Issue Pair and Execution Matrix (T013)
@@ -276,7 +276,8 @@ the session row to `flow complete` and completing T030.
   logs out via `POST /api/auth/signout`. Session is cached in memory only.
 - **localStorage session persistence removed** for the auth flow (T028): no
   `SESSION_KEY` read/write remains in `sessao.ts`; the NextAuth HTTP-only cookie
-  is the only session source. `db.ts`/`seed.ts` are untouched (T114–T115 scope).
+  is the only session source. `db.ts`/`seed.ts` were left for T114–T115 at this
+  phase and were removed only after final SC-006 certification.
 - `frontend/src/routes/_authenticated.tsx` guard (T029) now awaits the real
   session (`ensureSessaoLoaded`) before allowing the protected tree.
 - Consequential wiring (documented): `login.tsx` and `Navbar.tsx` await the now
@@ -582,9 +583,8 @@ values:
 ## Feature 002 End-to-End Certification (T106) — Issue #59
 
 The four feature 002 frontend flows are integrated against the real contracts
-and advance to **`frontend integrated`** (not `flow complete`, since the live
-homologation round-trip requires two servers plus a homologation database and is
-not run in this environment — it is not fabricated here). Per-flow evidence:
+and certified as **`flow complete`** after the isolated SC-006 round-trip.
+Per-flow evidence:
 
 | Flow | Frontend (Issue/PR) | Real contract consumed | Rule evidence |
 |------|---------------------|------------------------|---------------|
@@ -597,12 +597,10 @@ Frontend type alignment (T097/#54) is complete. Per-flow mock removal: health
 center, documents, and chat are new surfaces with no prior mock; the dashboard
 home no longer depends on the mock summary helpers.
 
-**Executable evidence:** frontend `npm run build`, `tsc --noEmit`, and targeted
-`eslint` clean across #54-#58; backend suite green. **Pending for `flow
-complete`:** the manual homologation round-trip (SC-006/T122) and the adopter-side
-chat entry (FR-071), which is recorded as a follow-up because `/dashboard` is
-responsible-only. Promotion of these rows to `flow complete` remains Pedro's,
-after homologation.
+**Executable evidence:** frontend build/typecheck and targeted lint across
+#54-#58; backend suite; adopter chat entry from #92; and SC-006 evidence for
+CONSULTA exclusion, dashboard scope, real UploadThing document lifecycle, and
+active-to-archived chat.
 
 ## Admin Backend (T108/T109/T110) — Issue #60
 
@@ -614,3 +612,72 @@ guard (`lib/api/admin-http.ts`) runs before any read/write; the list DTO exclude
 `senhaHash` and private profile data. Evidence: `__tests__/api/admin-users.test.ts`
 (4 tests) + existing action tests; backend `tsc` clean, full suite green.
 Frontend consumption is Issue #61. No Prisma/schema/migration/seed change.
+
+## Admin Frontend Certification (T111-T113) — Issues #61/#62
+
+**ADMIN-01: `flow complete`.** The official frontend uses only the real ADMIN-01
+HTTP DTO through `fetchAdminUsuarios` and `setUsuarioAtivo`; the admin route has
+loading, error, empty, mutation-pending, and refreshed-list states. The completed
+admin functions have no mock/localStorage path. The protected backend rejects
+missing/non-admin sessions, revalidates active accounts, and excludes password
+hashes and private profile fields. Evidence: focused admin/chat run with 2 files
+and 10 tests passing, frontend typecheck, focused semantic lint, and production
+build on 2026-08-04. No database command or schema change was used.
+
+## Adopter Chat Entry (T124) — Issue #92
+
+The adopter now reaches participant-scoped chat under `/mensagens`, outside the
+responsible-only dashboard. Shared list/detail components preserve active send,
+read marker, polling, unread counts, and archived read-only behavior for both
+audiences. `minhas-solicitacoes.tsx` maps approved/completed requests to the
+conversation returned by the real contract and exposes `Abrir conversa`;
+`Navbar.tsx` shows the adopter global unread indicator. Evidence: frontend
+typecheck, focused lint, production build, and SC-006 two-participant
+active/archive round-trip; no backend, Prisma, or legacy file changed.
+
+## Final Mock Audit (T114-T117) — Issues #63/#64
+
+The final audit ran after SC-006 promoted all dependent flows to `flow complete`.
+`frontend/src/lib/data/db.ts` and `seed.ts` were removed together with dead mock
+helpers, the orphan `AnimalCard.tsx`, and the historical
+`_authenticated.dashboard.adotantes.tsx` route. That route had no proven HTTP
+contract, so it was removed from active navigation instead of inventing one.
+
+Final scans find no runtime `loadDB`, `makeSeed`, `adoptplace:db`,
+`window.localStorage`, Prisma client, PostgreSQL connection string, or database
+credential under `frontend/src/`. The frontend continues to use relative HTTP
+contracts only. The feature diff remains empty under `legacy/frontend-antigo/`.
+
+## Final Automated Validation (T119-T121) — Issues #66/#67
+
+Validation run on 2026-08-04:
+
+| Area | Command | Result |
+|------|---------|--------|
+| Backend tests | `npm test` | Pass: 44 files, 212 tests |
+| Backend types | `npm run typecheck` | Pass |
+| Backend lint | `npm run lint` | Pass on isolated rerun |
+| Prisma schema | `npm run prisma:validate` | Pass; validation only |
+| Backend build | `npm run build` | Pass: Next.js production build |
+| Frontend types | `npx tsc --noEmit` in `frontend/` | Pass |
+| Frontend build | `npm --prefix frontend run build` | Pass: Vite/Nitro production build |
+| Frontend full lint | `npm --prefix frontend run lint` | Known repository-wide CRLF/Prettier debt reproduced; no new-file semantic error |
+| Frontend focused lint | ESLint on all files changed by Issues #62/#92 | Pass with 0 errors; one preexisting Fast Refresh warning in `AnimalFilters.tsx` |
+
+No seed, reset, migration, Prisma write, or database data command was executed.
+The original database was not used for test data or homologation.
+
+## SC-006 Execution Status (T122) — Issue #68
+
+SC-006 passed on 2026-08-04 against disposable PostgreSQL 16 at an isolated
+localhost port. Migrations and seed were applied only to that container. The
+Next.js backend and official Vite frontend ran separately, and every request was
+sent through the frontend same-origin `/api` proxy with real NextAuth cookies.
+
+All selected flows completed in under three minutes; the longest was chat at
+11.042 seconds. Evidence covered authentication/reload/logout/401/inactive,
+public filter/detail, three editable profile roles, screening/request guard,
+owner decision/privacy, animal persistence, basic health, CONSULTA exclusion,
+dashboard ownership, health-document privacy and real UploadThing lifecycle,
+active-to-archived chat, and admin deactivate/reactivate. No original database,
+Prisma schema, migration source, seed source, or legacy file was modified.

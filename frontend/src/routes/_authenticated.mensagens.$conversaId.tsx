@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ConversationDetailPage } from "@/components/app/messages/ConversationDetailPage";
 
-export const Route = createFileRoute("/_authenticated/dashboard/mensagens/$conversaId")({
+export const Route = createFileRoute("/_authenticated/mensagens/$conversaId")({
   head: () => ({
     meta: [
       { title: "Conversa — AdoptPlace" },
@@ -13,5 +13,5 @@ export const Route = createFileRoute("/_authenticated/dashboard/mensagens/$conve
 
 function Page() {
   const { conversaId } = Route.useParams();
-  return <ConversationDetailPage audience="responsible" conversationId={conversaId} />;
+  return <ConversationDetailPage audience="adopter" conversationId={conversaId} />;
 }

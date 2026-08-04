@@ -1,5 +1,4 @@
 import type { SessaoUsuario } from "../domain/types";
-import { loadDB } from "./db";
 
 // Real session consumption for the auth flow (Issue #22 / tasks T027-T028).
 //
@@ -9,10 +8,6 @@ import { loadDB } from "./db";
 // secure, HTTP-only NextAuth cookie is the only source of truth and the session
 // value is cached in memory for the current page life only.
 //
-// `buildSessao`/`setSessao` are intentionally kept for the still-mock
-// registration (REG-01 / #29) and profile (PROFILE-01 / #30) flows, which are
-// out of this Issue's scope. They only touch the in-memory cache and add no
-// localStorage persistence; they will be replaced by their own real contracts.
 
 const INACTIVE_MESSAGE =
   "Conta desativada. Entre em contato com o administrador";
@@ -190,27 +185,4 @@ export async function logout(): Promise<void> {
   } finally {
     setSessao(null);
   }
-}
-
-// Still-mock helper kept for registration/profile flows outside Issue #22.
-// In-memory only (no localStorage); to be replaced by real contracts in #29/#30.
-export function buildSessao(usuarioId: string): SessaoUsuario {
-  const db = loadDB();
-  const u = db.usuarios.find((x) => x.id === usuarioId);
-  if (!u) throw new Error("Usuário não encontrado");
-  const adot = db.adotantes.find((a) => a.usuarioId === u.id);
-  const org = db.organizacoes.find((o) => o.usuarioId === u.id);
-  const aco = db.acolhedores.find((a) => a.usuarioId === u.id);
-  const nome =
-    adot?.nomeCompleto ?? org?.razaoSocial ?? aco?.nomeCompleto ?? "Admin";
-  return {
-    usuarioId: u.id,
-    tipoPerfil: u.tipoPerfil,
-    nome,
-    email: u.email,
-    fotoUrl: org?.fotoUrl ?? aco?.fotoUrl ?? null,
-    adotanteId: adot?.id,
-    organizacaoId: org?.id,
-    acolhedorId: aco?.id,
-  };
 }

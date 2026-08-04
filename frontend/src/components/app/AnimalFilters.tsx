@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { listEspecies, listRacas } from "@/lib/data/catalogos";
 import { porteLabel, sexoLabel } from "@/lib/domain/enums";
 
 export interface FilterState {
@@ -34,6 +33,8 @@ interface CatalogEspecie {
   racas: { id: string; nome: string; especieId: string }[];
 }
 
+const EMPTY_ESPECIES: CatalogEspecie[] = [];
+
 export function AnimalFilters({
   value,
   onChange,
@@ -41,17 +42,13 @@ export function AnimalFilters({
 }: {
   value: FilterState;
   onChange: (v: FilterState) => void;
-  // When provided (public showcase), the real catalog from GET /api/catalogos is
-  // used; otherwise it falls back to the mock catalog for other callers.
+  // The public showcase supplies the real catalog from GET /api/catalogos.
   especies?: CatalogEspecie[];
 }) {
-  const especies = especiesProp ?? listEspecies();
+  const especies = especiesProp ?? EMPTY_ESPECIES;
   const racas = useMemo(() => {
-    if (especiesProp) {
-      return especiesProp.find((e) => e.id === value.especieId)?.racas ?? [];
-    }
-    return listRacas(value.especieId);
-  }, [especiesProp, value.especieId]);
+    return especies.find((e) => e.id === value.especieId)?.racas ?? [];
+  }, [especies, value.especieId]);
 
   const toggleTag = (t: string) => {
     onChange({

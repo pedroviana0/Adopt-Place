@@ -5,7 +5,6 @@ import { fetchUnreadCount } from "@/lib/data/mensagens";
 import {
   PawPrint,
   ClipboardList,
-  Users,
   LayoutDashboard,
   ShieldCheck,
   UserCog,
@@ -55,7 +54,6 @@ function DashLayout() {
           { to: "/dashboard/documentos", label: "Documentos", icon: FileText },
           { to: "/dashboard/mensagens", label: "Mensagens", icon: MessageCircle },
           { to: "/dashboard/solicitacoes", label: "Solicitações", icon: ClipboardList },
-          { to: "/dashboard/adotantes", label: "Adotantes", icon: Users },
           { to: "/dashboard/perfil", label: "Meu perfil", icon: UserCog },
         ];
 
