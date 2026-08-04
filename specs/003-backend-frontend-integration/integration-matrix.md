@@ -578,3 +578,28 @@ values:
 - Evidence: `npx tsc --noEmit` clean. No `frontend/src/lib/data/` boundary types
   exist yet for these flows (the data modules are created per flow by #55-#58),
   so there is nothing further to align at this step.
+
+## Feature 002 End-to-End Certification (T106) — Issue #59
+
+The four feature 002 frontend flows are integrated against the real contracts
+and advance to **`frontend integrated`** (not `flow complete`, since the live
+homologation round-trip requires two servers plus a homologation database and is
+not run in this environment — it is not fabricated here). Per-flow evidence:
+
+| Flow | Frontend (Issue/PR) | Real contract consumed | Rule evidence |
+|------|---------------------|------------------------|---------------|
+| Health Center | #55 (`cuidados.ts`, `_authenticated.dashboard.saude.*`) | `HEALTH-CENTER-01` | CONSULTA completed with no body → no health record (backend `completeCuidadoPlanejado` + `__tests__/api/health-center.test.ts`); completion idempotency (409) |
+| Operational Dashboard | #56 (`dashboard.ts`, `dashboard.index.tsx`) | `GET /api/dashboard/operacional` | Owner-scoped indicators/funnel/pending/activity; drill-down links; `__tests__/api/operational-dashboard.test.ts` |
+| Health Documents | #57 (`documentos.ts`, `_authenticated.dashboard.documentos.*`) | `/api/saude/documentos` + `healthDocument` upload | Internal-only; owner list/upload/delete; image/PDF ≤10 MB; `__tests__/api/health-documents.test.ts` |
+| Chat | #58 (`mensagens.ts`, `_authenticated.dashboard.mensagens.*`) | `/api/conversas/**` | Participant-only; send disabled when archived (`canSend`); read markers; polling; `__tests__/api/chat.test.ts` |
+
+Frontend type alignment (T097/#54) is complete. Per-flow mock removal: health
+center, documents, and chat are new surfaces with no prior mock; the dashboard
+home no longer depends on the mock summary helpers.
+
+**Executable evidence:** frontend `npm run build`, `tsc --noEmit`, and targeted
+`eslint` clean across #54-#58; backend suite green. **Pending for `flow
+complete`:** the manual homologation round-trip (SC-006/T122) and the adopter-side
+chat entry (FR-071), which is recorded as a follow-up because `/dashboard` is
+responsible-only. Promotion of these rows to `flow complete` remains Pedro's,
+after homologation.
