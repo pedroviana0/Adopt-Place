@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { AnimalPhotoInput } from "@/components/app/AnimalPhotoInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,11 @@ import {
   type OwnedAnimalDetail,
 } from "@/lib/data/animais";
 import { completeAnimalPrimaryPhoto, validateAnimalPhoto } from "@/lib/data/animal-photo-upload";
+import {
+  changeAnimalSpecies,
+  getBreedsForSpecies,
+  validateAnimalTaxonomy,
+} from "@/lib/animal-taxonomy";
 
 interface Props {
   animal?: OwnedAnimalDetail;
@@ -58,7 +64,7 @@ export function AnimalForm({ animal, mode }: Props) {
   });
 
   const especies = catalogos.data?.especies ?? [];
-  const racas = especies.find((e) => e.id === form.especieId)?.racas ?? [];
+  const racas = getBreedsForSpecies(especies, form.especieId);
 
   const set = <K extends keyof AnimalInput>(k: K, v: AnimalInput[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -79,6 +85,15 @@ export function AnimalForm({ animal, mode }: Props) {
     const parsed = animalSchema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
+      return;
+    }
+    const taxonomyError = validateAnimalTaxonomy(
+      especies,
+      parsed.data.especieId,
+      parsed.data.racaId,
+    );
+    if (taxonomyError) {
+      toast.error(taxonomyError);
       return;
     }
     // Contract expects strings (empty → treated as unset), never null, for the
@@ -146,12 +161,23 @@ export function AnimalForm({ animal, mode }: Props) {
           <Select
             value={form.especieId}
             onValueChange={(v) => {
-              set("especieId", v);
-              set("racaId", null);
+              setForm((current) => ({
+                ...current,
+                ...changeAnimalSpecies(current, v),
+              }));
             }}
+            disabled={catalogos.isPending || catalogos.isError}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione" />
+              <SelectValue
+                placeholder={
+                  catalogos.isPending
+                    ? "Carregando espécies..."
+                    : catalogos.isError
+                      ? "Catálogo indisponível"
+                      : "Selecione a espécie"
+                }
+              />
             </SelectTrigger>
             <SelectContent>
               {especies.map((e) => (
@@ -164,15 +190,16 @@ export function AnimalForm({ animal, mode }: Props) {
         </Field>
         <Field label="Raça">
           <Select
-            value={form.racaId ?? "__none"}
-            onValueChange={(v) => set("racaId", v === "__none" ? null : v)}
-            disabled={!form.especieId}
+            value={form.racaId ?? undefined}
+            onValueChange={(v) => set("racaId", v)}
+            disabled={!form.especieId || catalogos.isPending || catalogos.isError}
           >
             <SelectTrigger>
-              <SelectValue placeholder={form.especieId ? "SRD / selecione" : "Escolha a espécie"} />
+              <SelectValue
+                placeholder={form.especieId ? "Selecione a raça" : "Escolha a espécie"}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">SRD / não sei</SelectItem>
               {racas.map((r) => (
                 <SelectItem key={r.id} value={r.id}>
                   {r.nome}
@@ -247,11 +274,7 @@ export function AnimalForm({ animal, mode }: Props) {
         </Field>
         {mode === "create" && (
           <Field label="Foto principal" required className="md:col-span-2">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
-            />
+            <AnimalPhotoInput file={photo} onChange={setPhoto} disabled={saving} />
           </Field>
         )}
       </div>

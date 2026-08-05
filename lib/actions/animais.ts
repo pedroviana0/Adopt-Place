@@ -4,6 +4,10 @@ import { Prisma, StatusAnimal, TipoPerfil } from "@prisma/client";
 import type { ZodError } from "zod";
 
 import {
+  isCanonicalBreedForSpecies,
+  isCanonicalSpeciesName,
+} from "@/lib/animal-catalog";
+import {
   getResponsibleContext,
   ownsAnimal,
 } from "@/lib/api/responsible-context";
@@ -43,22 +47,37 @@ async function findAnimalById(id: string): Promise<OwnedAnimal | null> {
   });
 }
 
-async function validateBreed(
+async function validateTaxonomy(
   especieId: string,
   racaId: string | null | undefined,
-): Promise<string | null> {
+): Promise<Pick<AnimalActionResult, "error" | "code"> | null> {
+  const species = await prisma.especie.findUnique({
+    where: { id: especieId },
+    select: { id: true, nome: true },
+  });
+  if (!species || !isCanonicalSpeciesName(species.nome)) {
+    return {
+      error: "A especie informada nao esta disponivel",
+      code: "INVALID_SPECIES",
+    };
+  }
+
   if (!racaId) {
     return null;
   }
 
   const breed = await prisma.raca.findUnique({
     where: { id: racaId },
-    select: { especieId: true },
+    select: { especieId: true, nome: true },
   });
 
-  return breed?.especieId === especieId
+  return breed?.especieId === especieId &&
+    isCanonicalBreedForSpecies(species.nome, breed.nome)
     ? null
-    : "A raca nao pertence a especie informada";
+    : {
+        error: "A raca nao pertence a especie informada",
+        code: "INVALID_BREED",
+      };
 }
 
 export async function createAnimal(
@@ -79,9 +98,12 @@ export async function createAnimal(
     return { error: firstValidationError(parsed.error), code: "INVALID_INPUT" };
   }
 
-  const breedError = await validateBreed(parsed.data.especieId, parsed.data.racaId);
-  if (breedError) {
-    return { error: breedError, code: "INVALID_BREED" };
+  const taxonomyError = await validateTaxonomy(
+    parsed.data.especieId,
+    parsed.data.racaId,
+  );
+  if (taxonomyError) {
+    return taxonomyError;
   }
 
   const { context } = contextResult;
@@ -133,9 +155,12 @@ export async function updateAnimal(
     return { error: "Acesso negado", code: "FORBIDDEN" };
   }
 
-  const breedError = await validateBreed(parsed.data.especieId, parsed.data.racaId);
-  if (breedError) {
-    return { error: breedError, code: "INVALID_BREED" };
+  const taxonomyError = await validateTaxonomy(
+    parsed.data.especieId,
+    parsed.data.racaId,
+  );
+  if (taxonomyError) {
+    return taxonomyError;
   }
 
   await prisma.animal.update({
