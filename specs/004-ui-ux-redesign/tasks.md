@@ -66,8 +66,8 @@
 
 **Goal**: US4 — operações de organização e acolhedor com evidências separadas, sem mudança de permissão ou contrato.
 
-- [ ] T034 [US4] [ARTHUR] Adaptar lista e formulário de animais em `frontend/src/routes/_authenticated.dashboard.animais.index.tsx`, `frontend/src/routes/_authenticated.dashboard.animais.novo.tsx` e `frontend/src/components/app/AnimalForm.tsx`, preservando upload, taxonomia, Zod, rótulos, erros e foco atuais (FR-006/FR-011/FR-016/FR-018/FR-019).
-- [ ] T035 [ARTHUR] [P] [US4] Adaptar fotos e relações em `frontend/src/components/app/AnimalPhotosPanel.tsx` e `frontend/src/components/app/RelatedAnimalsPanel.tsx`, preservando Uploadthing, ordenação e ações existentes (FR-011/FR-016).
+- [X] T034 [US4] [ARTHUR] Adaptar lista e formulário de animais em `frontend/src/routes/_authenticated.dashboard.animais.index.tsx`, `frontend/src/routes/_authenticated.dashboard.animais.novo.tsx` e `frontend/src/components/app/AnimalForm.tsx`, preservando upload, taxonomia, Zod, rótulos, erros e foco atuais (FR-006/FR-011/FR-016/FR-018/FR-019).
+- [X] T035 [ARTHUR] [P] [US4] Adaptar fotos e relações em `frontend/src/components/app/AnimalPhotosPanel.tsx` e `frontend/src/components/app/RelatedAnimalsPanel.tsx`, preservando Uploadthing, ordenação e ações existentes (FR-011/FR-016).
 - [ ] T036 [ARTHUR] [P] [US4] Adaptar solicitações recebidas em `frontend/src/routes/_authenticated.dashboard.solicitacoes.index.tsx` e `frontend/src/routes/_authenticated.dashboard.solicitacoes.$solicitacaoId.tsx` com estados compartilhados (FR-006/FR-011).
 - [ ] T037 [ARTHUR] [P] [US4] Adaptar saúde em `frontend/src/routes/_authenticated.dashboard.saude.index.tsx`, consumindo estados compartilhados sem alterar contratos; validar separadamente loading, vazio, erro e ações existentes (UX-03, FR-006/FR-007/FR-011).
 - [ ] T053 [ARTHUR] [P] [US4] Adaptar documentos em `frontend/src/routes/_authenticated.dashboard.documentos.index.tsx`, consumindo T016 e T018 sem alterar contrato; validar separadamente lista, vazio/erro, exclusão contextual e foco restaurado (UX-02/UX-03, FR-004–FR-007/FR-011).

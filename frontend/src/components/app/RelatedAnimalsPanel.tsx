@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Link2 } from "lucide-react";
+import { AsyncState } from "@/components/app/AsyncState";
+import { AnimalImagePlaceholder } from "@/components/app/PublicAnimalCard";
 import {
   fetchRelacionamentos,
   fetchAnimaisGerenciados,
@@ -63,7 +65,7 @@ export function RelatedAnimalsPanel({ animalId }: { animalId: string }) {
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <h2 className="font-serif text-xl font-semibold">Animais relacionados</h2>
       <p className="text-sm text-muted-foreground">
         Vincule animais que costumam ser adotados juntos (irmãos, dupla).
@@ -79,45 +81,73 @@ export function RelatedAnimalsPanel({ animalId }: { animalId: string }) {
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Digite o nome…"
         />
-        {candidatos.length > 0 && (
-          <ul className="mt-2 divide-y rounded-xl border bg-card">
-            {candidatos.map((a) => (
-              <li key={a.id} className="flex items-center gap-3 p-2">
-                {a.fotoPrincipal && (
-                  <img
-                    src={a.fotoPrincipal.urlFoto}
-                    alt=""
-                    className="h-10 w-10 rounded-md object-cover"
-                  />
-                )}
-                <span className="flex-1 text-sm">{a.nome}</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={saving === a.id}
-                  onClick={() => doVincular(a.id)}
+        <AsyncState
+          isLoading={candidatosQuery.isLoading}
+          isError={candidatosQuery.isError}
+          error={candidatosQuery.error}
+          onRetry={() => candidatosQuery.refetch()}
+          className="mt-2"
+        >
+          {candidatos.length > 0 && (
+            <ul className="mt-2 divide-y rounded-xl border bg-card">
+              {candidatos.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex min-w-0 flex-wrap items-center gap-3 p-2 sm:flex-nowrap"
                 >
-                  <Link2 className="mr-1 h-3.5 w-3.5" />
-                  {saving === a.id ? "Vinculando..." : "Vincular"}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
+                  {a.fotoPrincipal ? (
+                    <img
+                      src={a.fotoPrincipal.urlFoto}
+                      alt={`Foto de ${a.nome}`}
+                      className="h-10 w-10 rounded-md object-cover"
+                    />
+                  ) : (
+                    <AnimalImagePlaceholder animalName={a.nome} className="h-10 w-10 rounded-md" />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-sm">{a.nome}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={saving === a.id}
+                    onClick={() => doVincular(a.id)}
+                  >
+                    <Link2 className="mr-1 h-3.5 w-3.5" />
+                    {saving === a.id ? "Vinculando..." : "Vincular"}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AsyncState>
       </div>
 
       <div className="mt-6">
         <p className="mb-2 text-sm font-medium">Vínculos atuais ({vinculos.length})</p>
-        {vinculos.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum vínculo.</p>
-        ) : (
+        <AsyncState
+          isLoading={vinculosQuery.isLoading}
+          isError={vinculosQuery.isError}
+          error={vinculosQuery.error}
+          onRetry={() => vinculosQuery.refetch()}
+          isEmpty={!vinculosQuery.isLoading && !vinculosQuery.isError && vinculos.length === 0}
+          emptyState={{
+            title: "Nenhum vínculo",
+            description: "Busque outro animal acima para criar um vínculo.",
+          }}
+          className="mt-2"
+        >
           <ul className="divide-y rounded-xl border bg-card">
             {vinculos.map((v) => (
-              <li key={v.id} className="flex items-center gap-3 p-2">
-                {v.fotoPrincipal && (
-                  <img src={v.fotoPrincipal} alt="" className="h-10 w-10 rounded-md object-cover" />
+              <li key={v.id} className="flex min-w-0 items-center gap-3 p-2">
+                {v.fotoPrincipal ? (
+                  <img
+                    src={v.fotoPrincipal}
+                    alt={`Foto de ${v.nome}`}
+                    className="h-10 w-10 rounded-md object-cover"
+                  />
+                ) : (
+                  <AnimalImagePlaceholder animalName={v.nome} className="h-10 w-10 rounded-md" />
                 )}
-                <span className="flex-1 text-sm">{v.nome}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{v.nome}</span>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -130,7 +160,7 @@ export function RelatedAnimalsPanel({ animalId }: { animalId: string }) {
               </li>
             ))}
           </ul>
-        )}
+        </AsyncState>
       </div>
     </div>
   );

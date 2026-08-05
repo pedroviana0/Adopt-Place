@@ -11,6 +11,8 @@ import { useSessao } from "@/lib/data/hooks";
 import { fetchAnimalGerenciado, excluirAnimal } from "@/lib/data/animais";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AsyncState } from "@/components/app/AsyncState";
+import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
 export const Route = createFileRoute("/_authenticated/dashboard/animais/$animalId")({
   head: () => ({
@@ -42,21 +44,23 @@ function Page() {
 
   if (!s || (s.tipoPerfil !== "ORGANIZACAO" && s.tipoPerfil !== "ACOLHEDOR")) return null;
 
-  if (animalQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  }
-
-  if (animalQuery.isError || !animalQuery.data) {
-    // Backend scopes to the owner, so a missing/forbidden animal returns 404.
+  if (animalQuery.isLoading || animalQuery.isError || !animalQuery.data)
     return (
-      <div>
-        <h1 className="font-serif text-2xl font-semibold">Animal não encontrado</h1>
-        <Button asChild className="mt-4" variant="outline">
-          <Link to="/dashboard/animais">Voltar</Link>
-        </Button>
-      </div>
+      <AsyncState
+        isLoading={animalQuery.isLoading}
+        isError={animalQuery.isError}
+        error={animalQuery.error}
+        isEmpty={!animalQuery.isLoading && !animalQuery.isError && !animalQuery.data}
+        onRetry={() => animalQuery.refetch()}
+        emptyState={{
+          title: "Animal não encontrado",
+          description: "O animal pode ter sido removido ou não estar disponível para este perfil.",
+          action: { label: "Voltar aos animais", to: "/dashboard/animais" },
+        }}
+      >
+        <span />
+      </AsyncState>
     );
-  }
 
   const animal = animalQuery.data;
 
@@ -67,30 +71,38 @@ function Page() {
       toast.success("Animal excluído");
       navigate({ to: "/dashboard/animais" });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao excluir");
+      const message = e instanceof Error ? e.message : "Erro ao excluir";
+      toast.error(message);
+      throw new Error(message);
     }
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-serif text-3xl font-semibold">Editar {animal.nome}</h1>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 text-destructive"
-          onClick={handleExcluir}
-        >
-          <Trash2 className="h-4 w-4" /> Excluir animal
-        </Button>
+        <ConfirmDestructiveAction
+          title="Excluir este animal?"
+          item={animal.nome}
+          consequence="O cadastro e seus dados associados deixarão de estar disponíveis. Esta ação não pode ser desfeita."
+          confirmLabel="Excluir animal"
+          onConfirm={handleExcluir}
+          trigger={
+            <Button variant="outline" size="sm" className="gap-2 text-destructive">
+              <Trash2 className="h-4 w-4" aria-hidden="true" /> Excluir animal
+            </Button>
+          }
+        />
       </div>
       <Tabs defaultValue="dados" className="mt-6">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="dados">Dados</TabsTrigger>
-          <TabsTrigger value="fotos">Fotos</TabsTrigger>
-          <TabsTrigger value="saude">Saúde</TabsTrigger>
-          <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="w-max min-w-full justify-start">
+            <TabsTrigger value="dados">Dados</TabsTrigger>
+            <TabsTrigger value="fotos">Fotos</TabsTrigger>
+            <TabsTrigger value="saude">Saúde</TabsTrigger>
+            <TabsTrigger value="vinculos">Vínculos</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="dados" className="mt-6">
           <AnimalForm animal={animal} mode="edit" />
         </TabsContent>
