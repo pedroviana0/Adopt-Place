@@ -32,10 +32,10 @@
 
 **Goal**: US2 — ações e listas comunicam estado e evitam erro acidental.
 
-- [ ] T015 [US2] [ARTHUR] Criar `frontend/src/components/app/AsyncState.tsx` como padrão reutilizável de loading, vazio e erro, consumindo `frontend/src/components/app/EmptyState.tsx` onde apropriado (UX-03/UX-04, FR-006/FR-007).
-- [ ] T016 [US2] [ARTHUR] Criar `frontend/src/components/app/ConfirmDestructiveAction.tsx` para confirmação destrutiva contextual, usando primitive existente e sem mudar mutações (UX-02, FR-004/FR-005).
+- [X] T015 [US2] [ARTHUR] Criar `frontend/src/components/app/AsyncState.tsx` como padrão reutilizável de loading, vazio e erro, consumindo `frontend/src/components/app/EmptyState.tsx` onde apropriado (UX-03/UX-04, FR-006/FR-007).
+- [X] T016 [US2] [ARTHUR] Criar `frontend/src/components/app/ConfirmDestructiveAction.tsx` para confirmação destrutiva contextual, usando primitive existente e sem mudar mutações (UX-02, FR-004/FR-005).
 - [ ] T017 [US2] [ARTHUR] Executar o procedimento manual “Confirmação destrutiva” de `specs/004-ui-ux-redesign/quickstart.md` para organização, acolhedor e administrador, em sessões separadas quando a ação for autorizada, registrando rota, item, controle, viewport, cancelamento, confirmação, foco restaurado e evidência; não criar teste de componente incompatível com `vitest.config.ts` (UX-02, SC-004).
-- [ ] T018 [US2] [ARTHUR] Migrar o estado vazio reutilizável em `frontend/src/components/app/EmptyState.tsx` para garantir descrição e próxima ação opcional sem alterar regras de rota (UX-03, FR-007).
+- [X] T018 [US2] [ARTHUR] Migrar o estado vazio reutilizável em `frontend/src/components/app/EmptyState.tsx` para garantir descrição e próxima ação opcional sem alterar regras de rota (UX-03, FR-007).
 - [ ] T019 [PEDRO] [US2] Executar roteiro manual de sucesso, erro recuperável, cancelamento e confirmação em `/dashboard/documentos` e `/dashboard/admin/usuarios`, com evidência separada para organização, acolhedor e administrador quando autorizados, registrando 0 mutações no cancelamento (SC-004/SC-006).
 
 ## Phase 5 — Home, vitrine, filtros, cards e detalhe público
