@@ -78,8 +78,8 @@
 
 **Goal**: US4 — administração responsiva e segura sem ampliar backend.
 
-- [ ] T040 [US4] [ARTHUR] Estruturar lista de usuários em desktop compacto e mobile por linha/card em `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx`, usando apenas campos do contrato ADMIN-01 (UX-09, FR-011/FR-012/FR-016).
-- [ ] T041 [US4] [ARTHUR] Conectar desativação/reativação de `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx` ao componente T016, sem adicionar busca/filtro sem suporte atual (UX-02/UX-09, FR-004/FR-012).
+- [X] T040 [US4] [ARTHUR] Estruturar lista de usuários em desktop compacto e mobile por linha/card em `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx`, usando apenas campos do contrato ADMIN-01 (UX-09, FR-011/FR-012/FR-016).
+- [X] T041 [US4] [ARTHUR] Conectar desativação/reativação de `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx` ao componente T016, sem adicionar busca/filtro sem suporte atual (UX-02/UX-09, FR-004/FR-012).
 - [ ] T042 [PEDRO] [US4] Executar roteiro manual admin em `/dashboard/admin/usuarios`: 375/1024/1440, estado, confirmação, cancelamento, toggle e foco; registrar resultado (SC-001–SC-004).
 
 ## Phase 9 — Acessibilidade, responsividade e regressão

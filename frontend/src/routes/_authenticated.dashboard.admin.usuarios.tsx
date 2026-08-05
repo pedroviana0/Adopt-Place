@@ -6,6 +6,9 @@ import { fetchAdminUsuarios, setUsuarioAtivo } from "@/lib/data/usuarios";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { CheckCircle2, CircleOff } from "lucide-react";
+import { AsyncState } from "@/components/app/AsyncState";
+import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
 export const Route = createFileRoute("/_authenticated/dashboard/admin/usuarios")({
   component: Page,
@@ -40,26 +43,32 @@ function Page() {
       await queryClient.invalidateQueries({ queryKey: ["admin-usuarios"] });
       toast.success(ativoAtual ? "Conta desativada" : "Conta reativada");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
+      const message = e instanceof Error ? e.message : "Erro";
+      toast.error(message);
+      throw new Error(message);
     } finally {
       setPending(null);
     }
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <h1 className="font-serif text-3xl font-semibold">Administração de usuários</h1>
-      {usuariosQuery.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Carregando…</p>
-      ) : usuariosQuery.isError ? (
-        <p className="mt-6 text-sm text-destructive">
-          {usuariosQuery.error instanceof Error
-            ? usuariosQuery.error.message
-            : "Não foi possível carregar os usuários."}
-        </p>
-      ) : (usuariosQuery.data?.length ?? 0) === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">Nenhum usuário.</p>
-      ) : (
+      <AsyncState
+        isLoading={usuariosQuery.isLoading}
+        isError={usuariosQuery.isError}
+        error={usuariosQuery.error}
+        onRetry={() => usuariosQuery.refetch()}
+        isEmpty={
+          !usuariosQuery.isLoading &&
+          !usuariosQuery.isError &&
+          (usuariosQuery.data?.length ?? 0) === 0
+        }
+        emptyState={{
+          title: "Nenhum usuário",
+          description: "Não há contas disponíveis para administração.",
+        }}
+      >
         <ul className="mt-6 divide-y rounded-xl border bg-card">
           {usuariosQuery.data!.map((u) => {
             const busy = pending === u.id;
@@ -75,22 +84,42 @@ function Page() {
                     {new Date(u.criadoEm).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {u.ativo ? <Badge>Ativa</Badge> : <Badge variant="destructive">Desativada</Badge>}
-                  <Button
-                    size="sm"
-                    variant="outline"
+                <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
+                  {u.ativo ? (
+                    <Badge className="gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Ativa
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive" className="gap-1">
+                      <CircleOff className="h-3.5 w-3.5" aria-hidden="true" />
+                      Desativada
+                    </Badge>
+                  )}
+                  <ConfirmDestructiveAction
+                    title={u.ativo ? "Desativar esta conta?" : "Reativar esta conta?"}
+                    item={`${u.email} — ${perfilLabel[u.tipoPerfil] ?? u.tipoPerfil}`}
+                    consequence={
+                      u.ativo
+                        ? "A pessoa perderá acesso até que um administrador reative a conta."
+                        : "A pessoa recuperará o acesso permitido pelo perfil atual."
+                    }
+                    confirmLabel={u.ativo ? "Desativar conta" : "Reativar conta"}
+                    confirmVariant={u.ativo ? "destructive" : "default"}
                     disabled={busy}
-                    onClick={() => toggle(u.id, u.ativo)}
-                  >
-                    {busy ? "..." : u.ativo ? "Desativar" : "Reativar"}
-                  </Button>
+                    onConfirm={() => toggle(u.id, u.ativo)}
+                    trigger={
+                      <Button size="sm" variant="outline">
+                        {u.ativo ? "Desativar" : "Reativar"}
+                      </Button>
+                    }
+                  />
                 </div>
               </li>
             );
           })}
         </ul>
-      )}
+      </AsyncState>
     </div>
   );
 }
