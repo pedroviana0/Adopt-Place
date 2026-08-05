@@ -12,11 +12,11 @@
 
 ## Phase 2 — Fundação visual e tokens
 
-- [ ] T005 [US5] [ARTHUR] Após T001–T004, inventariar usos de cor, tipografia, raio, sombra e foco em `frontend/src/styles.css` e `frontend/src/components/ui/` e documentar somente padrões exigidos por duas jornadas ou requisito atual em `specs/004-ui-ux-redesign/contracts/ui-patterns.md` (UX-06, FR-013–FR-015, CR-001).
-- [ ] T006 [US5] [ARTHUR] Definir tokens semânticos de superfície, sucesso, aviso, erro, informação, seleção e foco em `frontend/src/styles.css`, preservando verde oliva primário e terracota discreta (UX-06, FR-013/FR-015).
-- [ ] T007 [US5] [ARTHUR] Aplicar foco visível contínuo e estados disabled/selected às primitives afetadas em `frontend/src/components/ui/button.tsx`, `frontend/src/components/ui/input.tsx`, `frontend/src/components/ui/select.tsx`, `frontend/src/components/ui/dialog.tsx`, `frontend/src/components/ui/dropdown-menu.tsx` e `frontend/src/components/ui/sheet.tsx` (UX-10, FR-014/FR-015).
-- [ ] T008 [US5] [PEDRO] Verificar contrastes dos tokens e estados definidos em `frontend/src/styles.css` e registrar resultados AA na matriz de `specs/004-ui-ux-redesign/quickstart.md` (UX-06/UX-10, SC-007).
-- [ ] T009 [US5] [ARTHUR] Executar o procedimento manual “Primitives e foco” de `specs/004-ui-ux-redesign/quickstart.md` após T006–T007, registrando os cinco papéis, rota, controle, estado, viewport, ordem/restauração de foco, nome acessível, resultado e evidência; não criar teste de componente incompatível com `vitest.config.ts` (FR-014/FR-015/FR-019).
+- [X] T005 [US5] [ARTHUR] Após T001–T004, inventariar usos de cor, tipografia, raio, sombra e foco em `frontend/src/styles.css` e `frontend/src/components/ui/` e documentar somente padrões exigidos por duas jornadas ou requisito atual em `specs/004-ui-ux-redesign/contracts/ui-patterns.md` (UX-06, FR-013–FR-015, CR-001).
+- [X] T006 [US5] [ARTHUR] Definir tokens semânticos de superfície, sucesso, aviso, erro, informação, seleção e foco em `frontend/src/styles.css`, preservando verde oliva primário e terracota discreta (UX-06, FR-013/FR-015).
+- [X] T007 [US5] [ARTHUR] Aplicar foco visível contínuo e estados disabled/selected às primitives afetadas em `frontend/src/components/ui/button.tsx`, `frontend/src/components/ui/input.tsx`, `frontend/src/components/ui/select.tsx`, `frontend/src/components/ui/dialog.tsx`, `frontend/src/components/ui/dropdown-menu.tsx` e `frontend/src/components/ui/sheet.tsx` (UX-10, FR-014/FR-015).
+- [X] T008 [US5] [PEDRO] Verificar contrastes dos tokens e estados definidos em `frontend/src/styles.css` e registrar resultados AA na matriz de `specs/004-ui-ux-redesign/quickstart.md` (UX-06/UX-10, SC-007).
+- [X] T009 [US5] [ARTHUR] Executar o procedimento manual “Primitives e foco” de `specs/004-ui-ux-redesign/quickstart.md` após T006–T007, registrando os cinco papéis, rota, controle, estado, viewport, ordem/restauração de foco, nome acessível, resultado e evidência; não criar teste de componente incompatível com `vitest.config.ts` (FR-014/FR-015/FR-019).
 
 ## Phase 3 — Navegação e shells responsivos
 
