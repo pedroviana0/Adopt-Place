@@ -71,7 +71,7 @@
 - [X] T036 [ARTHUR] [P] [US4] Adaptar solicitações recebidas em `frontend/src/routes/_authenticated.dashboard.solicitacoes.index.tsx` e `frontend/src/routes/_authenticated.dashboard.solicitacoes.$solicitacaoId.tsx` com estados compartilhados (FR-006/FR-011).
 - [X] T037 [ARTHUR] [P] [US4] Adaptar saúde em `frontend/src/routes/_authenticated.dashboard.saude.index.tsx`, consumindo estados compartilhados sem alterar contratos; validar separadamente loading, vazio, erro e ações existentes (UX-03, FR-006/FR-007/FR-011).
 - [X] T053 [ARTHUR] [P] [US4] Adaptar documentos em `frontend/src/routes/_authenticated.dashboard.documentos.index.tsx`, consumindo T016 e T018 sem alterar contrato; validar separadamente lista, vazio/erro, exclusão contextual e foco restaurado (UX-02/UX-03, FR-004–FR-007/FR-011).
-- [ ] T038 [ARTHUR] [P] [US4] Adaptar mensagens de organização e acolhedor em `frontend/src/routes/_authenticated.dashboard.mensagens.index.tsx` e `frontend/src/routes/_authenticated.dashboard.mensagens.$conversaId.tsx`, preservando chat arquivado (FR-011/FR-016).
+- [X] T038 [ARTHUR] [P] [US4] Adaptar mensagens de organização e acolhedor em `frontend/src/routes/_authenticated.dashboard.mensagens.index.tsx` e `frontend/src/routes/_authenticated.dashboard.mensagens.$conversaId.tsx`, preservando chat arquivado (FR-011/FR-016).
 - [ ] T039 [PEDRO] [US4] Executar regressão manual separada de organização e acolhedor independente: criar/editar animal e foto, solicitação, saúde, documento, chat, formulário, erro e cancelamento; registrar permissões/destinos e evidências próprias em `specs/004-ui-ux-redesign/quickstart.md` (SC-004/SC-006/SC-008/SC-009).
 
 ## Phase 8 — Administração e listas densas
