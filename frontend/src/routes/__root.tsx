@@ -23,7 +23,10 @@ function NotFoundComponent() {
           A página que você procura não existe ou foi movida.
         </p>
         <div className="mt-6">
-          <a href="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          >
             Ir para o início
           </a>
         </div>
@@ -42,20 +45,24 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Algo deu errado
-        </h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Algo deu errado</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Tente novamente ou volte à página inicial.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
           >
             Tentar de novo
           </button>
-          <a href="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
+          >
             Início
           </a>
         </div>
@@ -70,23 +77,46 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "AdoptPlace — Encontre seu parceiro ideal" },
-      { name: "description", content: "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ." },
+      {
+        name: "description",
+        content:
+          "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ.",
+      },
       { name: "author", content: "AdoptPlace" },
       { property: "og:title", content: "AdoptPlace — Encontre seu parceiro ideal" },
-      { property: "og:description", content: "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ." },
+      {
+        property: "og:description",
+        content:
+          "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "AdoptPlace — Encontre seu parceiro ideal" },
-      { name: "twitter:description", content: "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/24152e52-cf5c-4cab-9397-c8c45f977806/id-preview-f6183039--3cc47b40-4290-4876-a4f8-35a3b93414f1.lovable.app-1784587138459.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/24152e52-cf5c-4cab-9397-c8c45f977806/id-preview-f6183039--3cc47b40-4290-4876-a4f8-35a3b93414f1.lovable.app-1784587138459.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Conectamos animais resgatados a famílias prontas para adotar em Volta Redonda/RJ.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/24152e52-cf5c-4cab-9397-c8c45f977806/id-preview-f6183039--3cc47b40-4290-4876-a4f8-35a3b93414f1.lovable.app-1784587138459.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/24152e52-cf5c-4cab-9397-c8c45f977806/id-preview-f6183039--3cc47b40-4290-4876-a4f8-35a3b93414f1.lovable.app-1784587138459.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -98,7 +128,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <Scripts />
@@ -112,9 +144,17 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col bg-background">
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-floating transition-transform focus:translate-y-0"
+        >
+          Pular para o conteúdo principal
+        </a>
         <Navbar />
-        <main className="flex-1"><Outlet /></main>
-        <footer className="border-t border-border/60 bg-card/40 py-6 text-center text-xs text-muted-foreground">
+        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1">
+          <Outlet />
+        </main>
+        <footer className="border-t border-border/60 bg-card/40 px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground">
           AdoptPlace · Volta Redonda/RJ · TCC IFRJ Pinheiral 2026
         </footer>
       </div>
