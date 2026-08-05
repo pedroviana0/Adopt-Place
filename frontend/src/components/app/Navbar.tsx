@@ -1,7 +1,16 @@
 import { useRef, useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, Menu, MessageCircle } from "lucide-react";
+import {
+  ClipboardList,
+  FileText,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageCircle,
+  UserRound,
+} from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -138,13 +147,22 @@ export function Navbar() {
                 {sessao.tipoPerfil === "ADOTANTE" && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link to="/meu-perfil">Meu perfil</Link>
+                      <Link to="/meu-perfil" className="flex items-center gap-2">
+                        <UserRound className="h-4 w-4" aria-hidden="true" />
+                        <span>Meu perfil</span>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/triagem">Minha triagem</Link>
+                      <Link to="/triagem" className="flex items-center gap-2">
+                        <ClipboardList className="h-4 w-4" aria-hidden="true" />
+                        <span>Minha triagem</span>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/minhas-solicitacoes">Minhas solicitações</Link>
+                      <Link to="/minhas-solicitacoes" className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" aria-hidden="true" />
+                        <span>Minhas solicitações</span>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/mensagens" className="flex items-center gap-2">
@@ -159,13 +177,19 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/meus-favoritos">Meus favoritos</Link>
+                      <Link to="/meus-favoritos" className="flex items-center gap-2">
+                        <Heart className="h-4 w-4" aria-hidden="true" />
+                        <span>Meus favoritos</span>
+                      </Link>
                     </DropdownMenuItem>
                   </>
                 )}
                 {isResponsible && (
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Meu painel</Link>
+                    <Link to="/dashboard" className="flex items-center gap-2">
+                      <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                      <span>Meu painel</span>
+                    </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
