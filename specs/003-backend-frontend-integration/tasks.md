@@ -91,10 +91,10 @@ T001 through T019 MUST be completed and verified before any implementation task 
 
 **Independent Test**: Navigation through every public, auth, adopter, responsible, and admin route either renders the expected `frontend/` screen or is logged as a known defect.
 
-- [ ] T031 [P] [US5] Audit route tree generation and route filenames in `frontend/src/routes/README.md`, `frontend/src/routeTree.gen.ts`, and `frontend/src/routes/` (Owner: Arthur)
-- [ ] T032 [P] [US5] Audit root service-only status by confirming `app/` contains only backend API routes and recording result in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro)
-- [ ] T033 [US5] Fix first documented URL-change/no-render bug in the specific `frontend/src/routes/*.tsx` file recorded by T005 (Owner: Arthur; depends on T005 and T031)
-- [ ] T034 [US5] Update `specs/003-backend-frontend-integration/integration-matrix.md` with route-correction evidence and remaining route defects (Owner: Pedro; depends on T033)
+- [X] T031 [P] [US5] Audit route tree generation and route filenames in `frontend/src/routes/README.md`, `frontend/src/routeTree.gen.ts`, and `frontend/src/routes/` (Owner: Arthur) — done: all 36 current route files are represented in the generated tree and follow the documented flat-route conventions
+- [X] T032 [P] [US5] Audit root service-only status by confirming `app/` contains only backend API routes and recording result in `specs/003-backend-frontend-integration/integration-matrix.md` (Owner: Pedro) — done: `app/` has 40 API handlers and no visual `page.tsx` or `layout.tsx`
+- [X] T033 [US5] Fix first documented URL-change/no-render bug in the specific `frontend/src/routes/*.tsx` file recorded by T005 (Owner: Arthur; depends on T005 and T031) — done: `_authenticated.tsx` renders a pending state while resolving the real session, then shows the protected route or redirects to login (commit `ddabc37`)
+- [X] T034 [US5] Update `specs/003-backend-frontend-integration/integration-matrix.md` with route-correction evidence and remaining route defects (Owner: Pedro; depends on T033) — done: F1/F2 are certified as corrected; F3/F4 remain explicitly audited
 
 ## Phase 6: Public Showcase (User Story 3 - P2)
 
