@@ -11,7 +11,7 @@ Reformar a apresentação do frontend oficial para tornar jornadas públicas e p
 **Language/Version**: TypeScript strict; frontend React/TanStack Start/Router/Vite em `frontend/`; backend Next.js 15 na raiz.
 **Primary Dependencies**: Tailwind, Radix/shadcn, Lucide, React Query, React Hook Form, Zod e Uploadthing já existentes.
 **Storage**: nenhuma mudança; PostgreSQL/Prisma continua exclusivo do backend.
-**Testing**: Vitest da raiz; typecheck/lint/build da raiz; build do frontend; testes focados de UI; roteiro manual por papel.
+**Testing**: Vitest Node da raiz para contratos/lógica já coberta; typecheck/lint/build da raiz; build do frontend; homologação visual/manual por papel para renderização, CSS, viewport, teclado e foco.
 **Target Platform**: navegador desktop e mobile, com viewport 375, 1024 e 1440 px.
 **Project Type**: duas aplicações: frontend público TanStack e backend/service Next.js.
 **Performance Goals**: preservar respostas e contratos atuais; loading visual deve reservar estrutura equivalente ao resultado final.
@@ -37,7 +37,7 @@ Reformar a apresentação do frontend oficial para tornar jornadas públicas e p
 | Compartilhados | `components/app/{Navbar,EmptyState,PublicAnimalCard,AnimalFilters,StatusBadge}.tsx` | consolidar shell, estados e cards |
 | Shells | `routes/__root.tsx`, `_authenticated.dashboard.tsx`, `_authenticated.tsx` | navegação global, dashboard e foco |
 | Rotas | `routeTree.gen.ts` | fonte de destinos, não criar rotas nem migrá-las |
-| Contratos | `specs/003.../contracts/http-contract-inventory.md` | regressão de DTO, sessão, privacidade e Uploadthing |
+| Contratos | `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md` | regressão de DTO, sessão, privacidade e Uploadthing |
 
 ```text
 frontend/src/
@@ -58,16 +58,16 @@ specs/004-ui-ux-redesign/
 | Onda | Escopo / dono principal | Gate de entrada | Gate de saída / rollback |
 |---|---|---|---|
 | 0. Baseline | Pedro: capturas comparáveis, matriz por papel | ambiente e contas autorizadas | 375/1024/1440 antes armazenados sem segredos; sem baseline, não iniciar visual. Remover apenas capturas da onda se inválidas |
-| 1. Fundação | Arthur: tokens, foco, recipes | baseline concluída | contraste/foco aprovados e primitives estáveis. Rollback: reverter só tokens/primitives da onda |
-| 2. Navegação/shells | Arthur: Navbar e dashboard shell | onda 1 estável | destinos por papel e teclado nos 3 tamanhos. Rollback: restaurar shell anterior sem tocar rotas |
-| 3. Estados/segurança | Arthur: loading, vazio, erro, confirmação | ondas 1–2 estáveis | cancelamento não muta, foco restaura, estado reutilizável aprovado. Rollback: por componente compartilhado |
-| 4. Público | Arthur: home, vitrine, detalhe/card/filtros | ondas 1–3 estáveis | skeleton, vazio, placeholder real/neutral e contrato público sem diff. Rollback: por rota |
-| 5. Adotante | Arthur: perfil, triagem, favoritos, solicitações, mensagens | ondas 1–3 estáveis | regressão do papel adotante e responsividade. Rollback: por rota/jornada |
-| 6. Responsável | Arthur: animais, solicitações, saúde, documentos, mensagens | ondas 1–3 estáveis | Uploadthing e fluxos owner-scoped preservados. Rollback: por rota/jornada |
-| 7. Admin/denso | Arthur: usuários e listas | padrões de lista/confirmados estáveis | dados/estado/ação acessíveis desktop/mobile, sem endpoint novo. Rollback: rota admin |
+| 1. Fundação | Arthur: tokens, foco, recipes | baseline concluída | C1 após contrastes FR-015 e roteiro de foco FR-014 registrados para as primitives alteradas. Rollback: reverter só tokens/primitives da onda |
+| 2. Navegação/shells | Arthur: Navbar e dashboard shell | C1 | C2N: destinos por papel e teclado aprovados nos 3 tamanhos. Rollback: restaurar shell anterior sem tocar rotas |
+| 3. Estados/segurança | Arthur: loading, vazio, erro, confirmação | C1; pode avançar com a onda 2 quando não editar Navbar/shell/primitives | C2S: cancelamento faz 0 mutações, foco restaura e padrões de estado são aprovados. Rollback: por componente compartilhado |
+| 4. Público | Arthur: home, vitrine, detalhe/card/filtros | C2N e cada componente compartilhado consumido aprovado; cards/skeleton podem ser preparados após C1 | skeleton, vazio, fotos/placeholder/falha e contrato público sem diff. Rollback: por rota |
+| 5. Adotante | Arthur: perfil, triagem, favoritos, solicitações, mensagens | C2N e somente os padrões de estado consumidos pela rota | regressão do papel adotante em 375/1024/1440. Rollback: por rota/jornada |
+| 6. Organização/acolhedor | Arthur: animais, solicitações, saúde, documentos, mensagens | C2N e somente os padrões de estado/confirmação consumidos pela rota | evidência separada dos dois papéis, Uploadthing e fluxos owner-scoped preservados. Rollback: por rota/jornada |
+| 7. Admin/denso | Arthur: usuários e listas | C2N, confirmação T016 e vazio T018 aprovados | identificação, estado e ação simultâneos no desktop/mobile, teclado aprovado e nenhum endpoint novo. Rollback: rota admin |
 | 8. QA/polimento | Pedro: AA, regressão, homologação | ondas 4–7 concluídas | matriz de aceites completa e comparação antes/depois. Rollback: reverter onda causadora, nunca contrato |
 
-Nenhuma jornada começa antes de seus padrões compartilhados concluírem. Pedro revisa critérios, acessibilidade, regressão e integração; Arthur é dono de componentes/layouts. `styles.css`, Navbar, shell e primitives têm dono único (Arthur) por onda.
+Nenhuma jornada começa antes de seus padrões compartilhados concluírem. Pedro revisa critérios, acessibilidade, regressão e integração; Arthur é dono de componentes/layouts. `frontend/src/styles.css`, `frontend/src/components/app/Navbar.tsx`, shells e `frontend/src/components/ui/` têm dono único (Arthur) por onda e não podem receber edição concorrente. Formulários preservam schemas Zod e regras atuais; mídia preserva fotos reais e Uploadthing, distinguindo ausência de falha de carregamento.
 
 ## Validation Strategy
 
@@ -75,7 +75,7 @@ Nenhuma jornada começa antes de seus padrões compartilhados concluírem. Pedro
 
 **Estática e build:** executar `npm run typecheck`, `npm run lint`, `npm run prisma:validate`, `npm run build`, `npm --prefix frontend run build` e lint focado nos arquivos alterados. O lint integral do frontend possui débito CRLF/Prettier preexistente; registrar esse resultado sem reformatar arquivos não tocados.
 
-**Homologação visual/manual:** a matriz de `quickstart.md` cobre 100% da população principal, com visitante, adotante, organização, acolhedor independente e administrador em sessões/evidências distintas. Registrar mesma rota, papel, dado, viewport (375/1024/1440), zoom, estado, data e caminho de evidência antes/depois. Avaliar teclado, foco, diálogo, 200% de zoom, alvos WCAG 2.5.8, combinações semânticas de contraste e leitor de tela para os fluxos nomeados. Quando leitor não estiver disponível, registrar indisponibilidade, revisar semântica/ARIA e manter pendência assistiva explícita.
+**Homologação visual/manual:** a matriz de `quickstart.md` cobre 100% da população nomeada em `spec.md`, com visitante, adotante, organização, acolhedor independente e administrador em sessões/evidências distintas. Registrar mesma rota, papel, dado, viewport (375/1024/1440), zoom, estado, data e caminho de evidência antes/depois. Avaliar teclado, foco, diálogo, 200% de zoom, alvos WCAG 2.5.8, combinações semânticas de contraste e leitor de tela para os fluxos nomeados. Quando leitor não estiver disponível, registrar indisponibilidade, revisar semântica/ARIA e manter pendência assistiva explícita.
 
 **Limitação e nova infraestrutura:** não há infraestrutura reutilizável para renderização React, CSS, viewport, teclado ou diálogos. Uma proposta futura só pode incluir jsdom, Testing Library ou equivalente após demonstrar insuficiência do procedimento manual, documentar custo, benefício, dependências e obter aprovação; não é parte deste plano.
 
@@ -88,10 +88,10 @@ Não alterar assinaturas de `frontend/src/lib/data`, URLs, DTOs, guards, Uploadt
 | Frente | Principal | Revisor | Arquivos compartilhados / estratégia |
 |---|---|---|---|
 | Spec, rastreabilidade, Issues, aceite, QA | Pedro | Arthur | não editar UI em paralelo |
-| Tokens/primitives/foco | Arthur | Pedro | dono único de `styles.css` e `components/ui` |
-| Navbar e shells | Arthur | Pedro | dono único de Navbar/root/dashboard shell por onda |
+| Tokens/primitives/foco | Arthur | Pedro | dono único de `frontend/src/styles.css` e `frontend/src/components/ui/` |
+| Navbar e shells | Arthur | Pedro | dono único de `frontend/src/components/app/Navbar.tsx`, `frontend/src/routes/__root.tsx` e `frontend/src/routes/_authenticated.dashboard.tsx` por onda |
 | Estados e confirmação | Arthur | Pedro | componentes primeiro, migradores só consomem |
-| Rotas públicas/adotante/responsável/admin | Arthur | Pedro | uma rota por PR; paralelo só em arquivos distintos |
+| Rotas públicas/adotante/organização/acolhedor/admin | Arthur | Pedro | uma rota por PR; paralelo só em arquivos distintos; organização e acolhedor têm evidência separada |
 | Homologação e integração | Pedro | Arthur | matriz de evidências, sem reescrever telas |
 
 ## Complexity Tracking

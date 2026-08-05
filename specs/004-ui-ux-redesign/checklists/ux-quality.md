@@ -2,75 +2,78 @@
 
 **Propósito**: avaliar clareza, completude, mensurabilidade, consistência e rastreabilidade da especificação da feature 004; não avalia a implementação.
 **Criado**: 2026-08-05
+**Reavaliado**: 2026-08-05 após correções documentais, sem afirmar execução da baseline ou da implementação.
 **Feature**: [spec.md](../spec.md) · [auditoria](../../../docs/audits/004-ui-ux-audit.md) · [plano](../plan.md) · [tarefas](../tasks.md)
 
 ## Completude e rastreabilidade
 
-- [ ] CHK001 A especificação mantém um requisito rastreável para cada achado UX-01 a UX-10, sem converter achado visual em mudança de regra de negócio? [Completude, Spec §Traceability to Audit]
-- [ ] CHK002 Cada FR, NFR e CR possui ao menos um cenário de aceitação, critério de sucesso ou tarefa que permita avaliar sua conclusão? [Rastreabilidade, Spec §Requirements; §Success Criteria]
-- [ ] CHK003 As jornadas pública, adotante, responsável e administração estão delimitadas por rotas e papéis reais, em vez de nomes genéricos de tela? [Clareza, Spec §User Stories 1–4; Audit §4]
-- [ ] CHK004 A lista de “jornadas afetadas” de FR-006 e FR-007 é suficientemente explícita para evitar que uma rota operacional fique fora do padrão de estados? [Gap, Completude, Spec §FR-006–FR-007]
-- [ ] CHK005 A expressão “telas principais” usada em NFR-001 e NFR-002 está vinculada à matriz de rotas da baseline, com critério para inclusões futuras? [Ambiguidade, Spec §NFR-001–NFR-002; §Dependencies]
-- [ ] CHK006 Os requisitos separam de modo inequívoco padrões compartilhados necessários de polimento opcional de uma tela específica? [Consistência, Spec §CR-001; Plan §Inventário]
+- [x] CHK001 Cada achado UX-01 a UX-10 possui requisito, critério, onda, tarefa e validação sem alterar regra de negócio? [Completude] — Evidência: `spec.md` §Traceability to Audit; `tasks.md` §UX → requisito → critério → plano → tarefa → validação.
+- [x] CHK002 Cada FR, NFR e CR possui cenário, critério ou tarefa que permita avaliar sua conclusão? [Rastreabilidade] — Evidência: `spec.md` §§Requirements/Success Criteria; `tasks.md` T001–T053, incluindo CR-001 em T005 e CR-008 em T048.
+- [x] CHK003 As jornadas e os cinco papéis estão delimitados por rotas reais? [Clareza] — Evidência: `spec.md` §§User Stories/População de homologação; `quickstart.md` §População principal.
+- [x] CHK004 As jornadas sujeitas a estados assíncronos estão enumeradas sem deixar rota operacional implícita? [Completude] — Evidência: `spec.md` FR-006 e §Cobertura de estados e formulários.
+- [x] CHK005 A população de rotas da baseline está nomeada e possui regra para inclusão posterior? [Clareza] — Evidência: `spec.md` NFR-001–NFR-002 e §População de homologação.
+- [x] CHK006 Padrões compartilhados necessários estão separados de polimento opcional? [Consistência] — Evidência: `spec.md` CR-001; `plan.md` §Constitution Check; `tasks.md` T005/T047.
 
 ## Identidade visual e linguagem
 
-- [ ] CHK007 O papel do verde oliva como assinatura primária está definido sem exigir tonalidade exata prematura, mas com vínculo aos estados e ações em que pode ser usado? [Clareza, Spec §FR-013; §Assumptions]
-- [ ] CHK008 Os termos “neutros quentes” e “terracota discreto” possuem limite observável suficiente para evitar concorrência com a ação primária? [Ambiguidade, Spec §FR-013]
-- [ ] CHK009 Há alguma exigência restante que use “moderno”, “agradável”, “melhor”, “profissional” ou termo subjetivo equivalente sem comportamento, evidência ou critério mensurável associado? [Ambiguidade, Spec inteira]
-- [ ] CHK010 Os requisitos de identidade evitam estilos explicitamente excluídos pela auditoria — visual infantil, gamificado, decorativo e excesso de efeitos — sem criar requisitos de implementação? [Consistência, Audit §3; Spec §Out of Scope]
+- [x] CHK007 O papel do verde oliva está vinculado a marca, ação primária, seleção e navegação ativa sem fixar token prematuramente? [Clareza] — Evidência: `spec.md` §Direção visual verificável e FR-013.
+- [x] CHK008 Neutros quentes e terracota possuem usos e proibições observáveis? [Clareza] — Evidência: `spec.md` §Direção visual verificável; `research.md` §Neutros quentes e terracota.
+- [x] CHK009 Termos subjetivos normativos possuem comportamento, população, métrica ou evidência verificável? [Mensurabilidade] — Evidência: `spec.md` FR-001–FR-019, NFR-001–NFR-004 e SC-001–SC-009; termos conceituais da auditoria permanecem contexto, não aceite.
+- [x] CHK010 Estilos visuais excluídos estão documentados sem prescrever implementação? [Consistência] — Evidência: `spec.md` §Direção visual verificável; `docs/audits/004-ui-ux-audit.md` §3.
 
 ## Responsividade, navegação e densidade
 
-- [ ] CHK011 As larguras 375 px, 1024 px e 1440 px são exigidas de forma consistente para navegação, descoberta, jornadas autenticadas, baseline e homologação? [Consistência, Spec §FR-001, FR-003, FR-011; §SC-001–SC-002]
-- [ ] CHK012 O requisito de ausência de rolagem horizontal define exceções legítimas, se houver, para conteúdo que não pode ser reestruturado sem comprometer os contratos atuais? [Edge Case, Spec §NFR-001]
-- [ ] CHK013 O menu mobile por papel define todos os destinos preservados e exclui claramente a barra inferior nesta feature? [Clareza, Spec §FR-001; §Clarifications]
-- [ ] CHK014 A indicação de destino atual por dois sinais perceptíveis define exemplos não exclusivos que possam ser avaliados sem depender somente de cor? [Clareza, Spec §FR-002]
-- [ ] CHK015 O critério “quando a tabela não couber adequadamente” possui parâmetro de decisão ou evidência de overflow para orientar a mudança para cards/linhas estruturadas? [Ambiguidade, Spec §FR-011]
-- [ ] CHK016 As áreas densas citadas em FR-012 incluem explicitamente documentos, usuários e as demais listas operacionais presentes no inventário, ou há uma fronteira de escopo documentada? [Completude, Spec §FR-012; Audit §4]
+- [x] CHK011 375 px, 1024 px e 1440 px são exigidos de forma consistente para baseline, rotas alteradas e homologação? [Consistência] — Evidência: `spec.md` FR-001/FR-003/FR-011, NFR-001 e SC-001–SC-002; `quickstart.md` §População principal.
+- [x] CHK012 A ausência de rolagem horizontal possui regra explícita e tratamento para eventual exceção essencial? [Edge Case] — Evidência: `spec.md` NFR-001 declara nenhuma exceção planejada e bloqueio documental para exceção essencial.
+- [x] CHK013 O menu mobile preserva destinos por papel e exclui barra inferior? [Clareza] — Evidência: `spec.md` Clarifications e FR-001.
+- [x] CHK014 O destino atual possui dois sinais avaliáveis além do uso isolado de cor? [Clareza] — Evidência: `spec.md` FR-002 define texto/`aria-current` e marcador visual adicional.
+- [x] CHK015 A transformação de tabela em cards/linhas possui gatilho objetivo? [Mensurabilidade] — Evidência: `spec.md` Clarifications, US4 cenário 2 e FR-011.
+- [x] CHK016 As listas densas no escopo estão enumeradas? [Completude] — Evidência: `spec.md` FR-012 e §Cobertura de estados e formulários.
 
 ## Teclado, foco e WCAG 2.2 AA
 
-- [ ] CHK017 Os requisitos definem foco visível, ordem/continuidade e restauração para navegação, diálogos, filtros, cards acionáveis e upload, conforme achado UX-10? [Cobertura, Spec §FR-005, FR-014; Audit UX-10]
-- [ ] CHK018 A expressão “área acionável adequada ao contexto de toque e ponteiro” tem medida mínima, referência WCAG ou regra de exceção verificável? [Ambiguidade, Spec §FR-014]
-- [ ] CHK019 As combinações “relevantes” para contraste AA estão enumeradas ou possuem uma matriz que determine texto, ícone, borda, foco e estados críticos a avaliar? [Ambiguidade, Spec §FR-015; §SC-007]
-- [ ] CHK020 Os requisitos definem uma pista além da cor para sucesso, aviso, erro, informação, seleção, indisponibilidade e estado ativo de navegação? [Completude, Spec §FR-002, FR-012–FR-015; US5]
-- [ ] CHK021 O requisito de zoom 200% esclarece como conteúdos muito longos, menus e diálogos mantêm informação e ação essencial sem exigir uma solução técnica específica? [Cobertura, Edge Case, Spec §NFR-002; §Edge Cases]
-- [ ] CHK022 A validação por leitor de tela é corretamente tratada como evidência quando disponível, com limitação documentável quando o ambiente não permitir a inspeção? [Clareza, Plan §Validation; Audit §8]
+- [x] CHK017 Foco visível, ordem, contenção e restauração cobrem navegação, diálogos, filtros, cards e upload? [Cobertura] — Evidência: `spec.md` FR-001, FR-004–FR-005 e FR-014; `quickstart.md` §Procedimentos manuais.
+- [x] CHK018 Áreas acionáveis possuem medida e exceções WCAG verificáveis? [Mensurabilidade] — Evidência: `spec.md` FR-014 (24 × 24 CSS px e exceções WCAG 2.5.8).
+- [x] CHK019 As combinações e razões de contraste AA estão enumeradas? [Mensurabilidade] — Evidência: `spec.md` FR-015/SC-007; `quickstart.md` §População principal.
+- [x] CHK020 Estados semânticos e navegação ativa exigem pista adicional à cor? [Completude] — Evidência: `spec.md` FR-002, FR-012–FR-015 e US5 cenário 2.
+- [x] CHK021 Zoom 200% cobre texto longo, menus e diálogos sem solução técnica prescrita? [Edge Case] — Evidência: `spec.md` NFR-002 e §Edge Cases.
+- [x] CHK022 Leitor de tela possui fluxos nomeados e alternativa documental quando indisponível? [Clareza] — Evidência: `plan.md` §Validation Strategy; `quickstart.md` procedimento “Leitor de tela”.
 
 ## Formulários, feedback e ações seguras
 
-- [ ] CHK023 A especificação contém requisitos suficientes para erros de campo, ajuda contextual, agrupamento e progressão nos formulários de login, cadastro, perfil, triagem e gestão de animais? [Gap, Completude, Audit §7; Spec §US4]
-- [ ] CHK024 Os requisitos de loading, sucesso, erro e recuperação distinguem consulta, mutação pendente e operação concluída sem contradizer os contratos da feature 003? [Clareza, Spec §FR-006; §Edge Cases; §FR-016]
-- [ ] CHK025 O estado de sucesso está definido com mensagem, persistência temporal ou anúncio acessível suficiente para não ficar implícito na expressão “compatíveis com a ação”? [Ambiguidade, Spec §FR-006]
-- [ ] CHK026 Os estados vazios definem quando uma próxima ação deve ser omitida por falta de autorização, inexistência de ação válida ou privacidade? [Clareza, Spec §FR-007; US4]
-- [ ] CHK027 A confirmação destrutiva identifica consequência, item afetado, cancelamento, prevenção de mutação prévia e restauração de foco para todas as ações destrutivas no escopo? [Completude, Spec §FR-004–FR-005; §SC-004]
-- [ ] CHK028 O requisito de submissão pendente trata duplicação visual e preserva explicitamente a proteção autoritativa já existente no servidor? [Consistência, Spec §Edge Cases; §CR-003]
+- [x] CHK023 Formulários de login, cadastro, perfil, triagem e animais possuem requisitos de rótulo, ajuda, erro, agrupamento e progressão? [Completude] — Evidência: `spec.md` FR-018–FR-019 e §Cobertura de estados e formulários.
+- [x] CHK024 Consulta, mutação pendente, erro, recuperação e sucesso estão distinguidos sem contradizer contratos? [Clareza] — Evidência: `spec.md` FR-006/FR-016 e §Edge Cases; `contracts/ui-patterns.md` §Estado assíncrono.
+- [x] CHK025 Sucesso possui persistência contextual ou anúncio acessível definido? [Clareza] — Evidência: `spec.md` FR-006 e FR-019.
+- [x] CHK026 A omissão de próxima ação em vazio considera autorização, inexistência de ação e privacidade? [Clareza] — Evidência: `spec.md` FR-007.
+- [x] CHK027 Confirmação destrutiva cobre consequência, item, cancelar, foco inicial/contido/restaurado e ausência de mutação prévia? [Completude] — Evidência: `spec.md` FR-004–FR-005 e SC-004; `quickstart.md` procedimento correspondente.
+- [x] CHK028 Submissão pendente impede duplicação visual e preserva autoridade do servidor? [Consistência] — Evidência: `spec.md` FR-006, §Edge Cases e CR-003.
 
 ## Descoberta pública, imagens e estados
 
-- [ ] CHK029 O skeleton público define preservação de estrutura da grade e filtros sem prescrever biblioteca, componente ou quantidade fixa de cards? [Independência de implementação, Spec §FR-008; §SC-005]
-- [ ] CHK030 O requisito de filtro vazio esclarece a recuperação por limpar/ajustar filtros sem exigir memorização de valores anteriores? [Clareza, Spec §FR-009; US3]
-- [ ] CHK031 A origem de imagem permite apenas fotos reais associadas e um placeholder neutro, excluindo banco de imagens e conteúdo fictício de modo inequívoco? [Consistência, Spec §FR-010; §Clarifications]
-- [ ] CHK032 A especificação define conteúdo alternativo e comportamento de falha de imagem distinto da ausência conhecida de foto principal? [Gap, Acessibilidade, Spec §FR-010; Audit UX-05]
+- [x] CHK029 Skeleton preserva estrutura sem prescrever biblioteca ou quantidade fixa? [Independência de implementação] — Evidência: `spec.md` FR-008/SC-005 e US3 cenário 1.
+- [x] CHK030 Resultado vazio de filtro possui limpeza/ajuste sem memorização? [Clareza] — Evidência: `spec.md` FR-009/FR-012 e US3 cenário 2.
+- [x] CHK031 Fotos reais, placeholder neutro e proibição de conteúdo fictício estão inequívocos? [Consistência] — Evidência: `spec.md` Clarifications e FR-010.
+- [x] CHK032 Texto alternativo, ausência de foto e falha de carregamento estão diferenciados? [Acessibilidade] — Evidência: `spec.md` FR-010 e §Edge Cases; `quickstart.md` procedimento “Imagens”.
 
 ## Preservação funcional, privacidade e segurança
 
-- [ ] CHK033 Os requisitos preservam explicitamente rotas, permissões, dados por papel, contratos HTTP e regras homologadas da feature 003, sem introduzir alteração indireta de domínio? [Consistência, Spec §FR-016–FR-017; §CR-003–CR-006]
-- [ ] CHK034 A baseline e a comparação visual definem a proibição de credenciais, tokens, cookies e dados privados nas evidências? [Completude, Privacidade, Spec §NFR-004; §Assumptions]
-- [ ] CHK035 O requisito sobre busca ou filtros administrativos limita claramente a reforma aos contratos existentes e descreve como registrar uma necessidade que exigiria backend? [Clareza, Spec §FR-012, FR-017; §Clarifications]
-- [ ] CHK036 A ausência de mudanças em banco, Prisma, autenticação, autorização, contratos e regras de negócio é repetida de forma consistente em requisitos, escopo e critérios de sucesso? [Consistência, Spec §FR-016–FR-017; §CR-002–CR-006; §Out of Scope]
+- [x] CHK033 Rotas, permissões, dados por papel, HTTP e regras da feature 003 são preservados? [Consistência] — Evidência: `spec.md` FR-016–FR-017 e CR-003–CR-006.
+- [x] CHK034 Evidências proíbem credenciais, tokens, cookies e dados privados? [Privacidade] — Evidência: `spec.md` NFR-004/Assumptions; `quickstart.md` §Pré-condições.
+- [x] CHK035 Filtros administrativos estão limitados aos contratos e dependência de backend vira bloqueio fora do escopo? [Clareza] — Evidência: `spec.md` FR-012/FR-017 e Clarifications.
+- [x] CHK036 Banco, Prisma, migration, seed, autenticação, autorização, contratos, Uploadthing e regras permanecem fora de alteração? [Consistência] — Evidência: `spec.md` FR-016–FR-017, CR-002–CR-006 e Out of Scope; `tasks.md` T052.
 
 ## Homologação, responsabilidades e prontidão
 
-- [ ] CHK037 Os percentuais de SC-001 e SC-003 definem população, papéis, rotas e critério de amostragem de controles suficiente para sustentar “100%”? [Ambiguidade, Mensurabilidade, Spec §SC-001, SC-003]
-- [ ] CHK038 SC-006 e SC-007 identificam quais estados e combinações são críticos/afetados, de forma consistente com os achados UX-03, UX-06, UX-07 e UX-10? [Clareza, Spec §SC-006–SC-007; §Traceability to Audit]
-- [ ] CHK039 A estratégia de baseline e comparação posterior define evidência comparável por rota, papel, viewport e estado, sem transformar o checklist em roteiro de execução? [Completude, Spec §FR-003; §Dependencies]
-- [ ] CHK040 A divisão Pedro × Arthur atribui um dono único aos arquivos compartilhados — tokens, Navbar, shell e primitives — e define revisão sem edição simultânea? [Consistência, Plan §Ownership; Tasks §Regra de propriedade]
-- [ ] CHK041 As dependências de ambiente renderizado e contas autorizadas possuem gate ou condição de bloqueio explícita antes de critérios visuais serem declarados atendidos? [Dependência, Spec §Dependencies; §NFR-004]
-- [ ] CHK042 A especificação, plano e tarefas não deixam decisão material implícita sobre navegação mobile, densidade, imagens, administração, arquitetura, baseline ou paleta? [Prontidão, Spec §Clarifications; Plan; Tasks]
+- [x] CHK037 SC-001 e SC-003 definem população, cinco papéis, rotas e total de controles para sustentar 100%? [Mensurabilidade] — Evidência: `spec.md` SC-001/SC-003 e §População de homologação; `quickstart.md` matriz.
+- [x] CHK038 SC-006 e SC-007 apontam estados e combinações enumerados? [Clareza] — Evidência: `spec.md` §Cobertura de estados e formulários, FR-015, SC-006–SC-007.
+- [x] CHK039 Baseline e pós-comparação exigem mesma rota, papel, viewport, zoom, estado e evidência sem afirmar captura já realizada? [Completude] — Evidência: `spec.md` FR-003/Dependencies; `quickstart.md` §Pré-condições.
+- [x] CHK040 Pedro × Arthur têm propriedade única e proibição de edição simultânea em arquivos compartilhados? [Consistência] — Evidência: `plan.md` §Ownership Matrix; `tasks.md` §Regra de propriedade/Dependencies.
+- [x] CHK041 Ambiente e contas autorizadas bloqueiam mudanças visuais quando baseline não puder ser obtida? [Dependência] — Evidência: `plan.md` onda 0; `quickstart.md` §Pré-condições; `spec.md` Dependencies/NFR-004.
+- [x] CHK042 Navegação, densidade, imagens, administração, arquitetura, baseline, paleta e validação não deixam decisão material implícita? [Prontidão] — Evidência: `spec.md` Clarifications/Direção visual; `plan.md` Gates; `research.md`; `tasks.md` Dependencies.
 
-## Notas
+## Resultado da reavaliação
 
-- Marque cada item após revisar a redação dos artefatos, registrando a lacuna ou a referência que a resolve.
-- Itens com `[Gap]` ou `[Ambiguidade]` são falhas de qualidade até que a especificação seja complementada ou uma decisão seja formalmente registrada.
+- Itens atendidos antes desta rodada: CHK001, CHK002, CHK005, CHK006, CHK008, CHK011, CHK013, CHK015, CHK018, CHK020, CHK022, CHK028–CHK031, CHK033–CHK034, CHK036 e CHK039–CHK042.
+- Itens completados após correção documental: CHK003–CHK004, CHK007, CHK009–CHK010, CHK012, CHK014, CHK016–CHK017, CHK019, CHK021, CHK023–CHK027, CHK032, CHK035 e CHK037–CHK038.
+- Itens não aplicáveis: nenhum.
+- Evidência visual: apenas planejada; nenhuma baseline foi declarada como capturada nesta revisão.

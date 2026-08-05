@@ -18,7 +18,7 @@
 
 ### Navegação mobile
 
-**Decision**: menu modal/lateral acessível, com destinos derivados do papel atual.
+**Decision**: menu modal/lateral com destinos derivados do papel atual, primeiro destino como foco inicial, contenção de foco enquanto modal, fechamento por Escape/controle explícito e retorno ao acionador, conforme FR-001.
 **Rationale**: preserva todos os destinos desktop e evita barra inferior fora de escopo.
 **Alternatives considered**: esconder links (falha FR-001); barra inferior (decisão aprovada contra).
 
@@ -30,7 +30,7 @@
 
 ### Estados e confirmação
 
-**Decision**: padrão compartilhado de loading/vazio/erro e confirmação contextual com foco restaurado.
+**Decision**: padrão compartilhado de loading/vazio/erro conforme FR-006–FR-007 e confirmação contextual com foco inicial seguro, contido e restaurado conforme FR-004–FR-005.
 **Rationale**: UX-02 a UX-04 demonstram inconsistência repetida.
 **Alternatives considered**: mensagens locais por rota — rejeitadas por inconsistência e retrabalho.
 
