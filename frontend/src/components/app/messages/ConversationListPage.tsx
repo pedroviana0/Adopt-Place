@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/select";
 import { fetchConversas, type ConversationStatusFilter } from "@/lib/data/mensagens";
 import { statusConversaAdocaoLabel } from "@/lib/domain/enums";
+import { AsyncState } from "@/components/app/AsyncState";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Archive } from "lucide-react";
 
 interface ConversationListPageProps {
   audience: "adopter" | "responsible";
@@ -27,12 +31,15 @@ export function ConversationListPage({ audience }: ConversationListPageProps) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-serif text-3xl font-semibold">Mensagens</h1>
-        <div className="w-44">
+        <div className="w-full sm:w-44">
+          <Label htmlFor={`conversation-status-${audience}`} className="sr-only">
+            Filtrar conversas por situação
+          </Label>
           <Select
             value={status}
             onValueChange={(value) => setStatus(value as ConversationStatusFilter)}
           >
-            <SelectTrigger>
+            <SelectTrigger id={`conversation-status-${audience}`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -47,17 +54,26 @@ export function ConversationListPage({ audience }: ConversationListPageProps) {
         Conversas liberadas após a aprovação de uma solicitação.
       </p>
 
-      {conversasQuery.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Carregando…</p>
-      ) : conversasQuery.isError ? (
-        <p className="mt-6 text-sm text-destructive">
-          {conversasQuery.error instanceof Error
-            ? conversasQuery.error.message
-            : "Não foi possível carregar as conversas."}
-        </p>
-      ) : (conversasQuery.data?.conversations.length ?? 0) === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">Nenhuma conversa.</p>
-      ) : (
+      <AsyncState
+        isLoading={conversasQuery.isLoading}
+        isError={conversasQuery.isError}
+        error={conversasQuery.error}
+        isEmpty={(conversasQuery.data?.conversations.length ?? 0) === 0}
+        loadingLabel="Carregando conversas…"
+        loadingFallback={<ConversationListSkeleton />}
+        errorTitle="Não foi possível carregar as conversas"
+        onRetry={() => conversasQuery.refetch()}
+        emptyState={{
+          title:
+            status === "todas"
+              ? "Nenhuma conversa disponível"
+              : `Nenhuma conversa ${status === "ativas" ? "ativa" : "arquivada"}`,
+          description:
+            status === "todas"
+              ? "As conversas são liberadas quando uma solicitação de adoção é aprovada."
+              : "Altere o filtro para consultar outras conversas.",
+        }}
+      >
         <ul className="mt-6 divide-y rounded-xl border bg-card">
           {conversasQuery.data!.conversations.map((conversation) => (
             <li key={conversation.id}>
@@ -72,7 +88,7 @@ export function ConversationListPage({ audience }: ConversationListPageProps) {
             </li>
           ))}
         </ul>
-      )}
+      </AsyncState>
     </div>
   );
 }
@@ -87,16 +103,17 @@ function ConversationLink({ conversation, to }: ConversationLinkProps) {
     <Link
       to={to}
       params={{ conversaId: conversation.id }}
-      className="flex items-center justify-between gap-3 p-4 hover:bg-muted/50"
+      className="flex min-w-0 flex-col gap-3 p-4 hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="min-w-0">
-        <p className="flex items-center gap-2 font-medium">
-          <span className="truncate">{conversation.counterparty.label}</span>
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium">
+          <span className="break-words">{conversation.counterparty.label}</span>
           <span className="text-xs font-normal text-muted-foreground">
             · {conversation.animal.nome}
           </span>
           {conversation.status === "ARQUIVADA" && (
-            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+              <Archive className="h-3 w-3" aria-hidden="true" />
               {statusConversaAdocaoLabel.ARQUIVADA}
             </span>
           )}
@@ -107,16 +124,33 @@ function ConversationLink({ conversation, to }: ConversationLinkProps) {
             : "Sem mensagens ainda"}
         </p>
       </div>
-      <div className="flex shrink-0 flex-col items-end gap-1">
+      <div className="flex shrink-0 items-center justify-between gap-3 sm:flex-col sm:items-end sm:gap-1">
         <span className="text-xs text-muted-foreground">
           {new Date(conversation.updatedAt).toLocaleDateString("pt-BR")}
         </span>
         {conversation.unreadCount > 0 && (
           <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+            <span className="sr-only">Mensagens não lidas: </span>
             {conversation.unreadCount}
           </span>
         )}
       </div>
     </Link>
+  );
+}
+
+function ConversationListSkeleton() {
+  return (
+    <div className="mt-6 divide-y rounded-xl border bg-card" aria-hidden="true">
+      {Array.from({ length: 3 }, (_, index) => (
+        <div key={index} className="flex items-center justify-between gap-3 p-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-3 w-56 max-w-full" />
+          </div>
+          <Skeleton className="h-5 w-12" />
+        </div>
+      ))}
+    </div>
   );
 }

@@ -55,11 +55,11 @@
 
 **Goal**: US4 — jornadas autenticadas responsivas sem mudança de contrato.
 
-- [ ] T028 [US4] [ARTHUR] Adaptar layout, estados e formulário de `/meu-perfil` em `frontend/src/routes/_authenticated.meu-perfil.tsx` para 375/1024/1440, preservando validação e contratos atuais (FR-011/FR-016/FR-018/FR-019).
-- [ ] T029 [ARTHUR] [P] [US4] Adaptar layout, feedback e formulário de `/triagem` em `frontend/src/routes/_authenticated.triagem.tsx` após T015, preservando validação atual (FR-006/FR-011/FR-018/FR-019).
-- [ ] T030 [ARTHUR] [P] [US4] Adaptar vazio/erro/lista de `/meus-favoritos` em `frontend/src/routes/_authenticated.meus-favoritos.tsx` após T015 e T018 (FR-007/FR-011).
-- [ ] T031 [ARTHUR] [P] [US4] Adaptar lista e estados de `/minhas-solicitacoes` em `frontend/src/routes/_authenticated.minhas-solicitacoes.tsx` sem alterar query keys ou DTOs (FR-006/FR-011/FR-016).
-- [ ] T032 [US4] [ARTHUR] Adaptar lista e conversa do adotante em `frontend/src/routes/_authenticated.mensagens.index.tsx` e `frontend/src/routes/_authenticated.mensagens.$conversaId.tsx`, preservando estado arquivado somente leitura (FR-011/FR-016).
+- [X] T028 [US4] [ARTHUR] Adaptar layout, estados e formulário de `/meu-perfil` em `frontend/src/routes/_authenticated.meu-perfil.tsx` para 375/1024/1440, preservando validação e contratos atuais (FR-011/FR-016/FR-018/FR-019).
+- [X] T029 [ARTHUR] [P] [US4] Adaptar layout, feedback e formulário de `/triagem` em `frontend/src/routes/_authenticated.triagem.tsx` após T015, preservando validação atual (FR-006/FR-011/FR-018/FR-019).
+- [X] T030 [ARTHUR] [P] [US4] Adaptar vazio/erro/lista de `/meus-favoritos` em `frontend/src/routes/_authenticated.meus-favoritos.tsx` após T015 e T018 (FR-007/FR-011).
+- [X] T031 [ARTHUR] [P] [US4] Adaptar lista e estados de `/minhas-solicitacoes` em `frontend/src/routes/_authenticated.minhas-solicitacoes.tsx` sem alterar query keys ou DTOs (FR-006/FR-011/FR-016).
+- [X] T032 [US4] [ARTHUR] Adaptar lista e conversa do adotante em `frontend/src/routes/_authenticated.mensagens.index.tsx` e `frontend/src/routes/_authenticated.mensagens.$conversaId.tsx`, preservando estado arquivado somente leitura (FR-011/FR-016).
 - [ ] T033 [PEDRO] [US4] Executar regressão manual de adotante em perfil, triagem, favoritos, solicitação e chat ativo/arquivado, incluindo formulário/erro/foco e viewport documentados em `specs/004-ui-ux-redesign/quickstart.md` (SC-001–SC-009).
 
 ## Phase 7 — Jornadas de organização/acolhedor
