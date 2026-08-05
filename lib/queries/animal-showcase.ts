@@ -1,5 +1,10 @@
 import { Prisma, StatusAnimal, TipoRegistroSaude } from "@prisma/client";
 
+import {
+  CANONICAL_SPECIES_NAMES,
+  canonicalBreedsForSpecies,
+  ensureAnimalCatalog,
+} from "@/lib/animal-catalog";
 import { prisma } from "@/lib/prisma";
 import type { ShowcaseFilters } from "@/lib/schemas/showcase";
 
@@ -81,8 +86,11 @@ export async function getShowcaseAnimals(filters: ShowcaseFilters) {
 }
 
 export async function getShowcaseFilterOptions() {
+  await ensureAnimalCatalog();
+
   const [especies, orgCities, fosterCities] = await prisma.$transaction([
     prisma.especie.findMany({
+      where: { nome: { in: [...CANONICAL_SPECIES_NAMES] } },
       orderBy: { nome: "asc" },
       select: {
         id: true,
@@ -104,7 +112,18 @@ export async function getShowcaseFilterOptions() {
     }),
   ]);
 
+  const speciesByName = new Map(especies.map((species) => [species.nome, species]));
+  const canonicalSpecies = CANONICAL_SPECIES_NAMES.flatMap((speciesName) => {
+    const species = speciesByName.get(speciesName);
+    if (!species) return [];
+    const breedsByName = new Map(species.racas.map((breed) => [breed.nome, breed]));
+    const racas = canonicalBreedsForSpecies(speciesName).flatMap((breedName) => {
+      const breed = breedsByName.get(breedName);
+      return breed ? [breed] : [];
+    });
+    return [{ ...species, racas }];
+  });
   const cities = Array.from(new Set([...orgCities, ...fosterCities].map((item) => item.cidade))).sort();
 
-  return { especies, cities };
+  return { especies: canonicalSpecies, cities };
 }

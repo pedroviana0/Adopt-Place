@@ -149,9 +149,26 @@ describe("public showcase API", () => {
   });
 
   it("GET /api/catalogos returns species/breeds and available cities", async () => {
-    vi.mocked(prisma.especie.findMany).mockResolvedValue([
-      { id: "e1", nome: "Cachorro", racas: [{ id: "r1", nome: "SRD", especieId: "e1" }] },
-    ] as never);
+    vi.mocked(prisma.especie.findMany)
+      .mockResolvedValueOnce([
+        { id: "e1", nome: "Cachorro" },
+        { id: "e2", nome: "Gato" },
+      ] as never)
+      .mockResolvedValueOnce([
+        {
+          id: "e2",
+          nome: "Gato",
+          racas: [{ id: "r2", nome: "Sem raça definida (SRD)", especieId: "e2" }],
+        },
+        {
+          id: "e1",
+          nome: "Cachorro",
+          racas: [
+            { id: "legacy", nome: "SRD", especieId: "e1" },
+            { id: "r1", nome: "Sem raça definida (SRD)", especieId: "e1" },
+          ],
+        },
+      ] as never);
     vi.mocked(prisma.organizacao.findMany).mockResolvedValue([{ cidade: "Volta Redonda" }] as never);
     vi.mocked(prisma.acolhedorIndependente.findMany).mockResolvedValue([{ cidade: "Barra Mansa" }] as never);
 
@@ -159,7 +176,13 @@ describe("public showcase API", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.especies[0]).toMatchObject({ id: "e1", nome: "Cachorro" });
+    expect(body.especies.map((especie: { nome: string }) => especie.nome)).toEqual([
+      "Cachorro",
+      "Gato",
+    ]);
+    expect(body.especies[0].racas.map((raca: { nome: string }) => raca.nome)).toEqual([
+      "Sem raça definida (SRD)",
+    ]);
     expect(body.cidades).toContain("Volta Redonda");
     expect(body.cidades).toContain("Barra Mansa");
   });

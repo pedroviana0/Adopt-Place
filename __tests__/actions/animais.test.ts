@@ -57,6 +57,11 @@ function mockActiveOrganization() {
   } as never);
   vi.mocked(prisma.raca.findUnique).mockResolvedValue({
     especieId: baseAnimalInput.especieId,
+    nome: "Labrador Retriever",
+  } as never);
+  vi.mocked(prisma.especie.findUnique).mockResolvedValue({
+    id: baseAnimalInput.especieId,
+    nome: "Cachorro",
   } as never);
 }
 
@@ -135,6 +140,36 @@ describe("animal actions", () => {
       expect(result).toEqual({ id: animalId });
     });
 
+    it("rejects a species that is not part of the canonical catalog", async () => {
+      mockActiveOrganization();
+      vi.mocked(prisma.especie.findUnique).mockResolvedValue(null);
+
+      const result = await createAnimal(baseAnimalInput);
+
+      expect(result).toEqual({
+        error: "A especie informada nao esta disponivel",
+        code: "INVALID_SPECIES",
+      });
+      expect(prisma.raca.findUnique).not.toHaveBeenCalled();
+      expect(prisma.animal.create).not.toHaveBeenCalled();
+    });
+
+    it("rejects a breed from a different species", async () => {
+      mockActiveOrganization();
+      vi.mocked(prisma.raca.findUnique).mockResolvedValue({
+        especieId: "cm00000000000000000000009",
+        nome: "Persa",
+      } as never);
+
+      const result = await createAnimal(baseAnimalInput);
+
+      expect(result).toEqual({
+        error: "A raca nao pertence a especie informada",
+        code: "INVALID_BREED",
+      });
+      expect(prisma.animal.create).not.toHaveBeenCalled();
+    });
+
     it("derives exactly one foster owner from the current account", async () => {
       vi.mocked(getServerSession).mockResolvedValue(
         session({
@@ -151,6 +186,11 @@ describe("animal actions", () => {
       } as never);
       vi.mocked(prisma.raca.findUnique).mockResolvedValue({
         especieId: baseAnimalInput.especieId,
+        nome: "Labrador Retriever",
+      } as never);
+      vi.mocked(prisma.especie.findUnique).mockResolvedValue({
+        id: baseAnimalInput.especieId,
+        nome: "Cachorro",
       } as never);
       createAnimalMock.mockResolvedValue({ id: animalId } as never);
 
@@ -209,6 +249,27 @@ describe("animal actions", () => {
       } as AnimalInput);
 
       expect(result.error).toBe("Revise os campos informados");
+      expect(prisma.animal.update).not.toHaveBeenCalled();
+    });
+
+    it("rejects an incompatible breed before updating an owned animal", async () => {
+      mockActiveOrganization();
+      findAnimal.mockResolvedValue({
+        organizacaoId,
+        acolhedorId: null,
+        status: StatusAnimal.RESGATADO,
+      } as never);
+      vi.mocked(prisma.raca.findUnique).mockResolvedValue({
+        especieId: "cm00000000000000000000009",
+        nome: "Persa",
+      } as never);
+
+      const result = await updateAnimal(animalId, baseAnimalInput);
+
+      expect(result).toEqual({
+        error: "A raca nao pertence a especie informada",
+        code: "INVALID_BREED",
+      });
       expect(prisma.animal.update).not.toHaveBeenCalled();
     });
   });
