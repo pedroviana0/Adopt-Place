@@ -22,8 +22,8 @@
 
 **Goal**: US1 — todos os destinos autorizados permanecem alcançáveis.
 
-- [ ] T010 [US1] [ARTHUR] Implementar menu mobile modal/lateral por papel em `frontend/src/components/app/Navbar.tsx`, reutilizando primitive existente e preservando destinos de visitante, adotante, organização, acolhedor independente e administrador (UX-01, FR-001/FR-002).
-- [ ] T011 [US1] [ARTHUR] Ajustar foco, fechamento e retorno ao gatilho do menu em `frontend/src/components/app/Navbar.tsx` e primitive selecionada em `frontend/src/components/ui/`, para SC-001/SC-003.
+- [X] T010 [US1] [ARTHUR] Implementar menu mobile modal/lateral por papel em `frontend/src/components/app/Navbar.tsx`, reutilizando primitive existente e preservando destinos de visitante, adotante, organização, acolhedor independente e administrador (UX-01, FR-001/FR-002).
+- [X] T011 [US1] [ARTHUR] Ajustar foco, fechamento e retorno ao gatilho do menu em `frontend/src/components/app/Navbar.tsx` e primitive selecionada em `frontend/src/components/ui/`, para SC-001/SC-003.
 - [ ] T012 [US1] [ARTHUR] Corrigir navegação responsiva do dashboard em `frontend/src/routes/_authenticated.dashboard.tsx` para manter todos os destinos em 375 px sem rolagem horizontal involuntária (UX-08, FR-001/FR-011).
 - [ ] T013 [US1] [ARTHUR] Ajustar shell global e rodapé em `frontend/src/routes/__root.tsx` para compatibilidade com navegação/foco e larguras-alvo (FR-001, NFR-001).
 - [ ] T014 [PEDRO] [US1] Executar roteiro manual de teclado em Navbar e dashboard shell para visitante, adotante, organização, acolhedor independente e administrador, com sessões, destinos e evidências separados na matriz de `specs/004-ui-ux-redesign/quickstart.md` (SC-001/SC-003).
