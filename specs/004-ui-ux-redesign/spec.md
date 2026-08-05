@@ -178,18 +178,18 @@ Como qualquer pessoa usuária, quero reconhecer ações, estados e prioridade vi
 
 ## Traceability to Audit
 
-| Achado da auditoria | Requisitos iniciais |
-|---|---|
-| UX-01 | FR-001, FR-002, NFR-001, SC-001 |
-| UX-02 | FR-004, FR-005, FR-006, SC-004 |
-| UX-03 | FR-006, FR-007, SC-006 |
-| UX-04 | FR-006, FR-008, SC-005 |
-| UX-05 | FR-010, SC-007 |
-| UX-06 | FR-013, FR-015, CR-001 |
-| UX-07 | FR-006, FR-009, SC-006 |
-| UX-08 | FR-001, FR-011, NFR-001 |
-| UX-09 | FR-011, FR-012, FR-004 |
-| UX-10 | FR-014, FR-015, NFR-002, SC-003 |
+| Achado da auditoria | Requisitos iniciais | Evidência de implementação/validação |
+|---|---|---|
+| UX-01 | FR-001, FR-002, NFR-001, SC-001 | Navbar e shell responsivos; `quickstart.md` e `docs/audits/004-ui-ux-baseline/final/` |
+| UX-02 | FR-004, FR-005, FR-006, SC-004 | `ConfirmDestructiveAction.tsx`; cancelamento/toggle administrativo registrados na evidência final |
+| UX-03 | FR-006, FR-007, SC-006 | `AsyncState.tsx`, `EmptyState.tsx` e rotas consumidoras; evidência final por perfil |
+| UX-04 | FR-006, FR-008, SC-005 | `AnimalShowcaseSkeleton.tsx`, home e vitrine |
+| UX-05 | FR-010, SC-007 | `PublicAnimalCard.tsx` e detalhe público com foto real/placeholder distintos |
+| UX-06 | FR-013, FR-015, CR-001 | `styles.css` e contraste registrado no gate da Issue #100 |
+| UX-07 | FR-006, FR-009, SC-006 | filtros com quantidade, estado selecionado e limpeza; validação renderizada da vitrine |
+| UX-08 | FR-001, FR-011, NFR-001 | shell, listas e formulários autenticados sem overflow nas combinações executadas |
+| UX-09 | FR-011, FR-012, FR-004 | lista administrativa responsiva e confirmação contextual validada |
+| UX-10 | FR-014, FR-015, NFR-002, SC-003 | foco/tokens do gate #100 e revisão HTML/ARIA final; zoom 200% permanece gate pendente |
 
 ## Cobertura de estados e formulários
 

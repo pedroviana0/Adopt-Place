@@ -187,7 +187,7 @@ function Page() {
           className="mt-4"
         >
           <ul className="mt-4 space-y-3">
-            {agendaQuery.data!.map((item) => (
+            {(agendaQuery.data ?? []).map((item) => (
               <AgendaRow key={item.id} item={item} onChanged={invalidate} />
             ))}
           </ul>

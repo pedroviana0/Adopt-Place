@@ -109,7 +109,7 @@ function Page() {
         className="mt-4"
       >
         <ul className="mt-4 divide-y rounded-xl border bg-card">
-          {documentosQuery.data!.map((doc) => (
+          {(documentosQuery.data ?? []).map((doc) => (
             <DocumentRow key={doc.id} doc={doc} onDeleted={invalidate} />
           ))}
         </ul>

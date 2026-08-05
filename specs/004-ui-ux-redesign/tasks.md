@@ -80,7 +80,7 @@
 
 - [X] T040 [US4] [ARTHUR] Estruturar lista de usuários em desktop compacto e mobile por linha/card em `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx`, usando apenas campos do contrato ADMIN-01 (UX-09, FR-011/FR-012/FR-016).
 - [X] T041 [US4] [ARTHUR] Conectar desativação/reativação de `frontend/src/routes/_authenticated.dashboard.admin.usuarios.tsx` ao componente T016, sem adicionar busca/filtro sem suporte atual (UX-02/UX-09, FR-004/FR-012).
-- [ ] T042 [PEDRO] [US4] Executar roteiro manual admin em `/dashboard/admin/usuarios`: 375/1024/1440, estado, confirmação, cancelamento, toggle e foco; registrar resultado (SC-001–SC-004).
+- [X] T042 [PEDRO] [US4] Executar roteiro manual admin em `/dashboard/admin/usuarios`: 375/1024/1440, estado, confirmação, cancelamento, toggle e foco; registrar resultado (SC-001–SC-004).
 
 ## Phase 9 — Acessibilidade, responsividade e regressão
 
@@ -89,16 +89,16 @@
 - [ ] T043 [PEDRO] [US5] Auditar teclado, nome acessível e foco inicial/contido/restaurado em 100% das rotas e controles enumerados na matriz de `specs/004-ui-ux-redesign/quickstart.md`, registrando papel, viewport, sequência e resultado (UX-01/UX-10, FR-019, SC-001/SC-003).
 - [ ] T044 [PEDRO] [US5] Auditar zoom 200%, rolagem horizontal e alvo de toque/pointer em toda a população de rotas de `specs/004-ui-ux-redesign/quickstart.md` (NFR-001/NFR-002, SC-002).
 - [ ] T045 [PEDRO] [US5] Auditar e registrar em `specs/004-ui-ux-redesign/quickstart.md` texto/superfície (4,5:1), texto grande, limites de controles, foco e componentes gráficos essenciais (3:1), além de ação primária, erro, aviso, sucesso, informação, seleção e disabled aplicável; verificar em cada estado uma pista adicional à cor (UX-06/UX-10, FR-013–FR-015, SC-007).
-- [ ] T046 [PEDRO] [US5] Executar leitor de tela quando disponível, com sessões separadas dos cinco perfis, nos fluxos de menu, formulário, filtro/card, chat, upload, diálogo e lista definidos em `specs/004-ui-ux-redesign/quickstart.md`; se indisponível, registrar revisão de HTML/ARIA/ordem e pendência assistiva explícita (NFR-003/FR-019).
-- [ ] T047 [US5] [ARTHUR] Corrigir somente achado previamente registrado por T043–T046 na matriz final de `specs/004-ui-ux-redesign/quickstart.md`, após registrar rota, arquivo existente, requisito, evidência anterior e critério esperado; proibir refatoração oportunista, formatação massiva e alteração fora do escopo (FR-014–FR-017).
-- [ ] T048 [PEDRO] [US5] Rodar validações automatizadas e regressão 003: `npm test`, typecheck, lint, Prisma validate, build raiz, build frontend, lint focado e roteiro dos formulários; separar débito CRLF/Prettier e confirmar TypeScript strict/ausência de `any` novo em `specs/004-ui-ux-redesign/quickstart.md` (SC-008/SC-009, CR-008).
+- [X] T046 [PEDRO] [US5] Executar leitor de tela quando disponível, com sessões separadas dos cinco perfis, nos fluxos de menu, formulário, filtro/card, chat, upload, diálogo e lista definidos em `specs/004-ui-ux-redesign/quickstart.md`; se indisponível, registrar revisão de HTML/ARIA/ordem e pendência assistiva explícita (NFR-003/FR-019).
+- [X] T047 [US5] [ARTHUR] Corrigir somente achado previamente registrado por T043–T046 na matriz final de `specs/004-ui-ux-redesign/quickstart.md`, após registrar rota, arquivo existente, requisito, evidência anterior e critério esperado; proibir refatoração oportunista, formatação massiva e alteração fora do escopo (FR-014–FR-017).
+- [X] T048 [PEDRO] [US5] Rodar validações automatizadas e regressão 003: `npm test`, typecheck, lint, Prisma validate, build raiz, build frontend, lint focado e roteiro dos formulários; separar débito CRLF/Prettier e confirmar TypeScript strict/ausência de `any` novo em `specs/004-ui-ux-redesign/quickstart.md` (SC-008/SC-009, CR-008).
 
 ## Phase 10 — Documentação, homologação e encerramento
 
 - [ ] T049 [US5] [PEDRO] Comparar screenshots baseline/pós em `docs/audits/004-ui-ux-baseline/` e registrar diferenças/aceite em `specs/004-ui-ux-redesign/quickstart.md` (FR-003, SC-002–SC-007).
-- [ ] T050 [US5] [PEDRO] Atualizar rastreabilidade UX → FR/SC → evidências em `specs/004-ui-ux-redesign/spec.md` e `specs/004-ui-ux-redesign/tasks.md`, garantindo cobertura UX-01…UX-10.
-- [ ] T051 [US5] [PEDRO] Atualizar `specs/004-ui-ux-redesign/quickstart.md` com evidência final por papel, contratos preservados, rollback aplicado se houver e limitações restantes (FR-016/FR-017).
-- [ ] T052 [US5] [PEDRO] Executar revisão de escopo e `git diff --check`, confirmando ausência de mudança funcional em `app/`, `lib/`, `prisma/`, migrations, seeds, autenticação, autorização, contratos HTTP, Uploadthing, regras de negócio e `legacy/frontend-antigo/` (FR-016/FR-017, CR-002, CR-003, CR-004, CR-005, CR-006, CR-007).
+- [X] T050 [US5] [PEDRO] Atualizar rastreabilidade UX → FR/SC → evidências em `specs/004-ui-ux-redesign/spec.md` e `specs/004-ui-ux-redesign/tasks.md`, garantindo cobertura UX-01…UX-10.
+- [X] T051 [US5] [PEDRO] Atualizar `specs/004-ui-ux-redesign/quickstart.md` com evidência final por papel, contratos preservados, rollback aplicado se houver e limitações restantes (FR-016/FR-017).
+- [X] T052 [US5] [PEDRO] Executar revisão de escopo e `git diff --check`, confirmando ausência de mudança funcional em `app/`, `lib/`, `prisma/`, migrations, seeds, autenticação, autorização, contratos HTTP, Uploadthing, regras de negócio e `legacy/frontend-antigo/` (FR-016/FR-017, CR-002, CR-003, CR-004, CR-005, CR-006, CR-007).
 
 ## Dependencies and Parallel Opportunities
 

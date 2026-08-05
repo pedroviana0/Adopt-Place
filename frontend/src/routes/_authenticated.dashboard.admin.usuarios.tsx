@@ -70,7 +70,7 @@ function Page() {
         }}
       >
         <ul className="mt-6 divide-y rounded-xl border bg-card">
-          {usuariosQuery.data!.map((u) => {
+          {(usuariosQuery.data ?? []).map((u) => {
             const busy = pending === u.id;
             return (
               <li

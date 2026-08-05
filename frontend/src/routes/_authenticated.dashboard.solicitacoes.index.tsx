@@ -81,7 +81,7 @@ function Page() {
         }}
       >
         <ul className="mt-6 space-y-3">
-          {solicitacoesQuery.data!.map((s) => {
+          {(solicitacoesQuery.data ?? []).map((s) => {
             const busy = pending === s.id;
             return (
               <li key={s.id} className="rounded-xl border bg-card p-4">
