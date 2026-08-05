@@ -58,14 +58,13 @@ function LoginPage() {
       </form>
 
       <div className="mt-8 rounded-xl border bg-card p-4 text-xs text-muted-foreground">
-        <p className="mb-2 font-medium text-foreground">Contas de teste (senha: <code>senha123</code>)</p>
+        <p className="mb-2 font-medium text-foreground">Contas de teste (senha: <code>AdoptPlace@2026</code>)</p>
         <ul className="space-y-0.5">
-          <li>ana@adotante.com — adotante com triagem concluída</li>
-          <li>joao@adotante.com — adotante sem triagem</li>
-          <li>contato@spavr.org — organização SPA-VR</li>
-          <li>contato@ciaanimalvr.org — organização Cia Animal VR</li>
-          <li>maria@acolhedor.com — acolhedor independente</li>
-          <li>admin@adoptplace.com — administrador</li>
+          <li>admin.teste@example.com — administrador</li>
+          <li>organizacao.teste@example.com — organização</li>
+          <li>acolhedor.teste@example.com — acolhedor independente</li>
+          <li>adotante.aprovado@example.com — adotante com triagem concluída</li>
+          <li>adotante.pendente@example.com — adotante com triagem pendente</li>
         </ul>
       </div>
     </div>
