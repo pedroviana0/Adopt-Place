@@ -5,10 +5,10 @@
 
 ## Phase 1 — Baseline e gates
 
-- [ ] T001 [US5] [PEDRO] Completar a matriz preparada em `specs/004-ui-ux-redesign/quickstart.md` com uma linha por rota, papel, controle/estado, viewport 375/1024/1440, zoom, data e caminho de evidência antes da primeira mudança visual (FR-003, SC-001–SC-003).
-- [ ] T002 [US5] [PEDRO] Capturar baseline renderizada da população nomeada em `specs/004-ui-ux-redesign/quickstart.md` em `docs/audits/004-ui-ux-baseline/`, com sessão/evidência separada para visitante, adotante, organização, acolhedor independente e administrador, sem dados privados (FR-003/NFR-004).
-- [ ] T003 [US5] [PEDRO] Registrar em `specs/004-ui-ux-redesign/quickstart.md` a baseline de contratos/rotas da feature 003 a preservar, referenciando `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`, para FR-016/FR-017.
-- [ ] T004 [US5] [PEDRO] Executar e registrar gate pré-implementação em `specs/004-ui-ux-redesign/quickstart.md`: `git diff --check`, builds/tipos disponíveis, débito CRLF/Prettier e ausência de mudança em `app/`, `lib/` e `prisma/` (FR-016/FR-017, CR-002, CR-003, CR-004, CR-005, CR-006, CR-007).
+- [X] T001 [US5] [PEDRO] Completar a matriz preparada em `specs/004-ui-ux-redesign/quickstart.md` com uma linha por rota, papel, controle/estado, viewport 375/1024/1440, zoom, data e caminho de evidência antes da primeira mudança visual (FR-003, SC-001–SC-003).
+- [X] T002 [US5] [PEDRO] Capturar baseline renderizada da população nomeada em `specs/004-ui-ux-redesign/quickstart.md` em `docs/audits/004-ui-ux-baseline/`, com sessão/evidência separada para visitante, adotante, organização, acolhedor independente e administrador, sem dados privados (FR-003/NFR-004).
+- [X] T003 [US5] [PEDRO] Registrar em `specs/004-ui-ux-redesign/quickstart.md` a baseline de contratos/rotas da feature 003 a preservar, referenciando `specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`, para FR-016/FR-017.
+- [X] T004 [US5] [PEDRO] Executar e registrar gate pré-implementação em `specs/004-ui-ux-redesign/quickstart.md`: `git diff --check`, builds/tipos disponíveis, débito CRLF/Prettier e ausência de mudança em `app/`, `lib/` e `prisma/` (FR-016/FR-017, CR-002, CR-003, CR-004, CR-005, CR-006, CR-007).
 
 ## Phase 2 — Fundação visual e tokens
 

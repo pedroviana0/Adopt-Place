@@ -7,6 +7,42 @@
 3. Antes da primeira alteração visual, capturar baseline em `docs/audits/004-ui-ux-baseline/` para 375, 1024 e 1440 px, registrando perfil, rota, estado, data e caminho do arquivo. Organização e acolhedor devem ter capturas, destinos disponíveis e evidências separados, mesmo quando o comportamento esperado for idêntico.
 4. Repetir a mesma matriz após cada onda e no aceite final, usando o mesmo papel, dado de teste, viewport, zoom e estado quando aplicável.
 
+### Registro da baseline pré-implementação — 2026-08-05
+
+A baseline foi concluída antes da primeira mudança visual na branch `004-99-baseline-visual`. O inventário rastreável, as limitações e os 102 arquivos PNG estão em [`docs/audits/004-ui-ux-baseline/`](../../docs/audits/004-ui-ux-baseline/README.md). Foram usadas sessões separadas de visitante, adotante, organização, acolhedor independente e administrador, sempre com dados de teste preexistentes e sem registrar credenciais, cookies, tokens ou segredos.
+
+| Item do gate | Resultado anterior à implementação |
+|---|---|
+| Viewports | 375 × 812, 1024 × 768 e 1440 × 900 em todas as rotas/estados alcançáveis enumerados no inventário |
+| Zoom | 100% registrado; o navegador interno não oferece controle de zoom nativo, portanto 200% permanece explicitamente pendente para T044 |
+| Organização × acolhedor | sessões, destinos e arquivos separados; estados dinâmicos inexistentes no acolhedor foram mantidos como vazio, sem criar dados |
+| Rotas dinâmicas | IDs obtidos apenas de links renderizados com dados existentes; conversa do adotante e detalhes dinâmicos do acolhedor indisponíveis e registrados como limitações |
+| Privacidade | nenhum segredo ou valor de autenticação foi persistido nas evidências |
+| Comparabilidade | arquivos `before/` usam prefixo estável e sufixo do viewport; o modo de enquadramento por grupo está documentado no inventário |
+
+### Baseline de contratos e arquitetura a preservar
+
+A referência canônica é [`specs/003-backend-frontend-integration/contracts/http-contract-inventory.md`](../003-backend-frontend-integration/contracts/http-contract-inventory.md). A feature 004 não altera nenhum método, caminho, DTO, código de erro, política de credenciais, escopo de papel/propriedade/participação ou comportamento de Uploadthing registrado ali.
+
+- O frontend oficial permanece em `frontend/` e consome `/api/*` por HTTP relativo com credenciais de sessão; Prisma e PostgreSQL permanecem exclusivos do backend Next.js na raiz.
+- NextAuth continua responsável por login, sessão, logout e cookie seguro; o navegador não recebe senha persistida, token, cookie ou identidade confiável fornecida pelo cliente.
+- Validação confiável, autorização, regras de transição e DTOs allowlist permanecem nos Route Handlers e serviços do backend; Zod do cliente é apenas auxílio de UX.
+- Permanecem congelados para regressão os grupos: autenticação/sessão, vitrine pública, cadastro/perfil/triagem, favoritos, solicitações, animais/fotos/relacionamentos, saúde, documentos, dashboard, chat e administração.
+- Não há migration, seed, reset, novo endpoint, mudança de domínio ou alteração de contrato planejada para a feature 004.
+
+### Gate técnico anterior à implementação
+
+| Validação | Resultado em 2026-08-05 |
+|---|---|
+| `git diff --check` | aprovado |
+| `npm run typecheck` | aprovado |
+| `npm run prisma:validate` | aprovado; schema existente válido |
+| `npm run lint` (raiz) | aprovado |
+| `npm run build` (backend raiz) | aprovado após pausar o servidor de desenvolvimento que concorria pelo diretório `.next`; servidor local restaurado depois do build |
+| `npm run build` (`frontend/`) | aprovado; apenas avisos informativos de bundle/plugin, sem falha |
+| `npm run lint` (`frontend/`) | falha preexistente reproduzida: 12.466 erros, majoritariamente `prettier/prettier` por CRLF, e 7 avisos; nenhuma correção ou formatação massiva aplicada |
+| Escopo do diff | somente documentação e capturas em `docs/audits/004-ui-ux-baseline/` e marcação T001–T004; nenhum arquivo em `app/`, `lib/`, `prisma/`, `frontend/src/` ou `legacy/frontend-antigo/` alterado |
+
 ## População principal e matriz de homologação
 
 Pertencem à população: `/`, `/vitrine`, `/animais/$animalId`, `/login`, `/cadastro`, `/cadastro/adotante`, `/cadastro/organizacao`, `/cadastro/acolhedor`, `/meu-perfil`, `/triagem`, `/meus-favoritos`, `/minhas-solicitacoes`, `/mensagens`, `/mensagens/$conversaId`, `/dashboard`, `/dashboard/perfil`, `/dashboard/animais`, `/dashboard/animais/novo`, `/dashboard/animais/$animalId`, `/dashboard/solicitacoes`, `/dashboard/solicitacoes/$solicitacaoId`, `/dashboard/saude`, `/dashboard/documentos`, `/dashboard/mensagens`, `/dashboard/mensagens/$conversaId` e `/dashboard/admin/usuarios`. Cada rota alterada por responsividade ou por componente compartilhado deve ser registrada em 375, 1024 e 1440 px e em 200% de zoom. Inclusão posterior exige atualização prévia de `spec.md`, desta matriz e da tarefa correspondente.
