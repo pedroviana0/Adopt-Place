@@ -147,29 +147,28 @@ contract.
 These records satisfy the route-rendering audit in T005 (Owner: Arthur; Issue
 #17; depends on T004). No lifecycle status is changed beyond `audited`.
 
-Structural checks PASS (no hard defects): every layout renders `<Outlet/>`
-(`__root.tsx:116`, `_authenticated.tsx:12`, `cadastro.tsx:13`,
-`_authenticated.dashboard.tsx:44`, `_authenticated.dashboard.animais.tsx:4`,
-`_authenticated.dashboard.solicitacoes.tsx:4`); every path-bearing layout has an
-index child; every `navigate`/`Link`/`redirect` target resolves to a fullPath in
-`routeTree.gen.ts`; the auth guard redirects to `/login`, which lives outside the
-guarded subtree, so there is no redirect loop; no route lacks a `component`; no
-flat-route name collision (`/animais/$animalId` vs
-`/dashboard/animais/$animalId`).
+Structural checks PASS (no hard defects), recertified after PR #93: all 36
+`.tsx` route files are imported by `routeTree.gen.ts` (35 file routes plus the
+root route); layouts render `<Outlet/>`; path-bearing layouts have index children;
+and the generated paths preserve the public, adopter, responsible, admin, health,
+document, and chat route groups. The auth guard redirects to `/login`, outside
+the guarded subtree, so there is no redirect loop. There is no flat-route name
+collision between `/animais/$animalId` and `/dashboard/animais/$animalId`.
 
-Findings recorded are URL-changes-without-expected-screen behaviors caused by the
-client-only session model (SSR flash and role gating), for T033 to address:
+The findings table preserves the original URL-change/no-render defects and their
+current status after T033/T034. Corrected rows remain visible as audit history;
+unresolved role-routing rows remain explicit follow-up defects:
 
 | ID | Route / trigger | Expected screen | Observed behavior | Evidence (file:line) | Risk | Status |
 |----|-----------------|-----------------|-------------------|----------------------|------|--------|
-| F1 | Any `/_authenticated/*` via hard refresh / direct URL | Guarded screen (or redirect to `/login`) | Guard skips SSR (`beforeLoad` early-returns server-side) and session reads only localStorage, so first paint has `sessao === null`; correct screen/redirect only after hydration | `_authenticated.tsx:5-11`, `hooks.ts:19-25` (`getServerSnapshot => null`), `sessao.ts:9-19` | medium | `audited` |
-| F2 | Protected leaf pages during null-session window | Page content | Component `return null` → blank flash before hydration | `dashboard.index.tsx:15`, `dashboard.animais.index.tsx:17`, `dashboard.solicitacoes.index.tsx:21`, `dashboard.adotantes.tsx:15`, `dashboard.solicitacoes.$solicitacaoId.tsx:27`, `meu-perfil.tsx:15` | low | `audited` |
-| F3 | Authenticated wrong-role navigates to a dashboard route | Consistent access decision | Inconsistent: some pages show a denial line, others redirect. Denial text: `_authenticated.dashboard.tsx:15-17` (ADOTANTE), `dashboard.admin.usuarios.tsx:17` (non-admin). Redirect: `dashboard.animais.novo.tsx:19-24`, `dashboard.animais.$animalId.tsx:28-32`, `dashboard.perfil.tsx:60-64` | medium | `audited` |
-| F4 | ADMIN opens `/dashboard` (URL-typed) | Admin-appropriate screen | Renders operator "Painel" with all-zero metrics because admin has no `organizacaoId`/`acolhedorId` | `_authenticated.dashboard.tsx:15`, `dashboard.index.tsx:16-20`, `sessao.ts:79-81` | low | `audited` |
+| F1 | Any `/_authenticated/*` via hard refresh / direct URL | Guarded screen (or redirect to `/login`) | Corrected: the layout renders `AuthPending` while `ensureSessaoLoaded()` resolves the real `/api/session`; it then renders the protected tree or redirects to `/login?next=<path>` | `_authenticated.tsx:5-36`, `sessao.ts:55-73,104-118` | medium | `corrected` (T033) |
+| F2 | Protected leaf pages during null-session window | Visible pending state followed by page content or redirect | Corrected as a consequence of F1: the parent layout prevents protected leaves from rendering before session resolution, so leaf-level `return null` no longer creates the first-paint blank state | `_authenticated.tsx:19-22` | low | `corrected` |
+| F3 | Authenticated wrong-role navigates to a dashboard route | Consistent access decision | Still inconsistent: admin users receive an inline restricted-area message, while responsible-only animal/profile routes redirect to `/dashboard` or return no leaf content during that redirect | `dashboard.admin.usuarios.tsx:22-33`, `dashboard.animais.novo.tsx:17-24`, `dashboard.animais.$animalId.tsx:27-43`, `dashboard.perfil.tsx:52-71` | medium | `audited` |
+| F4 | ADMIN opens `/dashboard` (URL-typed) | Admin-appropriate screen or redirect to `/dashboard/admin/usuarios` | Still renders the generic `Painel` heading while the operational query is disabled for ADMIN, leaving no admin dashboard content below it | `_authenticated.dashboard.tsx:25-51`, `dashboard.index.tsx:24-44` | low | `audited` |
 
 Full leaf-vs-layout route inventory and the passing structural checks above are
-the recorded evidence base; T033 (Owner: Arthur) consumes F1 as the first
-documented URL-change/no-render defect to fix.
+the recorded evidence base. T033 corrected F1; T034 preserves F3 and F4 as
+explicit remaining defects rather than expanding this delivery.
 
 ## Frontend to Backend Flow Matrix (T008-T012)
 
@@ -205,7 +204,7 @@ isolated homologation and validation evidence.
 | F002-DOCUMENTS-01 | Dedicated document routes upload/list/open/delete private documents through the real HTTP and UploadThing contracts. | Owner-scoped handlers revalidate ownership and return allowlisted internal DTOs. | `DocumentoSaude`, owned `Animal`, optional `RegistroSaude`, unique provider IDs. | No prior mock existed for this new surface. | Keep files private and owner-scoped. | `flow complete`. Evidence: Issues #51/#53/#57/#59, privacy tests, SC-006 foreign-owner rejection and real UploadThing upload/list/open/delete. |
 | F002-CHAT-01 | Responsible and adopter routes consume participant-scoped conversation contracts; archived conversations remain visible and read-only. | Approval creates chat, completion archives it, participants alone read/send, and archived sends are rejected. | Conversation/message/read models and adoption lifecycle. | No prior mock existed for this new surface. | Preserve participant authorization and archived read-only behavior. | `flow complete`. Evidence: Issues #52/#53/#58/#59/#92, lifecycle tests, and SC-006 two-role send/read followed by completion and 409 archived send. |
 | ADMIN-01 | `usuarios.ts` calls the protected admin HTTP contract and `dashboard.admin.usuarios.tsx` lists/toggles real accounts through React Query; completed admin helpers no longer use mock/localStorage state. | `GET /api/admin/usuarios` and `PATCH /api/admin/usuarios/[id]` run behind `requireAdmin`, reuse the validated action/query/schema layer, and return an allowlisted AdminUserDTO. | `Usuario.ativo`, `TipoPerfil.ADMIN`, active-account revalidation, and no-password-hash/private-profile rule. | Manual SC-006 timing remains a final product-level check, not a missing admin contract or mock dependency. | Keep ADMIN-only authorization, inactive-account revalidation, and the narrow DTO stable. Inventory group: **Admin users**. | `flow complete`. Evidence: Issues #60-#62; backend HTTP/action tests cover 401, non-admin 403, safe list, toggle, and inactive block; focused admin/chat run passes 10/10; frontend typecheck, focused lint, and production build pass; no Prisma/schema/migration/seed change. |
-| ROUTES-01 | Route structure resolves, but F1-F4 document SSR session flash, blank protected leaves, inconsistent wrong-role handling, and an ADMIN zero-dashboard state. | Backend auth/role rules exist, but root visual routes are not a fallback UI and no backend route change is required by this audit. | TanStack route tree plus FR-027/FR-028 and the single-public-interface rule. | **Medium**: route acceptance depends on the real session contract and consistent frontend role handling. | Correct F1 after AUTH-01 backend readiness, then record remaining defects. No standalone HTTP inventory group; dependency is **Session/login/logout**. | `audited`. Evidence: T005 structural checks and findings F1-F4. |
+| ROUTES-01 | All 36 route files resolve through the generated tree. F1 and its F2 blank-first-paint consequence are corrected; F3 inconsistent wrong-role handling and F4 empty ADMIN `/dashboard` remain recorded. | Backend auth/role rules exist, but root visual routes are not a fallback UI and no backend route change is required by this audit. | TanStack route tree plus FR-027/FR-028 and the single-public-interface rule. | **Medium**: the remaining route acceptance risk is consistent frontend role handling, not session persistence or backend fallback rendering. | Keep F3/F4 as explicit follow-up defects. No standalone HTTP inventory group; dependency is the completed **Session/login/logout** flow. | `audited`. Evidence: T005, T031-T034; commits `ddabc37`/`a5a062a`; current route-tree and service-only recertification. |
 
 ## Issue Pair and Execution Matrix (T013)
 
@@ -344,13 +343,14 @@ is promoted; ROUTES-01 certification and matrix promotion remain Pedro's T034.
 
 **Route tree audit (T031):**
 
-- 27 route files under `frontend/src/routes/`; `frontend/src/routeTree.gen.ts`
-  registers every one with a matching `fullPath` (e.g. `/`, `/vitrine`,
-  `/login`, `/animais/$animalId`, the pathless `/_authenticated` layout, and the
-  nested `/_authenticated/dashboard/...` tree with its index children).
+- 36 route files under `frontend/src/routes/`; `frontend/src/routeTree.gen.ts`
+  imports every one (35 `createFileRoute` declarations plus `__root.tsx`) and
+  registers the public, adopter, responsible, admin, health, document, and chat
+  paths with their index/layout relationships.
 - Filenames follow the documented TanStack flat convention in
   `frontend/src/routes/README.md`: dot-separated nesting, bare `$` dynamic
-  segments (`$animalId`, `$solicitacaoId`), and `_authenticated`/`__root`
+  segments (`$animalId`, `$solicitacaoId`, `$conversaId`), and
+  `_authenticated`/`__root`
   layout prefixes. No anomaly found: no `src/pages/`, no curly-brace or `*`
   splat filenames, no hand edits to the generated tree, no flat-route name
   collision (`/animais/$animalId` vs `/dashboard/animais/$animalId`).
@@ -377,6 +377,11 @@ is promoted; ROUTES-01 certification and matrix promotion remain Pedro's T034.
 - **Executed validation:** ESLint on `_authenticated.tsx` (clean, 0 errors) and
   `npm --prefix frontend run build` (OK). Live SSR/refresh behavior is a manual
   homologation check recorded above under AUTH-01.
+- **Current recertification (2026-08-04):** all 36 route files matched generated
+  imports; frontend typecheck/build and focused semantic lint passed; a direct
+  development-server request to `/meu-perfil` returned HTTP 200 with `<main>`
+  and the visible `Carregando` state in the initial HTML. This proves the first
+  paint is not blank without requiring a database write or test credential.
 
 ## Root Service-Only Audit (T032) and Route Correction Evidence (T034) — Issue #25
 
@@ -387,14 +392,17 @@ edited here.
 
 **Root service-only audit (T032):**
 
-- `app/` contains **only** backend API route handlers:
-  `app/api/auth/[...nextauth]/route.ts`, `app/api/session/route.ts`,
-  `app/api/mensagens/[id]/route.ts`, `app/api/uploadthing/route.ts` (plus
-  `.gitkeep` markers).
+- `app/` contains **40** backend `app/api/**/route.ts` handlers and no visual
+  route. The groups cover auth/session, registration/profile/screening, public
+  showcase/catalogs/metrics, favorites/requests, managed animals, health,
+  dashboards, documents, chat, administration, and UploadThing transport.
 - **No** `page.tsx`, `layout.tsx`, or any non-`api/` file exists under `app/`.
   The root is confirmed service-only per FR-004/FR-031; it is not a competing
   public UI and not a fallback. `frontend/` remains the only official public
   interface.
+- Root `npm run build` lists only the 40 dynamic `/api/*` app routes (plus the
+  framework `/404` pages entry), confirming the audit from the deployable
+  output as well as from source files.
 
 **Route correction evidence (T034):**
 
@@ -402,12 +410,14 @@ edited here.
   the real session and the layout shows a loading state instead of a blank first
   paint on SSR/refresh/direct URL. **F2** (blank protected leaves) is closed as a
   side effect, since leaves no longer render before a session exists.
-- **Remaining route defects (tracked, not yet fixed):** **F3** inconsistent
-  wrong-role handling (denial text vs redirect) and **F4** ADMIN `/dashboard`
-  zeroed operator panel. Both remain `audited` for a later route-correction round.
-- **Dependency for full ROUTES-01 advancement:** AUTH-01 must reach
-  `flow complete` (T030) before ROUTES-01 is certified; this row records evidence
-  only and does not itself promote ROUTES-01 beyond the proven state.
+- **Remaining route defects (tracked, not fixed here):** **F3** inconsistent
+  wrong-role handling (denial text vs redirect) and **F4** an empty generic
+  `Painel` for ADMIN at `/dashboard`. Both remain `audited` for a later
+  route-correction round.
+- **Dependency result:** AUTH-01 is `flow complete` (T030), so F1/F2 are
+  certified against the real cookie session boundary. ROUTES-01 remains
+  `audited`, rather than `flow complete`, because F3/F4 are still explicit
+  accepted defects.
 
 ## Public Showcase Backend (T037-T039) — Issue #26
 
