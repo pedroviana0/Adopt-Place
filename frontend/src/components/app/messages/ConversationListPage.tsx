@@ -26,6 +26,8 @@ export function ConversationListPage({ audience }: ConversationListPageProps) {
     queryFn: () => fetchConversas(status),
     refetchInterval: 20_000,
   });
+  const conversations = conversasQuery.data?.conversations ?? [];
+  const isAwaitingConversations = !conversasQuery.data && !conversasQuery.isError;
 
   return (
     <div>
@@ -55,10 +57,10 @@ export function ConversationListPage({ audience }: ConversationListPageProps) {
       </p>
 
       <AsyncState
-        isLoading={conversasQuery.isLoading}
+        isLoading={conversasQuery.isLoading || isAwaitingConversations}
         isError={conversasQuery.isError}
         error={conversasQuery.error}
-        isEmpty={(conversasQuery.data?.conversations.length ?? 0) === 0}
+        isEmpty={!isAwaitingConversations && conversations.length === 0}
         loadingLabel="Carregando conversas…"
         loadingFallback={<ConversationListSkeleton />}
         errorTitle="Não foi possível carregar as conversas"
@@ -75,7 +77,7 @@ export function ConversationListPage({ audience }: ConversationListPageProps) {
         }}
       >
         <ul className="mt-6 divide-y rounded-xl border bg-card">
-          {conversasQuery.data!.conversations.map((conversation) => (
+          {conversations.map((conversation) => (
             <li key={conversation.id}>
               {audience === "adopter" ? (
                 <ConversationLink conversation={conversation} to="/mensagens/$conversaId" />
