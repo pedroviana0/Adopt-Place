@@ -27,6 +27,8 @@ import {
 } from "@/lib/data/cuidados";
 import { fetchAnimaisGerenciados } from "@/lib/data/animais";
 import { tipoCuidadoPlanejadoLabel } from "@/lib/domain/enums";
+import { AsyncState } from "@/components/app/AsyncState";
+import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
 export const Route = createFileRoute("/_authenticated/dashboard/saude/")({
   head: () => ({
@@ -77,33 +79,32 @@ function Page() {
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <h1 className="font-serif text-3xl font-semibold">Central de Saúde</h1>
       <p className="text-sm text-muted-foreground">
         Agenda e visão geral dos cuidados dos seus animais.
       </p>
 
       {/* Visão geral */}
-      {overviewQuery.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Carregando visão geral…</p>
-      ) : overviewQuery.isError ? (
-        <p className="mt-6 text-sm text-destructive">
-          {overviewQuery.error instanceof Error
-            ? overviewQuery.error.message
-            : "Não foi possível carregar a visão geral."}
-        </p>
-      ) : overviewQuery.data ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric
-            label="Atrasadas"
-            value={overviewQuery.data.groups.overdue.length}
-            tone="destructive"
-          />
-          <Metric label="Hoje" value={overviewQuery.data.groups.today.length} />
-          <Metric label="Próximos 7 dias" value={overviewQuery.data.groups.next7Days.length} />
-          <Metric label="Próximos 30 dias" value={overviewQuery.data.groups.next30Days.length} />
-        </div>
-      ) : null}
+      <AsyncState
+        isLoading={overviewQuery.isLoading}
+        isError={overviewQuery.isError}
+        error={overviewQuery.error}
+        onRetry={() => overviewQuery.refetch()}
+      >
+        {overviewQuery.data ? (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Metric
+              label="Atrasadas"
+              value={overviewQuery.data.groups.overdue.length}
+              tone="destructive"
+            />
+            <Metric label="Hoje" value={overviewQuery.data.groups.today.length} />
+            <Metric label="Próximos 7 dias" value={overviewQuery.data.groups.next7Days.length} />
+            <Metric label="Próximos 30 dias" value={overviewQuery.data.groups.next30Days.length} />
+          </div>
+        ) : null}
+      </AsyncState>
 
       {overviewQuery.data && overviewQuery.data.positiveTests.length > 0 && (
         <div className="mt-6">
@@ -157,7 +158,7 @@ function Page() {
           <h2 className="font-serif text-xl font-semibold">Agenda</h2>
           <div className="w-52">
             <Select value={situacao} onValueChange={(v) => setSituacao(v as typeof situacao)}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Filtrar agenda por situação">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -171,23 +172,26 @@ function Page() {
           </div>
         </div>
 
-        {agendaQuery.isLoading ? (
-          <p className="mt-4 text-sm text-muted-foreground">Carregando agenda…</p>
-        ) : agendaQuery.isError ? (
-          <p className="mt-4 text-sm text-destructive">
-            {agendaQuery.error instanceof Error
-              ? agendaQuery.error.message
-              : "Não foi possível carregar a agenda."}
-          </p>
-        ) : (agendaQuery.data?.length ?? 0) === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">Nenhum cuidado nesta situação.</p>
-        ) : (
+        <AsyncState
+          isLoading={agendaQuery.isLoading}
+          isError={agendaQuery.isError}
+          error={agendaQuery.error}
+          onRetry={() => agendaQuery.refetch()}
+          isEmpty={
+            !agendaQuery.isLoading && !agendaQuery.isError && (agendaQuery.data?.length ?? 0) === 0
+          }
+          emptyState={{
+            title: "Nenhum cuidado nesta situação",
+            description: "Selecione outro filtro ou registre uma consulta futura.",
+          }}
+          className="mt-4"
+        >
           <ul className="mt-4 space-y-3">
             {agendaQuery.data!.map((item) => (
               <AgendaRow key={item.id} item={item} onChanged={invalidate} />
             ))}
           </ul>
-        )}
+        </AsyncState>
       </div>
     </div>
   );
@@ -340,15 +344,15 @@ function AgendaRow({ item, onChanged }: { item: HealthAgendaItem; onChanged: () 
   };
 
   const doCancel = async () => {
-    if (!confirm("Cancelar/descartar este cuidado planejado? O histórico concluído é preservado."))
-      return;
     setBusy(true);
     try {
       await cancelarCuidado(item.id);
       onChanged();
       toast.success("Cuidado cancelado");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
+      const message = e instanceof Error ? e.message : "Erro";
+      toast.error(message);
+      throw new Error(message);
     } finally {
       setBusy(false);
     }
@@ -411,15 +415,19 @@ function AgendaRow({ item, onChanged }: { item: HealthAgendaItem; onChanged: () 
             >
               Reagendar
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-destructive"
+            <ConfirmDestructiveAction
+              title="Cancelar este cuidado?"
+              item={`${item.titulo} — ${item.animal.nome}`}
+              consequence="O cuidado planejado será cancelado; registros de saúde já concluídos serão preservados."
+              confirmLabel="Cancelar cuidado"
               disabled={busy}
-              onClick={doCancel}
-            >
-              Cancelar
-            </Button>
+              onConfirm={doCancel}
+              trigger={
+                <Button size="sm" variant="outline" className="text-destructive">
+                  Cancelar
+                </Button>
+              }
+            />
           </div>
         )}
       </div>

@@ -22,6 +22,8 @@ import {
 } from "@/lib/data/documentos";
 import { fetchAnimaisGerenciados } from "@/lib/data/animais";
 import { TipoDocumentoSaude, tipoDocumentoSaudeLabel } from "@/lib/domain/enums";
+import { AsyncState } from "@/components/app/AsyncState";
+import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
 export const Route = createFileRoute("/_authenticated/dashboard/documentos/")({
   head: () => ({
@@ -58,7 +60,7 @@ function Page() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["documentos"] });
 
   return (
-    <div>
+    <div className="min-w-0">
       <h1 className="font-serif text-3xl font-semibold">Documentos de saúde</h1>
       <p className="text-sm text-muted-foreground">
         Documentos internos dos seus animais. Não aparecem em perfis públicos.
@@ -72,7 +74,7 @@ function Page() {
         <h2 className="font-serif text-xl font-semibold">Documentos</h2>
         <div className="w-52">
           <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-            <SelectTrigger>
+            <SelectTrigger aria-label="Filtrar documentos por tipo">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -87,44 +89,49 @@ function Page() {
         </div>
       </div>
 
-      {documentosQuery.isLoading ? (
-        <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
-      ) : documentosQuery.isError ? (
-        <p className="mt-4 text-sm text-destructive">
-          {documentosQuery.error instanceof Error
-            ? documentosQuery.error.message
-            : "Não foi possível carregar os documentos."}
-        </p>
-      ) : (documentosQuery.data?.length ?? 0) === 0 ? (
-        <p className="mt-4 text-sm text-muted-foreground">Nenhum documento.</p>
-      ) : (
+      <AsyncState
+        isLoading={documentosQuery.isLoading}
+        isError={documentosQuery.isError}
+        error={documentosQuery.error}
+        onRetry={() => documentosQuery.refetch()}
+        isEmpty={
+          !documentosQuery.isLoading &&
+          !documentosQuery.isError &&
+          (documentosQuery.data?.length ?? 0) === 0
+        }
+        emptyState={{
+          title: "Nenhum documento",
+          description:
+            filtroTipo === "TODOS"
+              ? "Envie o primeiro documento de saúde usando o formulário acima."
+              : "Não há documentos deste tipo. Selecione outro filtro.",
+        }}
+        className="mt-4"
+      >
         <ul className="mt-4 divide-y rounded-xl border bg-card">
           {documentosQuery.data!.map((doc) => (
             <DocumentRow key={doc.id} doc={doc} onDeleted={invalidate} />
           ))}
         </ul>
-      )}
+      </AsyncState>
     </div>
   );
 }
 
 function DocumentRow({ doc, onDeleted }: { doc: HealthDocument; onDeleted: () => void }) {
-  const [busy, setBusy] = useState(false);
   const onDelete = async () => {
-    if (!confirm("Excluir este documento? O registro de saúde associado é preservado.")) return;
-    setBusy(true);
     try {
       await excluirDocumento(doc.id);
       onDeleted();
       toast.success("Documento excluído");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
-    } finally {
-      setBusy(false);
+      const message = e instanceof Error ? e.message : "Erro";
+      toast.error(message);
+      throw new Error(message);
     }
   };
   return (
-    <li className="flex items-start justify-between gap-3 p-3">
+    <li className="flex flex-col gap-3 p-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <FileText className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
         <div className="min-w-0">
@@ -142,22 +149,30 @@ function DocumentRow({ doc, onDeleted }: { doc: HealthDocument; onDeleted: () =>
           </p>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 flex-wrap items-center gap-1">
         <Button asChild size="sm" variant="outline">
           <a href={doc.openHref} target="_blank" rel="noreferrer">
             <ExternalLink className="mr-1 h-4 w-4" />
             Abrir
           </a>
         </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label="Excluir documento"
-          disabled={busy}
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <ConfirmDestructiveAction
+          title="Excluir este documento?"
+          item={doc.nomeArquivo}
+          consequence="O arquivo será excluído, mas o registro de saúde associado será preservado."
+          confirmLabel="Excluir documento"
+          onConfirm={onDelete}
+          trigger={
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="Excluir documento"
+              className="text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          }
+        />
       </div>
     </li>
   );
@@ -216,9 +231,11 @@ function UploadForm({
       <p className="mb-3 text-sm font-medium">Enviar documento (imagem ou PDF, até 10 MB)</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label className="mb-1 block text-xs">Animal</Label>
+          <Label htmlFor="document-animal" className="mb-1 block text-xs">
+            Animal
+          </Label>
           <Select value={animalId} onValueChange={setAnimalId}>
-            <SelectTrigger>
+            <SelectTrigger id="document-animal">
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
@@ -231,9 +248,11 @@ function UploadForm({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block text-xs">Tipo</Label>
+          <Label htmlFor="document-type" className="mb-1 block text-xs">
+            Tipo
+          </Label>
           <Select value={tipo} onValueChange={setTipo}>
-            <SelectTrigger>
+            <SelectTrigger id="document-type">
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>

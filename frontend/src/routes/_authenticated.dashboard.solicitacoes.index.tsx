@@ -8,7 +8,8 @@ import {
 } from "@/lib/data/solicitacoes";
 import { StatusSolicitacaoBadge } from "@/components/app/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/app/EmptyState";
+import { AsyncState } from "@/components/app/AsyncState";
+import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/solicitacoes/")({
@@ -32,14 +33,16 @@ function Page() {
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["solicitacoes-gerenciadas"] });
 
-  const doDecidir = async (id: string, decisao: "APROVADA" | "RECUSADA") => {
+  const doDecidir = async (id: string, decisao: "APROVADA" | "RECUSADA", throwOnError = false) => {
     setPending(id);
     try {
       await decidirSolicitacao(id, decisao);
       await invalidate();
       toast.success(decisao === "APROVADA" ? "Aprovada" : "Recusada");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
+      const message = e instanceof Error ? e.message : "Erro";
+      toast.error(message);
+      if (throwOnError) throw new Error(message);
     } finally {
       setPending(null);
     }
@@ -51,28 +54,32 @@ function Page() {
       await invalidate();
       toast.success("Adoção concluída!");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
+      const message = e instanceof Error ? e.message : "Erro";
+      toast.error(message);
+      throw new Error(message);
     } finally {
       setPending(null);
     }
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <h1 className="font-serif text-3xl font-semibold">Solicitações</h1>
-      {solicitacoesQuery.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Carregando…</p>
-      ) : solicitacoesQuery.isError ? (
-        <p className="mt-6 text-sm text-destructive">
-          {solicitacoesQuery.error instanceof Error
-            ? solicitacoesQuery.error.message
-            : "Não foi possível carregar as solicitações."}
-        </p>
-      ) : (solicitacoesQuery.data?.length ?? 0) === 0 ? (
-        <div className="mt-6">
-          <EmptyState title="Nenhuma solicitação recebida" />
-        </div>
-      ) : (
+      <AsyncState
+        isLoading={solicitacoesQuery.isLoading}
+        isError={solicitacoesQuery.isError}
+        error={solicitacoesQuery.error}
+        onRetry={() => solicitacoesQuery.refetch()}
+        isEmpty={
+          !solicitacoesQuery.isLoading &&
+          !solicitacoesQuery.isError &&
+          (solicitacoesQuery.data?.length ?? 0) === 0
+        }
+        emptyState={{
+          title: "Nenhuma solicitação recebida",
+          description: "As novas solicitações de adoção aparecerão aqui.",
+        }}
+      >
         <ul className="mt-6 space-y-3">
           {solicitacoesQuery.data!.map((s) => {
             const busy = pending === s.id;
@@ -110,27 +117,38 @@ function Page() {
                       <Button size="sm" disabled={busy} onClick={() => doDecidir(s.id, "APROVADA")}>
                         {busy ? "..." : "Aprovar"}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
+                      <ConfirmDestructiveAction
+                        title="Recusar esta solicitação?"
+                        item={`${s.adotante.nomeCompleto} → ${s.animal.nome}`}
+                        consequence="A decisão será registrada e o adotante verá a solicitação como recusada."
+                        confirmLabel="Recusar solicitação"
                         disabled={busy}
-                        onClick={() => doDecidir(s.id, "RECUSADA")}
-                      >
-                        {busy ? "..." : "Recusar"}
-                      </Button>
+                        onConfirm={() => doDecidir(s.id, "RECUSADA", true)}
+                        trigger={
+                          <Button size="sm" variant="outline">
+                            Recusar
+                          </Button>
+                        }
+                      />
                     </>
                   )}
                   {s.status === "APROVADA" && (
-                    <Button size="sm" disabled={busy} onClick={() => doConcluir(s.id)}>
-                      {busy ? "..." : "Concluir adoção"}
-                    </Button>
+                    <ConfirmDestructiveAction
+                      title="Concluir esta adoção?"
+                      item={`${s.adotante.nomeCompleto} → ${s.animal.nome}`}
+                      consequence="O animal e a solicitação passarão ao estado final de adoção conforme as regras atuais."
+                      confirmLabel="Concluir adoção"
+                      disabled={busy}
+                      onConfirm={() => doConcluir(s.id)}
+                      trigger={<Button size="sm">Concluir adoção</Button>}
+                    />
                   )}
                 </div>
               </li>
             );
           })}
         </ul>
-      )}
+      </AsyncState>
     </div>
   );
 }
