@@ -1,14 +1,23 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 -> 1.1.0
-Added principles:
-- IX. Test-First for Critical Paths
+Version change: 1.1.0 -> 1.2.0
+Reason: align governance with the homologated two-application architecture.
+Modified principles:
+- III. Server-Side by Default: trusted work remains server-side in the root
+  backend; the official frontend may use protected HTTP contracts.
+- VI. Minimal Client State: HTTP mutations are the approved pattern for the
+  separate TanStack frontend; Server Actions remain an option only in Next.js
+  backend surfaces.
 Modified sections:
-- Development Workflow and Quality Gates (added test gate item)
-Updated templates:
-- updated: specs/001-animal-adoption-management/tasks.md (new test tasks inserted)
-- updated: specs/001-animal-adoption-management/plan.md (Testing section revised)
-Follow-up TODOs: none
+- AdoptPlace Technology Stack: documents the official TanStack Start/Vite
+  frontend and the root Next.js backend/service authority.
+- Development Workflow and Quality Gates: makes the protected HTTP boundary,
+  DTOs, and prohibition on browser Prisma/database access explicit.
+Updated templates: none; existing feature-003 templates already describe the
+split architecture.
+Follow-up TODOs: future specs must run the Constitution Check against both
+applications and must not treat legacy/frontend-antigo as an implementation
+surface.
 -->
 
 # AdoptPlace Constitution
@@ -36,10 +45,11 @@ Rationale: one authoritative schema prevents model drift and keeps database
 changes reviewable.
 
 ### III. Server-Side by Default
-Business logic MUST run in Next.js Server Actions, Route Handlers, or server-only
-modules. Client Components MAY contain presentation logic and local interaction
-state only when required for user experience. Browser code MUST NOT own business
-rules, authorization decisions, persistence rules, or trusted transformations.
+Business logic MUST run in the root Next.js backend, in Route Handlers,
+Server Actions where applicable, or server-only modules. The official frontend
+in `frontend/` MAY consume protected HTTP contracts and hold presentation and
+transient interaction state. Browser code MUST NOT own business rules,
+authorization decisions, persistence rules, or trusted transformations.
 
 Rationale: server-side logic keeps security, validation, and data access under
 controlled execution contexts.
@@ -67,9 +77,11 @@ the system.
 ### VI. Minimal Client State
 Client state MUST be limited to transient UI concerns such as open dialogs,
 selected tabs, pending visual states, and controlled form fields. Mutations MUST
-prefer Server Actions with `useFormState` or equivalent framework-supported
-patterns. Manual `useState` plus `fetch` mutation flows require a documented
-reason in the implementation plan.
+use the approved protected HTTP contracts when initiated by `frontend/`; the
+root Next.js backend remains the authority that authenticates, authorizes,
+validates, and persists them. Server Actions with `useFormState` remain an
+option for any Next.js UI surface. Manual `useState` plus `fetch` flows outside
+the documented HTTP client boundary require a documented reason in the plan.
 
 Rationale: fewer client-side data flows reduce bugs, stale state, and duplicated
 server behavior.
@@ -111,12 +123,21 @@ test is a cheaper and more reliable gate than manual review alone.
 
 ## AdoptPlace Technology Stack
 
-AdoptPlace uses Next.js 15 App Router, TypeScript 5.x with strict mode, Prisma
-5.x, PostgreSQL 16, NextAuth v5, Tailwind CSS v4, shadcn/ui, Zod 3.x, and
-Uploadthing. Plans and tasks MUST assume this stack unless the constitution is
-amended first. App Router conventions, Server Components, Server Actions, Prisma
-Client, generated Prisma types, and shadcn/ui components are the default
-implementation tools.
+AdoptPlace is two applications in one repository. `frontend/` is the sole
+official public interface and uses React, TanStack Start/Router, Vite, Tailwind
+CSS, TypeScript strict, React Query, React Hook Form and client-side Zod for UX.
+The repository root is the backend/service authority and uses Next.js 15 App
+Router, NextAuth v5, Prisma 5.x, PostgreSQL 16, Zod 3.x, Uploadthing and
+server-side TypeScript strict.
+
+The frontend communicates with the backend only through documented HTTP
+contracts, normally same-origin or a documented reverse proxy. Route Handlers
+authenticate, authorize, validate with Zod, apply business rules, and return
+narrow DTOs. Prisma Client, database credentials, direct PostgreSQL access,
+trusted authorization, and business-rule enforcement MUST NOT exist in browser
+code. `legacy/frontend-antigo/` is historical reference only and MUST NOT
+receive implementation work. Plans and tasks MUST assume this split stack unless
+the constitution is amended first.
 
 ## Development Workflow and Quality Gates
 
@@ -125,12 +146,15 @@ again after Phase 1 design. The check MUST confirm:
 
 - No abstraction exists without a current functional requirement.
 - Data model changes start in `prisma/schema.prisma` and use Prisma migrations.
-- Business logic is assigned to Server Actions, Route Handlers, or server-only
-  modules.
+- Business logic is assigned to root-backend Route Handlers, Server Actions
+  where applicable, or server-only modules; frontend mutations use documented
+  protected HTTP contracts rather than browser-owned rules.
 - Protected data access calls `getServerSession()` before reading or writing
   data.
 - Zod validation exists on both client and server for user input.
-- Mutations prefer `useFormState` and Server Actions over manual client fetches.
+- Frontend mutations use the documented HTTP client boundary; they do not
+  import Prisma, use database credentials, or bypass backend authorization and
+  Zod validation.
 - New dependencies are rejected unless the existing stack cannot satisfy the
   requirement.
 - `strict: true`, Prisma generated entity types, and no explicit `any` are
@@ -158,4 +182,4 @@ All feature specifications, plans, tasks, and reviews MUST verify compliance wit
 the current constitution. If implementation needs conflict with a principle, the
 constitution MUST be amended before the implementation proceeds.
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-25 | **Last Amended**: 2026-06-19
+**Version**: 1.2.0 | **Ratified**: 2026-05-25 | **Last Amended**: 2026-08-05
