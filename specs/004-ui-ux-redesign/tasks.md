@@ -42,12 +42,12 @@
 
 **Goal**: US3 — descoberta pública clara e estável.
 
-- [ ] T020 [US3] [ARTHUR] Criar `frontend/src/components/app/AnimalShowcaseSkeleton.tsx` para skeleton de filtros/grade com estrutura compatível aos resultados finais (UX-04, FR-008/SC-005).
-- [ ] T021 [US3] [ARTHUR] Tratar em `frontend/src/components/app/PublicAnimalCard.tsx` foto real com texto alternativo, ausência conhecida com placeholder neutro e falha de carregamento distinta, sem conteúdo fictício ou mudança de Uploadthing (UX-05, FR-010/FR-019).
-- [ ] T022 [US3] [ARTHUR] Implementar feedback verificável de loading, erro, filtros ativos, limpeza e vazio recuperável em `frontend/src/components/app/AnimalFilters.tsx` sem mudar `frontend/src/lib/data/catalogos.ts` ou contratos (UX-07, FR-006/FR-009/FR-012/FR-019).
-- [ ] T023 [US3] [ARTHUR] Aplicar à home em `frontend/src/routes/index.tsx` skeleton que preserve filtros e slots da grade durante o carregamento (UX-04, FR-008/SC-005).
-- [ ] T024 [ARTHUR] [P] [US3] Aplicar à vitrine em `frontend/src/routes/vitrine.tsx`, após T020–T022, skeleton que preserve filtros/grade e estados de vazio/erro recuperável (UX-03/UX-04/UX-07, FR-006–FR-009).
-- [ ] T025 [ARTHUR] [P] [US3] Reorganizar o detalhe em `frontend/src/routes/animais.$animalId.tsx` para 375/1024/1440 e 200% de zoom, com foco conforme T006–T007 e DTO público preservado (FR-014–FR-016, NFR-001/NFR-002).
+- [X] T020 [US3] [ARTHUR] Criar `frontend/src/components/app/AnimalShowcaseSkeleton.tsx` para skeleton de filtros/grade com estrutura compatível aos resultados finais (UX-04, FR-008/SC-005).
+- [X] T021 [US3] [ARTHUR] Tratar em `frontend/src/components/app/PublicAnimalCard.tsx` foto real com texto alternativo, ausência conhecida com placeholder neutro e falha de carregamento distinta, sem conteúdo fictício ou mudança de Uploadthing (UX-05, FR-010/FR-019).
+- [X] T022 [US3] [ARTHUR] Implementar feedback verificável de loading, erro, filtros ativos, limpeza e vazio recuperável em `frontend/src/components/app/AnimalFilters.tsx` sem mudar `frontend/src/lib/data/catalogos.ts` ou contratos (UX-07, FR-006/FR-009/FR-012/FR-019).
+- [X] T023 [US3] [ARTHUR] Aplicar à home em `frontend/src/routes/index.tsx` skeleton que preserve filtros e slots da grade durante o carregamento (UX-04, FR-008/SC-005).
+- [X] T024 [ARTHUR] [P] [US3] Aplicar à vitrine em `frontend/src/routes/vitrine.tsx`, após T020–T022, skeleton que preserve filtros/grade e estados de vazio/erro recuperável (UX-03/UX-04/UX-07, FR-006–FR-009).
+- [X] T025 [ARTHUR] [P] [US3] Reorganizar o detalhe em `frontend/src/routes/animais.$animalId.tsx` para 375/1024/1440 e 200% de zoom, com foco conforme T006–T007 e DTO público preservado (FR-014–FR-016, NFR-001/NFR-002).
 - [ ] T026 [US3] [ARTHUR] Executar o procedimento manual “Descoberta pública” de `specs/004-ui-ux-redesign/quickstart.md`, registrando loading, filtro, vazio, foto real, ausência conhecida, falha de imagem, texto alternativo, viewport e captura antes/depois; não criar teste de componente incompatível com `vitest.config.ts` (UX-03–UX-05, SC-005–SC-007).
 - [ ] T027 [PEDRO] [US3] Executar roteiro manual público em `/`, `/vitrine` e `/animais/$animalId`: 375/1024/1440, loading/skeleton, filtro ativo/limpeza, vazio, foto real, ausência e falha de imagem; registrar comparação (SC-002/SC-005–SC-007).
 

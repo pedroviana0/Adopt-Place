@@ -1,11 +1,13 @@
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { Heart, Send, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { fetchPublicAnimal } from "@/lib/data/animais";
 import { StatusBadge } from "@/components/app/StatusBadge";
-import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
+import { AnimalImagePlaceholder, PublicAnimalCard } from "@/components/app/PublicAnimalCard";
+import { EmptyState } from "@/components/app/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSessao } from "@/lib/data/hooks";
 import { fetchFavoritos, setFavorito } from "@/lib/data/favoritos";
 import { criarSolicitacao } from "@/lib/data/solicitacoes";
@@ -39,6 +41,7 @@ function AnimalDetail() {
   const router = useRouter();
   const navigate = useNavigate();
   const [selectedPhoto, setSelectedPhoto] = useState(0);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const [favSaving, setFavSaving] = useState(false);
   const [solSaving, setSolSaving] = useState(false);
 
@@ -61,19 +64,31 @@ function AnimalDetail() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
-        Carregando…
+      <div
+        className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-5"
+        aria-busy="true"
+        aria-label="Carregando perfil do animal"
+      >
+        <Skeleton className="aspect-square w-full rounded-xl lg:col-span-3" />
+        <div className="space-y-4 lg:col-span-2">
+          <Skeleton className="h-6 w-28" />
+          <Skeleton className="h-12 w-56 max-w-full" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-11 w-full" />
+        </div>
       </div>
     );
   }
 
   if (isError || !animal) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h1 className="font-serif text-2xl font-semibold">Animal não encontrado</h1>
-        <Button asChild className="mt-4">
-          <Link to="/vitrine">Voltar à vitrine</Link>
-        </Button>
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <EmptyState
+          title="Animal não encontrado"
+          description="Este perfil pode ter sido removido ou não está mais disponível publicamente."
+          action={{ label: "Voltar à vitrine", to: "/vitrine" }}
+        />
       </div>
     );
   }
@@ -130,24 +145,42 @@ function AnimalDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="grid gap-8 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          {fotos.length > 0 && (
+      <div className="grid min-w-0 gap-8 lg:grid-cols-5">
+        <div className="min-w-0 lg:col-span-3">
+          {fotos.length > 0 ? (
             <>
-              <div className="aspect-square overflow-hidden rounded-2xl bg-muted">
-                <img
-                  src={fotos[selectedPhoto]?.urlFoto}
-                  alt={animal.nome}
-                  className="h-full w-full object-cover"
-                />
+              <div className="aspect-square overflow-hidden rounded-xl bg-muted">
+                {photoFailed ? (
+                  <AnimalImagePlaceholder animalName={animal.nome} failed />
+                ) : (
+                  <img
+                    src={fotos[selectedPhoto]?.urlFoto}
+                    alt={`Foto de ${animal.nome}`}
+                    onError={() => setPhotoFailed(true)}
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
               {fotos.length > 1 && (
-                <div className="mt-3 flex gap-2 overflow-x-auto">
+                <div
+                  className="mt-3 flex max-w-full gap-2 overflow-x-auto pb-1"
+                  aria-label="Fotos do animal"
+                >
                   {fotos.map((f, i) => (
                     <button
+                      type="button"
                       key={f.id}
-                      onClick={() => setSelectedPhoto(i)}
-                      className={`aspect-square h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 ${i === selectedPhoto ? "border-primary" : "border-transparent"}`}
+                      aria-label={`Exibir foto ${i + 1} de ${animal.nome}`}
+                      aria-pressed={i === selectedPhoto}
+                      onClick={() => {
+                        setSelectedPhoto(i);
+                        setPhotoFailed(false);
+                      }}
+                      className={`aspect-square h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 ${
+                        i === selectedPhoto
+                          ? "border-primary ring-2 ring-primary/30"
+                          : "border-border"
+                      }`}
                     >
                       <img src={f.urlFoto} alt="" className="h-full w-full object-cover" />
                     </button>
@@ -155,11 +188,15 @@ function AnimalDetail() {
                 </div>
               )}
             </>
+          ) : (
+            <div className="aspect-square overflow-hidden rounded-xl border border-border">
+              <AnimalImagePlaceholder animalName={animal.nome} />
+            </div>
           )}
         </div>
 
-        <div className="lg:col-span-2">
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 lg:col-span-2">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={animal.status} />
             {animal.cidade && (
               <span className="text-xs text-muted-foreground">
@@ -168,7 +205,9 @@ function AnimalDetail() {
               </span>
             )}
           </div>
-          <h1 className="mt-2 font-serif text-4xl font-semibold">{animal.nome}</h1>
+          <h1 className="mt-2 break-words font-serif text-3xl font-semibold sm:text-4xl">
+            {animal.nome}
+          </h1>
           <div className="mt-3 flex flex-wrap gap-1">
             {animal.tags.map((t) => (
               <span
@@ -180,7 +219,7 @@ function AnimalDetail() {
             ))}
           </div>
 
-          <dl className="mt-6 grid grid-cols-2 gap-3 rounded-xl border bg-card p-4 text-sm">
+          <dl className="mt-6 grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 text-sm sm:grid-cols-2">
             <Attr label="Espécie" value={animal.especie ?? "—"} />
             <Attr label="Raça" value={animal.raca ?? "SRD"} />
             <Attr label="Cor" value={animal.cor ?? "—"} />
@@ -207,7 +246,7 @@ function AnimalDetail() {
                 disabled={solSaving}
                 className="w-full gap-2"
               >
-                <Send className="h-4 w-4" /> {solSaving ? "Enviando..." : "Solicitar adoção"}
+                <Send className="h-4 w-4" /> {solSaving ? "Enviando…" : "Solicitar adoção"}
               </Button>
             )}
             <Button
@@ -218,7 +257,7 @@ function AnimalDetail() {
               className="w-full gap-2"
             >
               <Heart className={`h-4 w-4 ${favorited ? "fill-current" : ""}`} />{" "}
-              {favSaving ? "Salvando..." : favorited ? "Favoritado" : "Favoritar"}
+              {favSaving ? "Salvando…" : favorited ? "Favoritado" : "Favoritar"}
             </Button>
           </div>
         </div>

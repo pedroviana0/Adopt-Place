@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { X } from "lucide-react";
+import { useId, useMemo } from "react";
+import { AlertCircle, LoaderCircle, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,12 +39,19 @@ export function AnimalFilters({
   value,
   onChange,
   especies: especiesProp,
+  isCatalogLoading = false,
+  isCatalogError = false,
+  onRetryCatalog,
 }: {
   value: FilterState;
   onChange: (v: FilterState) => void;
   // The public showcase supplies the real catalog from GET /api/catalogos.
   especies?: CatalogEspecie[];
+  isCatalogLoading?: boolean;
+  isCatalogError?: boolean;
+  onRetryCatalog?: () => void;
 }) {
+  const id = useId();
   const especies = especiesProp ?? EMPTY_ESPECIES;
   const racas = useMemo(() => {
     return especies.find((e) => e.id === value.especieId)?.racas ?? [];
@@ -64,19 +71,68 @@ export function AnimalFilters({
     value.sexo ||
     value.cidade ||
     value.tags.length > 0;
+  const activeCount =
+    [value.especieId, value.racaId, value.porte, value.sexo, value.cidade].filter(Boolean).length +
+    value.tags.length;
 
   return (
-    <div className="rounded-2xl border bg-card p-4 md:p-5">
+    <section aria-label="Filtros de animais" className="rounded-xl border bg-card p-4 md:p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold">Filtrar animais</h3>
+          <p aria-live="polite" className="text-xs text-muted-foreground">
+            {activeCount === 0
+              ? "Nenhum filtro ativo"
+              : `${activeCount} ${activeCount === 1 ? "filtro ativo" : "filtros ativos"}`}
+          </p>
+        </div>
+        {hasAny && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-xs"
+            onClick={() => onChange(emptyFilters())}
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" /> Limpar filtros
+          </Button>
+        )}
+      </div>
+
+      {isCatalogLoading && (
+        <p role="status" className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+          Carregando espécies e raças…
+        </p>
+      )}
+      {isCatalogError && (
+        <div
+          role="alert"
+          className="mb-3 flex flex-wrap items-center gap-2 text-xs text-destructive"
+        >
+          <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Espécies e raças estão temporariamente indisponíveis.</span>
+          {onRetryCatalog && (
+            <Button type="button" variant="outline" size="sm" onClick={onRetryCatalog}>
+              Tentar novamente
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-          <Label className="mb-1 block text-xs">Espécie</Label>
+          <Label htmlFor={`${id}-especie`} className="mb-1 block text-xs">
+            Espécie
+          </Label>
           <Select
             value={value.especieId ?? "__all"}
             onValueChange={(v) =>
               onChange({ ...value, especieId: v === "__all" ? undefined : v, racaId: undefined })
             }
+            disabled={isCatalogLoading || isCatalogError}
           >
-            <SelectTrigger>
+            <SelectTrigger id={`${id}-especie`}>
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
@@ -90,13 +146,15 @@ export function AnimalFilters({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block text-xs">Raça</Label>
+          <Label htmlFor={`${id}-raca`} className="mb-1 block text-xs">
+            Raça
+          </Label>
           <Select
             value={value.racaId ?? "__all"}
             onValueChange={(v) => onChange({ ...value, racaId: v === "__all" ? undefined : v })}
-            disabled={!value.especieId}
+            disabled={!value.especieId || isCatalogLoading || isCatalogError}
           >
-            <SelectTrigger>
+            <SelectTrigger id={`${id}-raca`}>
               <SelectValue placeholder={value.especieId ? "Todas" : "Selecione uma espécie"} />
             </SelectTrigger>
             <SelectContent>
@@ -110,12 +168,14 @@ export function AnimalFilters({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block text-xs">Porte</Label>
+          <Label htmlFor={`${id}-porte`} className="mb-1 block text-xs">
+            Porte
+          </Label>
           <Select
             value={value.porte ?? "__all"}
             onValueChange={(v) => onChange({ ...value, porte: v === "__all" ? undefined : v })}
           >
-            <SelectTrigger>
+            <SelectTrigger id={`${id}-porte`}>
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
@@ -127,12 +187,14 @@ export function AnimalFilters({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block text-xs">Sexo</Label>
+          <Label htmlFor={`${id}-sexo`} className="mb-1 block text-xs">
+            Sexo
+          </Label>
           <Select
             value={value.sexo ?? "__all"}
             onValueChange={(v) => onChange({ ...value, sexo: v === "__all" ? undefined : v })}
           >
-            <SelectTrigger>
+            <SelectTrigger id={`${id}-sexo`}>
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
@@ -143,8 +205,11 @@ export function AnimalFilters({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block text-xs">Cidade</Label>
+          <Label htmlFor={`${id}-cidade`} className="mb-1 block text-xs">
+            Cidade
+          </Label>
           <Input
+            id={`${id}-cidade`}
             placeholder="Ex.: Volta Redonda"
             value={value.cidade ?? ""}
             onChange={(e) => onChange({ ...value, cidade: e.target.value || undefined })}
@@ -158,6 +223,7 @@ export function AnimalFilters({
             key={t}
             type="button"
             variant={value.tags.includes(t) ? "default" : "outline"}
+            aria-pressed={value.tags.includes(t)}
             size="sm"
             className="h-7 rounded-full text-xs"
             onClick={() => toggleTag(t)}
@@ -165,18 +231,7 @@ export function AnimalFilters({
             {t}
           </Button>
         ))}
-        {hasAny && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="ml-auto h-7 gap-1 text-xs"
-            onClick={() => onChange(emptyFilters())}
-          >
-            <X className="h-3 w-3" /> Limpar filtros
-          </Button>
-        )}
       </div>
-    </div>
+    </section>
   );
 }
