@@ -1,8 +1,16 @@
 # Validação final parcial — feature 004
 
-Data: 2026-08-05  
-Branch: `004-101-mobile-navigation`  
+Data: 2026-08-05
+Branch: `004-101-mobile-navigation`
 Base de integração: `004-ui-ux-redesign` em `b11b2a5`
+
+## Reauditoria pos-integracao — 2026-08-06
+
+O merge do PR #113 foi confirmado em `ff50bb1` na branch integradora `004-ui-ux-redesign`. Nesta reauditoria, `npm test` passou com 46 arquivos e 223 testes; `npm run typecheck`, `npm run lint`, `npm run prisma:validate` e `npm --prefix frontend run build` tambem passaram. O build da raiz compilou e concluiu a checagem de tipos, mas falhou durante a coleta de paginas com `Cannot find module './chunks/vendor-chunks/next.js'` sob o diretorio `.next` enquanto `next dev` estava ativo. O ambiente nao permitiu pausar esse processo, portanto esse build deve ser repetido com o servidor raiz parado antes de qualquer aceite.
+
+Nao havia navegador controlavel neste ambiente para repetir as sessoes autenticadas, capturas pos-implementacao, teclado, zoom nativo de 200% ou leitor de tela. Nenhum desses cenarios foi inferido como aprovado. Permanecem pendentes T014, T017, T019, T026, T027, T033, T039, T043, T044, T045 e T049; por isso esta evidencia nao autoriza fechar as Issues de entrega nem tornar a feature pronta para merge em `main`.
+
+O lint integral do frontend foi repetido e reportou 13.652 erros e 7 avisos de CRLF/Prettier. Esse debito preexistente permanece separado da feature; nenhuma formatacao massiva foi aplicada.
 
 ## Resultado renderizado
 

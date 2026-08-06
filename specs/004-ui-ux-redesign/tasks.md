@@ -155,4 +155,8 @@ US1 (T010–T014) e US2 (T015–T019) compõem o MVP. Uma tarefa só usa `[P]` q
 
 ## MVP and Incremental Delivery
 
+## Estado da reauditoria pos-integracao — 2026-08-06
+
+O PR #113 foi integrado em `004-ui-ux-redesign` (`ff50bb1`). Esta marcacao nao altera tarefas: permanecem abertas T014, T017, T019, T026, T027, T033, T039, T043, T044, T045 e T049, pois dependem de evidencia manual/renderizada que nao estava disponivel no ambiente da reauditoria. T048 continua registrada com sua execucao anterior; a reexecucao do build da raiz em 2026-08-06 ficou pendente de servidor `next dev` parado e esta documentada em `quickstart.md`.
+
 MVP: T001–T019, que entrega baseline, foco/tokens, navegação responsiva e confirmação segura. Em seguida entregar público (T020–T027), adotante (T028–T033), organização/acolhedor (T034–T039 e T053), admin (T040–T042) e QA/encerramento (T043–T052). Cada incremento tem rollback isolado no frontend e regressão de contrato correspondente.
