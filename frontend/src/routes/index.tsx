@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Heart, Home as HomeIcon, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { GradientBackground } from "@/components/ui/gradient-background";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -55,48 +56,41 @@ function Home() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="border-b bg-gradient-to-b from-secondary/40 to-background">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:py-24">
+      {/* Hero — fundo Jade Sky */}
+      <section className="relative border-b border-primary/10">
+        <GradientBackground className="absolute inset-0" />
+        <div className="relative mx-auto max-w-6xl px-4 py-16 md:py-24">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/70 px-4 py-1.5 text-xs font-semibold text-primary backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-accent" />
               Volta Redonda/RJ · Adoção responsável
             </span>
-            <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight md:text-6xl">
-              Encontre seu parceiro ideal
+            <h1
+              className="mt-5 font-serif text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl"
+              style={{ color: "oklch(0.30 0.06 156)" }}
+            >
+              Encontre seu <span className="text-accent">companheiro</span> ideal
             </h1>
-            <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+            <p className="mt-5 max-w-xl text-lg text-foreground/80">
               O AdoptPlace conecta animais resgatados por organizações e acolhedores independentes a
               famílias prontas para dar um lar cheio de amor.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <a href="#vitrine">
                   Ver animais disponíveis <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="outline" className="bg-white/60 backdrop-blur-sm">
                 <Link to="/cadastro/organizacao">Sou uma organização</Link>
               </Button>
             </div>
-          </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <MetricCard
-              icon={<Heart className="h-5 w-5" />}
-              label="Animais disponíveis"
-              value={metrics.disponiveis}
-            />
-            <MetricCard
-              icon={<HomeIcon className="h-5 w-5" />}
-              label="Adoções realizadas"
-              value={metrics.adotados}
-            />
-            <MetricCard
-              icon={<Users className="h-5 w-5" />}
-              label="Parceiros responsáveis"
-              value={metrics.parceiros}
-            />
+            <div className="mt-10 flex flex-wrap gap-x-12 gap-y-6">
+              <Stat value={metrics.disponiveis} label="Animais disponíveis" />
+              <Stat value={metrics.adotados} label="Adoções realizadas" />
+              <Stat value={metrics.parceiros} label="Acolhedores parceiros" />
+            </div>
           </div>
         </div>
       </section>
@@ -181,24 +175,13 @@ function Home() {
   );
 }
 
-function MetricCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-}) {
+function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary">
-          {icon}
-        </span>
-        <span className="text-sm">{label}</span>
-      </div>
-      <p className="mt-2 font-serif text-3xl font-semibold">{value}</p>
+    <div>
+      <p className="font-serif text-4xl font-bold leading-none text-primary tabular-nums">
+        {value}
+      </p>
+      <p className="mt-1.5 text-sm text-foreground/70">{label}</p>
     </div>
   );
 }
