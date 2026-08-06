@@ -3,8 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { fetchFavoritos, setFavorito } from "@/lib/data/favoritos";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
-import { EmptyState } from "@/components/app/EmptyState";
 import { Button } from "@/components/ui/button";
+import { AsyncState } from "@/components/app/AsyncState";
+import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/meus-favoritos")({
   head: () => ({
@@ -18,15 +20,19 @@ export const Route = createFileRoute("/_authenticated/meus-favoritos")({
 
 function Page() {
   const queryClient = useQueryClient();
+  const [pendingAnimalId, setPendingAnimalId] = useState<string | null>(null);
   const favoritos = useQuery({ queryKey: ["favoritos"], queryFn: fetchFavoritos });
 
   const remover = async (animalId: string) => {
+    setPendingAnimalId(animalId);
     try {
       await setFavorito(animalId, false);
       await queryClient.invalidateQueries({ queryKey: ["favoritos"] });
       toast.success("Removido dos favoritos");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao remover");
+    } finally {
+      setPendingAnimalId(null);
     }
   };
 
@@ -35,23 +41,21 @@ function Page() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-3xl font-semibold">Meus favoritos</h1>
-      {favoritos.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Carregando…</p>
-      ) : favoritos.isError ? (
-        <div className="mt-6">
-          <EmptyState
-            title="Não foi possível carregar seus favoritos"
-            action={{ label: "Tentar novamente", onClick: () => favoritos.refetch() }}
-          />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            title="Você ainda não favoritou nenhum animal"
-            action={{ label: "Ver vitrine", to: "/vitrine" }}
-          />
-        </div>
-      ) : (
+      <AsyncState
+        isLoading={favoritos.isLoading}
+        isError={favoritos.isError}
+        error={favoritos.error}
+        isEmpty={items.length === 0}
+        loadingLabel="Carregando seus favoritos…"
+        loadingFallback={<AnimalShowcaseSkeleton cards={4} showFilters={false} />}
+        errorTitle="Não foi possível carregar seus favoritos"
+        onRetry={() => favoritos.refetch()}
+        emptyState={{
+          title: "Você ainda não favoritou nenhum animal",
+          description: "Explore a vitrine e salve os animais que deseja conhecer melhor.",
+          action: { label: "Ver vitrine", to: "/vitrine" },
+        }}
+      >
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((f) => (
             <div key={f.animalId} className="space-y-2">
@@ -60,14 +64,15 @@ function Page() {
                 variant="outline"
                 size="sm"
                 className="w-full"
+                disabled={pendingAnimalId === f.animalId}
                 onClick={() => remover(f.animalId)}
               >
-                Remover dos favoritos
+                {pendingAnimalId === f.animalId ? "Removendo…" : "Remover dos favoritos"}
               </Button>
             </div>
           ))}
         </div>
-      )}
+      </AsyncState>
     </div>
   );
 }

@@ -73,6 +73,10 @@
 
 ## Resultado da reavaliação
 
+## Revisao pos-integracao — 2026-08-06
+
+Este checklist avalia a qualidade dos requisitos, nao a execucao. O merge de #113 nao alterou seus 42 itens de qualidade nem resolve os gates de homologacao manual. A prontidao para merge continua dependente das tarefas abertas registradas em `tasks.md` e das limitacoes registradas em `quickstart.md`.
+
 - Itens atendidos antes desta rodada: CHK001, CHK002, CHK005, CHK006, CHK008, CHK011, CHK013, CHK015, CHK018, CHK020, CHK022, CHK028–CHK031, CHK033–CHK034, CHK036 e CHK039–CHK042.
 - Itens completados após correção documental: CHK003–CHK004, CHK007, CHK009–CHK010, CHK012, CHK014, CHK016–CHK017, CHK019, CHK021, CHK023–CHK027, CHK032, CHK035 e CHK037–CHK038.
 - Itens não aplicáveis: nenhum.

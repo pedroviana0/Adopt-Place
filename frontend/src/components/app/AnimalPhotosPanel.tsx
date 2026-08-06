@@ -11,6 +11,7 @@ import {
   type OwnedFoto,
 } from "@/lib/data/animais";
 import { uploadAnimalPhoto, validateAnimalPhoto } from "@/lib/data/animal-photo-upload";
+import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
 export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos: OwnedFoto[] }) {
   const queryClient = useQueryClient();
@@ -19,26 +20,28 @@ export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ["animal-gerenciado", animalId] });
 
-  const run = async (fn: () => Promise<void>, ok: string) => {
+  const run = async (fn: () => Promise<void>, ok: string, throwOnError = false) => {
     try {
       await fn();
       await refresh();
       toast.success(ok);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
+      const message = e instanceof Error ? e.message : "Erro";
+      toast.error(message);
+      if (throwOnError) throw new Error(message);
     }
   };
 
   const principal = (fotoId: string) =>
     run(() => definirFotoPrincipal(animalId, fotoId), "Foto principal atualizada");
 
-  const remover = (foto: OwnedFoto) => {
+  const remover = async (foto: OwnedFoto) => {
     if (fotos.length <= 1) {
       toast.error("O animal precisa de pelo menos uma foto.");
-      return;
+      throw new Error("O animal precisa de pelo menos uma foto.");
     }
     const novaPrincipalId = foto.principal ? fotos.find((f) => f.id !== foto.id)?.id : undefined;
-    run(() => excluirFoto(animalId, foto.id, novaPrincipalId), "Foto removida");
+    await run(() => excluirFoto(animalId, foto.id, novaPrincipalId), "Foto removida", true);
   };
 
   const mover = (idx: number, delta: number) => {
@@ -158,16 +161,25 @@ export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos
                   >
                     <Star className={`h-3.5 w-3.5 ${f.principal ? "fill-current" : ""}`} />
                   </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-destructive"
-                    aria-label="Remover foto"
-                    onClick={() => remover(f)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <ConfirmDestructiveAction
+                    title="Remover esta foto?"
+                    item={`Foto ${i + 1}${f.principal ? " (principal)" : ""}`}
+                    consequence="A foto será removida permanentemente do cadastro do animal."
+                    confirmLabel="Remover foto"
+                    disabled={fotos.length <= 1}
+                    onConfirm={() => remover(f)}
+                    trigger={
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 text-destructive"
+                        aria-label="Remover foto"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </li>

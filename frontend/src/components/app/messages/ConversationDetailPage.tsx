@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { AsyncState } from "@/components/app/AsyncState";
+import { Archive, ArrowLeft } from "lucide-react";
 import {
   enviarMensagem,
   fetchConversa,
@@ -38,10 +41,25 @@ export function ConversationDetailPage({ audience, conversationId }: Conversatio
   }, [conversationId, messagesCount, conversationQuery.data, queryClient]);
 
   if (conversationQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">Carregando…</p>;
+    return (
+      <AsyncState isLoading loadingLabel="Carregando conversa…">
+        {null}
+      </AsyncState>
+    );
   }
   if (conversationQuery.isError || !conversationQuery.data) {
-    return <div className="text-muted-foreground">Conversa não encontrada.</div>;
+    return (
+      <AsyncState
+        isLoading={false}
+        isError
+        error={conversationQuery.error}
+        errorTitle="Conversa não encontrada"
+        errorFallback="A conversa pode não estar mais disponível para este perfil."
+        onRetry={() => conversationQuery.refetch()}
+      >
+        {null}
+      </AsyncState>
+    );
   }
 
   const conversation = conversationQuery.data;
@@ -68,18 +86,23 @@ export function ConversationDetailPage({ audience, conversationId }: Conversatio
   };
 
   return (
-    <div className="flex h-[70vh] flex-col">
+    <div className="flex min-h-[32rem] max-w-full flex-col sm:h-[70vh]">
       <div className="flex items-center gap-3 border-b pb-3">
         {audience === "adopter" ? (
-          <Link to="/mensagens" className="text-sm text-muted-foreground hover:text-foreground">
-            ←
+          <Link
+            to="/mensagens"
+            aria-label="Voltar para mensagens"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         ) : (
           <Link
             to="/dashboard/mensagens"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            aria-label="Voltar para mensagens"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            ←
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         )}
         <div className="min-w-0">
@@ -109,7 +132,7 @@ export function ConversationDetailPage({ audience, conversationId }: Conversatio
         </div>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto py-4">
+      <div className="flex-1 space-y-2 overflow-y-auto py-4" aria-live="polite">
         {conversation.messages.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma mensagem ainda.</p>
         ) : (
@@ -119,7 +142,7 @@ export function ConversationDetailPage({ audience, conversationId }: Conversatio
               className={`flex ${message.authorIsMe ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm sm:max-w-[75%] ${
                   message.authorIsMe ? "bg-primary text-primary-foreground" : "bg-muted"
                 }`}
               >
@@ -138,24 +161,42 @@ export function ConversationDetailPage({ audience, conversationId }: Conversatio
       </div>
 
       {conversation.canSend ? (
-        <form onSubmit={send} className="flex items-end gap-2 border-t pt-3">
-          <Textarea
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            rows={2}
-            maxLength={MAX_MESSAGE_LENGTH}
-            placeholder="Escreva uma mensagem…"
-            className="flex-1"
-          />
-          <Button type="submit" disabled={sending || !text.trim()}>
+        <form
+          onSubmit={send}
+          className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-end"
+        >
+          <div className="min-w-0 flex-1">
+            <Label htmlFor="conversation-message" className="sr-only">
+              Mensagem
+            </Label>
+            <Textarea
+              id="conversation-message"
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              rows={2}
+              maxLength={MAX_MESSAGE_LENGTH}
+              aria-describedby="conversation-message-limit"
+              placeholder="Escreva uma mensagem…"
+            />
+            <p
+              id="conversation-message-limit"
+              className="mt-1 text-right text-xs text-muted-foreground"
+            >
+              {text.length}/{MAX_MESSAGE_LENGTH}
+            </p>
+          </div>
+          <Button type="submit" className="sm:mb-5" disabled={sending || !text.trim()}>
             {sending ? "…" : "Enviar"}
           </Button>
         </form>
       ) : (
-        <p className="border-t pt-3 text-center text-sm text-muted-foreground">
-          Esta conversa está arquivada. O histórico permanece visível, mas novos envios estão
-          bloqueados.
-        </p>
+        <div className="flex items-start gap-2 border-t bg-surface-subtle px-3 py-3 text-sm text-muted-foreground">
+          <Archive className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>
+            <strong className="font-medium text-foreground">Conversa arquivada.</strong> O histórico
+            permanece visível, mas novos envios estão bloqueados.
+          </p>
+        </div>
       )}
     </div>
   );

@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
-import { EmptyState } from "@/components/app/EmptyState";
+import { AsyncState } from "@/components/app/AsyncState";
+import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton";
 import { fetchVitrine } from "@/lib/data/animais";
 import { fetchCatalogos } from "@/lib/data/catalogos";
 
@@ -54,32 +55,33 @@ function VitrinePage() {
             setPage(1);
           }}
           especies={catalogos.data?.especies}
+          isCatalogLoading={catalogos.isLoading}
+          isCatalogError={catalogos.isError}
+          onRetryCatalog={() => catalogos.refetch()}
         />
       </div>
 
-      {vitrine.isLoading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Carregando animais…</p>
-      ) : vitrine.isError ? (
-        <div className="mt-8">
-          <EmptyState
-            title="Não foi possível carregar a vitrine"
-            action={{ label: "Tentar novamente", onClick: () => vitrine.refetch() }}
-          />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="mt-8">
-          <EmptyState
-            title="Nenhum animal encontrado com esses critérios"
-            action={{
-              label: "Limpar filtros",
-              onClick: () => {
-                setFilters(emptyFilters());
-                setPage(1);
-              },
-            }}
-          />
-        </div>
-      ) : (
+      <AsyncState
+        isLoading={vitrine.isLoading}
+        isError={vitrine.isError}
+        error={vitrine.error}
+        isEmpty={items.length === 0}
+        loadingLabel="Carregando vitrine de adoção…"
+        loadingFallback={<AnimalShowcaseSkeleton cards={8} showFilters={false} />}
+        errorTitle="Não foi possível carregar a vitrine"
+        onRetry={() => vitrine.refetch()}
+        emptyState={{
+          title: "Nenhum animal encontrado com esses critérios",
+          description: "Remova os filtros para voltar a ver todos os animais disponíveis.",
+          action: {
+            label: "Limpar filtros",
+            onClick: () => {
+              setFilters(emptyFilters());
+              setPage(1);
+            },
+          },
+        }}
+      >
         <>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((a) => (
@@ -87,7 +89,10 @@ function VitrinePage() {
             ))}
           </div>
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2">
+            <nav
+              aria-label="Paginação da vitrine"
+              className="mt-8 flex items-center justify-center gap-2"
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -96,7 +101,7 @@ function VitrinePage() {
               >
                 Anterior
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground" aria-live="polite">
                 Página {page} de {totalPages}
               </span>
               <Button
@@ -107,10 +112,10 @@ function VitrinePage() {
               >
                 Próxima
               </Button>
-            </div>
+            </nav>
           )}
         </>
-      )}
+      </AsyncState>
     </div>
   );
 }

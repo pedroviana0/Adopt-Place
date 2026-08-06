@@ -43,6 +43,25 @@ A referência canônica é [`specs/003-backend-frontend-integration/contracts/ht
 | `npm run lint` (`frontend/`) | falha preexistente reproduzida: 12.466 erros, majoritariamente `prettier/prettier` por CRLF, e 7 avisos; nenhuma correção ou formatação massiva aplicada |
 | Escopo do diff | somente documentação e capturas em `docs/audits/004-ui-ux-baseline/` e marcação T001–T004; nenhum arquivo em `app/`, `lib/`, `prisma/`, `frontend/src/` ou `legacy/frontend-antigo/` alterado |
 
+### Gate C1 — tokens, primitives e foco (Issue #100)
+
+A validação detalhada e as quinze capturas comparáveis estão em [`docs/audits/004-ui-ux-baseline/issue-100/`](../../docs/audits/004-ui-ux-baseline/issue-100/README.md). Foram verificadas sessões separadas dos cinco perfis, sem persistir credenciais ou dados de sessão.
+
+| Grupo verificado | Menor razão light | Menor razão dark | Resultado |
+|---|---:|---:|---|
+| Texto principal e secundário | 7,35:1 | 5,51:1 | AA para texto normal |
+| Primária oliva | 6,88:1 | 7,12:1 | AA para texto normal |
+| Terracota discreta | 10,10:1 | 6,97:1 | AA para texto normal |
+| Erro/destrutiva | 5,82:1 | 4,59:1 | AA para texto normal |
+| Sucesso | 7,74:1 | 7,92:1 | AA para texto normal |
+| Aviso | 8,91:1 | 9,88:1 | AA para texto normal |
+| Informação | 6,45:1 | 7,70:1 | AA para texto normal |
+| Seleção | 10,75:1 | 9,75:1 | AA para texto normal e estado não textual |
+| Limite de input contra superfície | 3,38:1 | 7,31:1 | atende 3:1 para componente não textual |
+| Foco contra a superfície do offset | 9,96:1 | 10,91:1 | atende 3:1; o offset evita medir o anel contra o preenchimento oliva |
+
+O lint focado das primitives foi aprovado, com um aviso estrutural preexistente em `button.tsx`; o build do frontend e `git diff --check` foram aprovados. A rolagem horizontal preexistente do shell em 375 px foi preservada e registrada para T010–T014, fora do escopo deste gate.
+
 ## População principal e matriz de homologação
 
 Pertencem à população: `/`, `/vitrine`, `/animais/$animalId`, `/login`, `/cadastro`, `/cadastro/adotante`, `/cadastro/organizacao`, `/cadastro/acolhedor`, `/meu-perfil`, `/triagem`, `/meus-favoritos`, `/minhas-solicitacoes`, `/mensagens`, `/mensagens/$conversaId`, `/dashboard`, `/dashboard/perfil`, `/dashboard/animais`, `/dashboard/animais/novo`, `/dashboard/animais/$animalId`, `/dashboard/solicitacoes`, `/dashboard/solicitacoes/$solicitacaoId`, `/dashboard/saude`, `/dashboard/documentos`, `/dashboard/mensagens`, `/dashboard/mensagens/$conversaId` e `/dashboard/admin/usuarios`. Cada rota alterada por responsividade ou por componente compartilhado deve ser registrada em 375, 1024 e 1440 px e em 200% de zoom. Inclusão posterior exige atualização prévia de `spec.md`, desta matriz e da tarefa correspondente.
@@ -81,4 +100,18 @@ O denominador de SC-003 é formado por todos os controles interativos introduzid
 
 ## Aceite final
 
+### Reauditoria apos merge de #113 — 2026-08-06
+
+O merge `ff50bb1` foi atualizado localmente por fast-forward. Reexecucao automatizada: `npm test` aprovou 46 arquivos/223 testes; `npm run typecheck`, `npm run lint`, `npm run prisma:validate` e `npm --prefix frontend run build` aprovaram. `npm run build` na raiz compilou e passou pela verificacao de tipos, mas falhou na coleta de paginas por artefato ausente em `.next` enquanto `next dev` estava ativo; a politica do ambiente bloqueou pausar o processo. Repetir esse comando com o servidor raiz parado e requisito de aceite.
+
+O controle de navegador nao estava disponivel, portanto nenhuma nova afirmacao foi registrada para 375/1024/1440, teclado, foco, dialogs, zoom 200%, contraste renderizado, leitor de tela ou screenshots. As evidencias parciais anteriores permanecem referenciadas, mas nao substituem T014, T017, T019, T026, T027, T033, T039, T043, T044, T045 e T049.
+
+O lint integral do frontend foi repetido e reportou 13.652 erros e 7 avisos, todos no padrao preexistente de CRLF/Prettier. O wrapper de processo registrou codigo 0 de forma incorreta, mas a saida do ESLint e a fonte de verdade: este check permanece reprovado como debito preexistente e nao foi corrigido por formatacao massiva.
+
 Após integrar as jornadas, comparar baseline e resultado final por perfil, rota, viewport e estado; confirmar SC-001 a SC-009, cobertura separada dos cinco perfis, contratos/Uploadthing preservados e ausência de alteração em banco, Prisma, migration, seed, backend, autenticação, autorização, HTTP ou regra de negócio. Pedro revisa acessibilidade, regressão e evidências; Arthur revisa aderência à direção visual e aos componentes compartilhados. Registrar rollback aplicado, limitações e evidências finais.
+
+### Execução final parcial — 2026-08-05
+
+O registro detalhado está em [`docs/audits/004-ui-ux-baseline/final/`](../../docs/audits/004-ui-ux-baseline/final/README.md). A inspeção renderizada cobriu os cinco perfis e confirmou ausência de overflow nas combinações executadas em 375/1024/1440 px. A confirmação administrativa teve foco inicial em cancelar, cancelamento sem mutação, restauração de foco e ciclo reversível de toggle com estado original restaurado.
+
+Permanecem como gates explícitos do Draft PR: screenshots pós-implementação comparáveis (timeout da ferramenta), zoom nativo de 200%, leitor de tela real, confirmações de documento por organização/acolhedor sem dado existente e regressão mutável completa das rotas dinâmicas indisponíveis. Nenhum dado foi criado para mascarar essas limitações.
