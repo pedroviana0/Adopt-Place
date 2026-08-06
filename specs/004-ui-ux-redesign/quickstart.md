@@ -101,3 +101,9 @@ O denominador de SC-003 é formado por todos os controles interativos introduzid
 ## Aceite final
 
 Após integrar as jornadas, comparar baseline e resultado final por perfil, rota, viewport e estado; confirmar SC-001 a SC-009, cobertura separada dos cinco perfis, contratos/Uploadthing preservados e ausência de alteração em banco, Prisma, migration, seed, backend, autenticação, autorização, HTTP ou regra de negócio. Pedro revisa acessibilidade, regressão e evidências; Arthur revisa aderência à direção visual e aos componentes compartilhados. Registrar rollback aplicado, limitações e evidências finais.
+
+### Execução final parcial — 2026-08-05
+
+O registro detalhado está em [`docs/audits/004-ui-ux-baseline/final/`](../../docs/audits/004-ui-ux-baseline/final/README.md). A inspeção renderizada cobriu os cinco perfis e confirmou ausência de overflow nas combinações executadas em 375/1024/1440 px. A confirmação administrativa teve foco inicial em cancelar, cancelamento sem mutação, restauração de foco e ciclo reversível de toggle com estado original restaurado.
+
+Permanecem como gates explícitos do Draft PR: screenshots pós-implementação comparáveis (timeout da ferramenta), zoom nativo de 200%, leitor de tela real, confirmações de documento por organização/acolhedor sem dado existente e regressão mutável completa das rotas dinâmicas indisponíveis. Nenhum dado foi criado para mascarar essas limitações.

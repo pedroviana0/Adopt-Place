@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
-import { EmptyState } from "@/components/app/EmptyState";
+import { AsyncState } from "@/components/app/AsyncState";
+import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton";
 import { useState } from "react";
 import { fetchVitrine, fetchPublicMetrics } from "@/lib/data/animais";
 import { fetchCatalogos } from "@/lib/data/catalogos";
@@ -119,32 +120,32 @@ function Home() {
             setPage(1);
           }}
           especies={catalogos.data?.especies}
+          isCatalogLoading={catalogos.isLoading}
+          isCatalogError={catalogos.isError}
+          onRetryCatalog={() => catalogos.refetch()}
         />
 
-        {vitrine.isLoading ? (
-          <p className="mt-8 text-sm text-muted-foreground">Carregando animais…</p>
-        ) : vitrine.isError ? (
-          <div className="mt-8">
-            <EmptyState
-              title="Não foi possível carregar os animais"
-              action={{ label: "Tentar novamente", onClick: () => vitrine.refetch() }}
-            />
-          </div>
-        ) : paginados.length === 0 ? (
-          <div className="mt-8">
-            <EmptyState
-              title="Nenhum animal encontrado com esses critérios"
-              description="Ajuste os filtros para explorar outros perfis disponíveis."
-              action={{
-                label: "Limpar filtros",
-                onClick: () => {
-                  setFilters(emptyFilters());
-                  setPage(1);
-                },
-              }}
-            />
-          </div>
-        ) : (
+        <AsyncState
+          isLoading={vitrine.isLoading}
+          isError={vitrine.isError}
+          error={vitrine.error}
+          isEmpty={paginados.length === 0}
+          loadingLabel="Carregando animais disponíveis…"
+          loadingFallback={<AnimalShowcaseSkeleton cards={8} showFilters={false} />}
+          errorTitle="Não foi possível carregar os animais"
+          onRetry={() => vitrine.refetch()}
+          emptyState={{
+            title: "Nenhum animal encontrado com esses critérios",
+            description: "Ajuste ou limpe os filtros para explorar outros perfis disponíveis.",
+            action: {
+              label: "Limpar filtros",
+              onClick: () => {
+                setFilters(emptyFilters());
+                setPage(1);
+              },
+            },
+          }}
+        >
           <>
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {paginados.map((a) => (
@@ -175,7 +176,7 @@ function Home() {
               </div>
             )}
           </>
-        )}
+        </AsyncState>
       </section>
     </div>
   );

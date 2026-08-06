@@ -1,29 +1,64 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { ImageOff, PawPrint } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PublicAnimalSummary } from "@/lib/data/animais";
 
-// Public showcase card (Issue #27): renders straight from the real public DTO
-// returned by GET /api/animais. Kept separate from the mock-backed `AnimalCard`
-// (which the still-mock favorites/owner flows use) to avoid coupling changes.
-export function PublicAnimalCard({ animal }: { animal: PublicAnimalSummary }) {
+export function AnimalImagePlaceholder({
+  animalName,
+  failed = false,
+  className = "h-full w-full",
+}: {
+  animalName: string;
+  failed?: boolean;
+  className?: string;
+}) {
+  const Icon = failed ? ImageOff : PawPrint;
+  const label = failed ? `Foto de ${animalName} indisponível` : `${animalName} está sem foto`;
+
   return (
-    <Link to="/animais/$animalId" params={{ animalId: animal.id }}>
-      <Card className="group h-full overflow-hidden py-0 transition hover:border-primary hover:shadow-md">
+    <div
+      role="img"
+      aria-label={label}
+      className={`${className} grid place-items-center bg-surface-subtle px-4 text-center text-muted-foreground`}
+    >
+      <div>
+        <Icon className="mx-auto h-8 w-8" aria-hidden="true" />
+        <p className="mt-2 text-xs font-medium">{failed ? "Foto indisponível" : "Sem foto"}</p>
+      </div>
+    </div>
+  );
+}
+
+export function PublicAnimalCard({ animal }: { animal: PublicAnimalSummary }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  return (
+    <Link
+      to="/animais/$animalId"
+      params={{ animalId: animal.id }}
+      className="group block h-full rounded-xl"
+      aria-label={`Conhecer ${animal.nome}`}
+    >
+      <Card className="h-full overflow-hidden py-0 transition-colors group-hover:border-primary group-focus-visible:border-primary">
         <div className="aspect-square w-full overflow-hidden bg-muted">
-          {animal.fotoPrincipal && (
+          {animal.fotoPrincipal && !imageFailed ? (
             <img
               src={animal.fotoPrincipal}
-              alt={animal.nome}
+              alt={`Foto de ${animal.nome}`}
               loading="lazy"
-              className="h-full w-full object-cover transition group-hover:scale-105"
+              onError={() => setImageFailed(true)}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
+          ) : (
+            <AnimalImagePlaceholder animalName={animal.nome} failed={imageFailed} />
           )}
         </div>
         <CardContent className="space-y-2 p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-serif text-lg font-semibold">{animal.nome}</h3>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="min-w-0 break-words font-serif text-lg font-semibold">{animal.nome}</h3>
             {animal.idadeEstimada && (
-              <span className="text-xs text-muted-foreground">{animal.idadeEstimada}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{animal.idadeEstimada}</span>
             )}
           </div>
           {animal.responsavel && (

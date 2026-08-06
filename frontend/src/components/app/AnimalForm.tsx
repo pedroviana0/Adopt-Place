@@ -149,15 +149,25 @@ export function AnimalForm({ animal, mode }: Props) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} noValidate className="space-y-6" aria-busy={saving}>
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Nome" required>
-          <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} />
+        <Field label="Nome" htmlFor="animal-name" required>
+          <Input
+            id="animal-name"
+            required
+            value={form.nome}
+            onChange={(e) => set("nome", e.target.value)}
+          />
         </Field>
-        <Field label="Cor" required>
-          <Input value={form.cor} onChange={(e) => set("cor", e.target.value)} />
+        <Field label="Cor" htmlFor="animal-color" required>
+          <Input
+            id="animal-color"
+            required
+            value={form.cor}
+            onChange={(e) => set("cor", e.target.value)}
+          />
         </Field>
-        <Field label="Espécie" required>
+        <Field label="Espécie" htmlFor="animal-species" required>
           <Select
             value={form.especieId}
             onValueChange={(v) => {
@@ -168,7 +178,7 @@ export function AnimalForm({ animal, mode }: Props) {
             }}
             disabled={catalogos.isPending || catalogos.isError}
           >
-            <SelectTrigger>
+            <SelectTrigger id="animal-species">
               <SelectValue
                 placeholder={
                   catalogos.isPending
@@ -188,13 +198,13 @@ export function AnimalForm({ animal, mode }: Props) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Raça">
+        <Field label="Raça" htmlFor="animal-breed">
           <Select
             value={form.racaId ?? undefined}
             onValueChange={(v) => set("racaId", v)}
             disabled={!form.especieId || catalogos.isPending || catalogos.isError}
           >
-            <SelectTrigger>
+            <SelectTrigger id="animal-breed">
               <SelectValue
                 placeholder={form.especieId ? "Selecione a raça" : "Escolha a espécie"}
               />
@@ -208,9 +218,9 @@ export function AnimalForm({ animal, mode }: Props) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Porte" required>
+        <Field label="Porte" htmlFor="animal-size" required>
           <Select value={form.porte} onValueChange={(v) => set("porte", v as Porte)}>
-            <SelectTrigger>
+            <SelectTrigger id="animal-size">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -222,9 +232,9 @@ export function AnimalForm({ animal, mode }: Props) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Sexo" required>
+        <Field label="Sexo" htmlFor="animal-sex" required>
           <Select value={form.sexo} onValueChange={(v) => set("sexo", v as Sexo)}>
-            <SelectTrigger>
+            <SelectTrigger id="animal-sex">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -236,16 +246,17 @@ export function AnimalForm({ animal, mode }: Props) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Idade estimada">
+        <Field label="Idade estimada" htmlFor="animal-age">
           <Input
+            id="animal-age"
             value={form.idadeEstimada ?? ""}
             onChange={(e) => set("idadeEstimada", e.target.value)}
             placeholder="Ex.: 2 anos"
           />
         </Field>
-        <Field label="Status" required>
+        <Field label="Status" htmlFor="animal-status" required>
           <Select value={form.status} onValueChange={(v) => set("status", v as StatusAnimal)}>
-            <SelectTrigger>
+            <SelectTrigger id="animal-status">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -265,8 +276,9 @@ export function AnimalForm({ animal, mode }: Props) {
           />
           <Label htmlFor="castrado">Castrado</Label>
         </div>
-        <Field label="Descrição" className="md:col-span-2">
+        <Field label="Descrição" htmlFor="animal-description" className="md:col-span-2">
           <Textarea
+            id="animal-description"
             rows={4}
             value={form.descricao ?? ""}
             onChange={(e) => set("descricao", e.target.value)}
@@ -279,7 +291,7 @@ export function AnimalForm({ animal, mode }: Props) {
         )}
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="outline"
@@ -303,20 +315,27 @@ export function AnimalForm({ animal, mode }: Props) {
 
 function Field({
   label,
+  htmlFor,
   required,
   className,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   required?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className={className}>
-      <Label className="mb-1.5 block text-sm">
+      <Label htmlFor={htmlFor} className="mb-1.5 block text-sm">
         {label}
-        {required && <span className="text-destructive"> *</span>}
+        {required && (
+          <span aria-hidden="true" className="text-destructive">
+            {" "}
+            *
+          </span>
+        )}
       </Label>
       {children}
     </div>

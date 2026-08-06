@@ -20,6 +20,7 @@ import { useSessao } from "@/lib/data/hooks";
 import { fetchTriagem, salvarTriagem } from "@/lib/data/usuarios";
 import { toast } from "sonner";
 import { TipoMoradia } from "@/lib/domain/enums";
+import { AsyncState } from "@/components/app/AsyncState";
 
 export const Route = createFileRoute("/_authenticated/triagem")({
   head: () => ({
@@ -94,10 +95,11 @@ function TriagemPage() {
   };
 
   const bool = (name: keyof TriagemInput, label: string) => (
-    <div className="flex items-center justify-between gap-4 rounded-md border p-3">
-      <Label className="text-sm">{label}</Label>
+    <fieldset className="flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center sm:justify-between">
+      <legend className="px-1 text-sm font-medium">{label}</legend>
       <RadioGroup
         className="flex gap-4"
+        aria-label={label}
         value={form.watch(name) === true ? "sim" : form.watch(name) === false ? "nao" : ""}
         onValueChange={(v) => form.setValue(name, v === ("sim" as never))}
       >
@@ -110,8 +112,34 @@ function TriagemPage() {
           <Label htmlFor={`${name}-n`}>Não</Label>
         </div>
       </RadioGroup>
-    </div>
+    </fieldset>
   );
+
+  if (triagem.isLoading) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <AsyncState isLoading loadingLabel="Carregando sua triagem…">
+          {null}
+        </AsyncState>
+      </div>
+    );
+  }
+
+  if (triagem.isError) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <AsyncState
+          isLoading={false}
+          isError
+          error={triagem.error}
+          errorTitle="Não foi possível carregar sua triagem"
+          onRetry={() => triagem.refetch()}
+        >
+          {null}
+        </AsyncState>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -119,28 +147,47 @@ function TriagemPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         Formulário único e padronizado. Você pode editar as respostas depois.
       </p>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
+      <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div>
-          <Label>Motivo da adoção</Label>
-          <Textarea rows={3} {...form.register("motivoAdocao")} />
-          {form.formState.errors.motivoAdocao && (
-            <p className="mt-1 text-xs text-destructive">
-              {form.formState.errors.motivoAdocao.message}
-            </p>
-          )}
+          <Label htmlFor="motivoAdocao">Motivo da adoção</Label>
+          <Textarea
+            id="motivoAdocao"
+            rows={3}
+            aria-invalid={Boolean(form.formState.errors.motivoAdocao)}
+            aria-describedby={form.formState.errors.motivoAdocao ? "motivoAdocao-error" : undefined}
+            {...form.register("motivoAdocao")}
+          />
+          <FieldError
+            id="motivoAdocao-error"
+            message={form.formState.errors.motivoAdocao?.message}
+          />
         </div>
         <div>
-          <Label>Tipo de animal desejado</Label>
-          <Input {...form.register("tipoAnimalDesejado")} />
+          <Label htmlFor="tipoAnimalDesejado">Tipo de animal desejado</Label>
+          <Input
+            id="tipoAnimalDesejado"
+            aria-invalid={Boolean(form.formState.errors.tipoAnimalDesejado)}
+            aria-describedby={
+              form.formState.errors.tipoAnimalDesejado ? "tipoAnimalDesejado-error" : undefined
+            }
+            {...form.register("tipoAnimalDesejado")}
+          />
+          <FieldError
+            id="tipoAnimalDesejado-error"
+            message={form.formState.errors.tipoAnimalDesejado?.message}
+          />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label>Tipo de moradia</Label>
+            <Label htmlFor="tipoMoradia">Tipo de moradia</Label>
             <Select
               value={form.watch("tipoMoradia")}
               onValueChange={(v) => form.setValue("tipoMoradia", v as TipoMoradia)}
             >
-              <SelectTrigger>
+              <SelectTrigger
+                id="tipoMoradia"
+                aria-invalid={Boolean(form.formState.errors.tipoMoradia)}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -151,11 +198,20 @@ function TriagemPage() {
             </Select>
           </div>
           <div>
-            <Label>Nº de adultos na casa</Label>
+            <Label htmlFor="numAdultosCasa">Nº de adultos na casa</Label>
             <Input
+              id="numAdultosCasa"
               type="number"
               min={1}
+              aria-invalid={Boolean(form.formState.errors.numAdultosCasa)}
+              aria-describedby={
+                form.formState.errors.numAdultosCasa ? "numAdultosCasa-error" : undefined
+              }
               {...form.register("numAdultosCasa", { valueAsNumber: true })}
+            />
+            <FieldError
+              id="numAdultosCasa-error"
+              message={form.formState.errors.numAdultosCasa?.message}
             />
           </div>
         </div>
@@ -173,47 +229,118 @@ function TriagemPage() {
         {bool("teveAnimaisAntes", "Já teve animais antes?")}
         {bool("temOutrosAnimais", "Tem outros animais atualmente?")}
         <div>
-          <Label>Como será o acesso à rua?</Label>
-          <Input {...form.register("acessoRua")} />
+          <Label htmlFor="acessoRua">Como será o acesso à rua?</Label>
+          <Input
+            id="acessoRua"
+            aria-invalid={Boolean(form.formState.errors.acessoRua)}
+            aria-describedby={form.formState.errors.acessoRua ? "acessoRua-error" : undefined}
+            {...form.register("acessoRua")}
+          />
+          <FieldError id="acessoRua-error" message={form.formState.errors.acessoRua?.message} />
         </div>
         <div>
-          <Label>Horas sozinho por dia</Label>
-          <Input {...form.register("horasSozinho")} />
+          <Label htmlFor="horasSozinho">Horas sozinho por dia</Label>
+          <Input
+            id="horasSozinho"
+            aria-invalid={Boolean(form.formState.errors.horasSozinho)}
+            aria-describedby={form.formState.errors.horasSozinho ? "horasSozinho-error" : undefined}
+            {...form.register("horasSozinho")}
+          />
+          <FieldError
+            id="horasSozinho-error"
+            message={form.formState.errors.horasSozinho?.message}
+          />
         </div>
         <div>
-          <Label>Responsável em caso de viagem</Label>
-          <Input {...form.register("responsavelViagem")} />
+          <Label htmlFor="responsavelViagem">Responsável em caso de viagem</Label>
+          <Input
+            id="responsavelViagem"
+            aria-invalid={Boolean(form.formState.errors.responsavelViagem)}
+            aria-describedby={
+              form.formState.errors.responsavelViagem ? "responsavelViagem-error" : undefined
+            }
+            {...form.register("responsavelViagem")}
+          />
+          <FieldError
+            id="responsavelViagem-error"
+            message={form.formState.errors.responsavelViagem?.message}
+          />
         </div>
         <div>
-          <Label>Plano em caso de gravidez na família</Label>
-          <Input {...form.register("planoEmGravidez")} />
+          <Label htmlFor="planoEmGravidez">Plano em caso de gravidez na família</Label>
+          <Input
+            id="planoEmGravidez"
+            aria-invalid={Boolean(form.formState.errors.planoEmGravidez)}
+            aria-describedby={
+              form.formState.errors.planoEmGravidez ? "planoEmGravidez-error" : undefined
+            }
+            {...form.register("planoEmGravidez")}
+          />
+          <FieldError
+            id="planoEmGravidez-error"
+            message={form.formState.errors.planoEmGravidez?.message}
+          />
         </div>
         <div>
-          <Label>Plano em caso de mudança</Label>
-          <Input {...form.register("planoMudanca")} />
+          <Label htmlFor="planoMudanca">Plano em caso de mudança</Label>
+          <Input
+            id="planoMudanca"
+            aria-invalid={Boolean(form.formState.errors.planoMudanca)}
+            aria-describedby={form.formState.errors.planoMudanca ? "planoMudanca-error" : undefined}
+            {...form.register("planoMudanca")}
+          />
+          <FieldError
+            id="planoMudanca-error"
+            message={form.formState.errors.planoMudanca?.message}
+          />
         </div>
         <div>
-          <Label>Histórico de devolução de animais</Label>
-          <Textarea rows={2} {...form.register("historicoDevolucao")} />
-          {form.formState.errors.historicoDevolucao && (
-            <p className="mt-1 text-xs text-destructive">
-              {form.formState.errors.historicoDevolucao.message}
-            </p>
-          )}
+          <Label htmlFor="historicoDevolucao">Histórico de devolução de animais</Label>
+          <Textarea
+            id="historicoDevolucao"
+            rows={2}
+            aria-invalid={Boolean(form.formState.errors.historicoDevolucao)}
+            aria-describedby={
+              form.formState.errors.historicoDevolucao ? "historicoDevolucao-error" : undefined
+            }
+            {...form.register("historicoDevolucao")}
+          />
+          <FieldError
+            id="historicoDevolucao-error"
+            message={form.formState.errors.historicoDevolucao?.message}
+          />
         </div>
         <div>
-          <Label>Histórico de perda/descuido de animais</Label>
-          <Textarea rows={2} {...form.register("historicoPercaDescuido")} />
-          {form.formState.errors.historicoPercaDescuido && (
-            <p className="mt-1 text-xs text-destructive">
-              {form.formState.errors.historicoPercaDescuido.message}
-            </p>
-          )}
+          <Label htmlFor="historicoPercaDescuido">Histórico de perda/descuido de animais</Label>
+          <Textarea
+            id="historicoPercaDescuido"
+            rows={2}
+            aria-invalid={Boolean(form.formState.errors.historicoPercaDescuido)}
+            aria-describedby={
+              form.formState.errors.historicoPercaDescuido
+                ? "historicoPercaDescuido-error"
+                : undefined
+            }
+            {...form.register("historicoPercaDescuido")}
+          />
+          <FieldError
+            id="historicoPercaDescuido-error"
+            message={form.formState.errors.historicoPercaDescuido?.message}
+          />
         </div>
         <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Salvando..." : "Salvar triagem"}
+          {form.formState.isSubmitting ? "Salvando…" : "Salvar triagem"}
         </Button>
       </form>
     </div>
+  );
+}
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} role="alert" className="mt-1 text-xs text-destructive">
+      {message}
+    </p>
   );
 }
