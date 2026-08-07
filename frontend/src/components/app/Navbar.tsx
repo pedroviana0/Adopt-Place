@@ -12,6 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { Logo } from "./Logo";
+import { NotificationBell } from "./NotificationBell";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -132,6 +133,8 @@ export function Navbar() {
               </Button>
             </>
           ) : (
+            <>
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="max-w-72 gap-2">
@@ -198,6 +201,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           )}
         </div>
 

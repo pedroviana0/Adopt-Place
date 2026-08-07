@@ -84,6 +84,13 @@ enum TipoDocumentoSaude {
   OUTRO
 }
 
+enum TipoNotificacao {
+  SOLICITACAO_RECEBIDA
+  SOLICITACAO_APROVADA
+  SOLICITACAO_RECUSADA
+  ADOCAO_CONCLUIDA
+}
+
 enum StatusConversaAdocao {
   ATIVA
   ARQUIVADA
@@ -101,6 +108,7 @@ model Usuario {
   acolhedor             AcolhedorIndependente?
   conversasParticipante ConversaParticipante[]
   mensagensAdocao       MensagemAdocao[]
+  notificacoes          Notificacao[]
   accounts              Account[]
   sessions              Session[]
 }
@@ -361,6 +369,21 @@ model SolicitacaoAdocao {
   @@unique([animalId, adotanteId])
   @@index([adotanteId], map: "idx_solicitacao_adocao_adotante_id")
   @@index([animalId], map: "idx_solicitacao_adocao_animal_id")
+}
+
+model Notificacao {
+  id        String          @id @default(cuid())
+  usuarioId String
+  usuario   Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tipo      TipoNotificacao
+  titulo    String
+  mensagem  String
+  href      String?
+  lidaEm    DateTime?
+  criadoEm  DateTime        @default(now())
+
+  @@index([usuarioId, lidaEm], map: "idx_notificacao_usuario_lida")
+  @@index([usuarioId, criadoEm], map: "idx_notificacao_usuario_criado")
 }
 
 model ConversaAdocao {

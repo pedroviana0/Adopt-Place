@@ -8,6 +8,7 @@ import {
   type ResponsibleContext,
 } from "@/lib/api/responsible-context";
 import { getServerSession } from "@/lib/auth";
+import { notificar } from "@/lib/notificacoes";
 import { prisma } from "@/lib/prisma";
 import { adoptionRequestSchema } from "@/lib/schemas/solicitacao";
 import {
@@ -70,7 +71,12 @@ export async function createAdoptionRequest(
 
   const animal = await prisma.animal.findUnique({
     where: { id: validatedAnimalId },
-    select: { status: true },
+    select: {
+      status: true,
+      nome: true,
+      organizacao: { select: { usuarioId: true } },
+      acolhedor: { select: { usuarioId: true } },
+    },
   });
   if (animal?.status !== StatusAnimal.DISPONIVEL) {
     return { error: "Animal indisponível para adoção" };
@@ -88,13 +94,27 @@ export async function createAdoptionRequest(
     return { error: "Você já tem uma solicitação ativa para este animal" };
   }
 
-  await prisma.solicitacaoAdocao.create({
+  const created = await prisma.solicitacaoAdocao.create({
     data: {
       adotanteId,
       animalId: validatedAnimalId,
       status: StatusSolicitacao.EM_ANALISE,
     },
+    select: { id: true, adotante: { select: { nomeCompleto: true } } },
   });
+
+  // Avisa o responsável pelo animal (organização ou acolhedor).
+  const donoUsuarioId = animal.organizacao?.usuarioId ?? animal.acolhedor?.usuarioId;
+  if (donoUsuarioId) {
+    await notificar({
+      usuarioId: donoUsuarioId,
+      tipo: "SOLICITACAO_RECEBIDA",
+      titulo: "Nova solicitação de adoção",
+      mensagem: `${created.adotante.nomeCompleto} quer adotar ${animal.nome}.`,
+      href: `/dashboard/solicitacoes/${created.id}`,
+    });
+  }
+
   return { success: true };
 }
 
@@ -124,7 +144,7 @@ export async function decideAdoptionRequest(
       animalId: true,
       status: true,
       adotante: { select: { usuarioId: true } },
-      animal: { select: { id: true } },
+      animal: { select: { id: true, nome: true } },
     },
   });
 
@@ -202,6 +222,18 @@ export async function decideAdoptionRequest(
     throw error;
   }
 
+  // Avisa o adotante do resultado da análise.
+  const aprovada = parsed.data.decision === StatusSolicitacao.APROVADA;
+  await notificar({
+    usuarioId: request.adotante.usuarioId,
+    tipo: aprovada ? "SOLICITACAO_APROVADA" : "SOLICITACAO_RECUSADA",
+    titulo: aprovada ? "Solicitação aprovada" : "Solicitação recusada",
+    mensagem: aprovada
+      ? `Sua solicitação para ${request.animal.nome} foi aprovada. Converse com o responsável para combinar os próximos passos.`
+      : `Sua solicitação para ${request.animal.nome} não foi aprovada desta vez.`,
+    href: aprovada ? "/mensagens" : "/minhas-solicitacoes",
+  });
+
   return { success: true };
 }
 
@@ -217,7 +249,13 @@ export async function completeAdoption(
       id: solicitacaoId,
       animal: ownershipFilter(current.context),
     },
-    select: { id: true, animalId: true, status: true },
+    select: {
+      id: true,
+      animalId: true,
+      status: true,
+      adotante: { select: { usuarioId: true } },
+      animal: { select: { nome: true } },
+    },
   });
   if (!request) {
     return { error: "Solicitacao nao encontrada", code: "NOT_FOUND" };
@@ -263,6 +301,14 @@ export async function completeAdoption(
     }
     throw error;
   }
+
+  await notificar({
+    usuarioId: request.adotante.usuarioId,
+    tipo: "ADOCAO_CONCLUIDA",
+    titulo: "Adoção concluída",
+    mensagem: `A adoção de ${request.animal.nome} foi concluída. Boa vida juntos!`,
+    href: "/minhas-solicitacoes",
+  });
 
   return { success: true };
 }

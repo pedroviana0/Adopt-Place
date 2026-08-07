@@ -24,6 +24,13 @@ vi.mock("@/lib/prisma", () => ({
       delete: vi.fn(),
     },
     animalRelacionado: { findFirst: vi.fn(), createMany: vi.fn(), deleteMany: vi.fn() },
+    notificacao: {
+      findMany: vi.fn(),
+      count: vi.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
+      updateMany: vi.fn(),
+    },
     fotoAnimal: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),

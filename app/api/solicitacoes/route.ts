@@ -9,6 +9,7 @@ import {
   apiError,
   requireActiveAdopter,
 } from "@/lib/api/adopter-context";
+import { notificar } from "@/lib/notificacoes";
 import { prisma } from "@/lib/prisma";
 import {
   adopterRequestSelect,
@@ -65,7 +66,12 @@ export async function POST(request: Request) {
 
   const animal = await prisma.animal.findUnique({
     where: { id: parsed.data.animalId },
-    select: { status: true },
+    select: {
+      status: true,
+      nome: true,
+      organizacao: { select: { usuarioId: true } },
+      acolhedor: { select: { usuarioId: true } },
+    },
   });
 
   if (animal?.status !== StatusAnimal.DISPONIVEL) {
@@ -104,6 +110,23 @@ export async function POST(request: Request) {
       },
       select: adopterRequestSelect,
     });
+
+    // Avisa o responsável pelo animal que há uma nova solicitação.
+    const donoUsuarioId =
+      animal.organizacao?.usuarioId ?? animal.acolhedor?.usuarioId;
+    if (donoUsuarioId) {
+      const adotante = await prisma.adotante.findUnique({
+        where: { id: current.adotanteId },
+        select: { nomeCompleto: true },
+      });
+      await notificar({
+        usuarioId: donoUsuarioId,
+        tipo: "SOLICITACAO_RECEBIDA",
+        titulo: "Nova solicitação de adoção",
+        mensagem: `${adotante?.nomeCompleto ?? "Um adotante"} quer adotar ${animal.nome}.`,
+        href: `/dashboard/solicitacoes/${created.id}`,
+      });
+    }
 
     return NextResponse.json(
       { request: toAdopterRequestDTO(created) },

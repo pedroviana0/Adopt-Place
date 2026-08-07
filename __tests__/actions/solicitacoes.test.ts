@@ -37,13 +37,22 @@ const findAdotante = prisma.adotante.findUnique as unknown as {
   mockResolvedValue(value: { triagemConcluida: boolean } | null): void;
 };
 const findAnimal = prisma.animal.findUnique as unknown as {
-  mockResolvedValue(value: { status: StatusAnimal } | null): void;
+  mockResolvedValue(
+    value:
+      | {
+          status: StatusAnimal;
+          nome?: string;
+          organizacao?: { usuarioId: string } | null;
+          acolhedor?: { usuarioId: string } | null;
+        }
+      | null,
+  ): void;
 };
 const findSolicitacao = prisma.solicitacaoAdocao.findFirst as unknown as {
   mockResolvedValue(value: { id: string } | null): void;
 };
 const createSolicitacao = prisma.solicitacaoAdocao.create as unknown as {
-  mockResolvedValue(value: { id: string }): void;
+  mockResolvedValue(value: { id: string; adotante?: { nomeCompleto: string } }): void;
 };
 const findSolicitacaoById = prisma.solicitacaoAdocao.findFirst as unknown as {
   mockResolvedValue(value: DecisionRequest | null): void;
@@ -227,9 +236,17 @@ describe("createAdoptionRequest", () => {
       // Given
       mockedGetServerSession.mockResolvedValue(session());
       findAdotante.mockResolvedValue({ triagemConcluida: true });
-      findAnimal.mockResolvedValue({ status: StatusAnimal.DISPONIVEL });
+      findAnimal.mockResolvedValue({
+        status: StatusAnimal.DISPONIVEL,
+        nome: "Rex",
+        organizacao: { usuarioId: "cm00000000000000000000009" },
+        acolhedor: null,
+      });
       findSolicitacao.mockResolvedValue(null);
-      createSolicitacao.mockResolvedValue({ id: "cm00000000000000000000006" });
+      createSolicitacao.mockResolvedValue({
+        id: "cm00000000000000000000006",
+        adotante: { nomeCompleto: "Adotante Teste" },
+      });
 
       // When
       const result = await createAdoptionRequest(animalId);
@@ -241,6 +258,16 @@ describe("createAdoptionRequest", () => {
           animalId,
           status: StatusSolicitacao.EM_ANALISE,
         },
+        select: { id: true, adotante: { select: { nomeCompleto: true } } },
+      });
+      // Notifica o responsável pelo animal (efeito colateral informativo).
+      expect(mockedPrisma.notificacao.createMany).toHaveBeenCalledWith({
+        data: [
+          expect.objectContaining({
+            usuarioId: "cm00000000000000000000009",
+            tipo: "SOLICITACAO_RECEBIDA",
+          }),
+        ],
       });
       expect(result).toEqual({ success: true });
     });
