@@ -70,6 +70,11 @@ function LoginPage() {
       className="flex min-h-screen w-full flex-col items-center justify-center gap-6 px-4 py-12"
       style={{ backgroundImage: glassBackground }}
     >
+      <img
+        src="/logo.png"
+        alt="AdoptPlace"
+        className="h-14 w-auto rounded-xl bg-white p-2 shadow-lg"
+      />
       <GlassCard className="w-full max-w-sm">
         <GlassCardHeader>
           <GlassCardTitle className="text-xl">

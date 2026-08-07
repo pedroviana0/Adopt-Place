@@ -1,13 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { PawPrint } from "lucide-react";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <Link to="/" className={`inline-flex items-center gap-2 font-serif text-xl font-semibold text-foreground ${className}`}>
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground">
-        <PawPrint className="h-4 w-4" />
+    <Link
+      to="/"
+      aria-label="AdoptPlace — ir para o início"
+      className={`inline-flex items-center gap-2 ${className}`}
+    >
+      <img
+        src="/logo.png"
+        alt="AdoptPlace"
+        className="h-9 w-auto rounded-md bg-white p-1 shadow-sm"
+      />
+      <span className="hidden font-serif text-lg font-semibold text-foreground sm:inline">
+        AdoptPlace
       </span>
-      AdoptPlace
     </Link>
   );
 }

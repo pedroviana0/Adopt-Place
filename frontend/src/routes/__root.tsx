@@ -110,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
       {
         rel: "preload",
         href: "/fonts/inter-400.woff2",
@@ -163,6 +163,11 @@ function RootComponent() {
           <Outlet />
         </main>
         <footer className="border-t border-border/60 bg-card/40 px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground">
+          <img
+            src="/logo.png"
+            alt="AdoptPlace"
+            className="mx-auto mb-2 h-8 w-auto rounded-md bg-white p-1 shadow-sm"
+          />
           AdoptPlace · Volta Redonda/RJ · TCC IFRJ Pinheiral 2026
         </footer>
       </div>

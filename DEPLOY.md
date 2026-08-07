@@ -61,6 +61,27 @@ apontando a `DATABASE_URL` nova.
 
 ---
 
+## Referência rápida — variáveis por projeto (colar na Vercel)
+
+**Projeto backend** (Settings → Environment Variables):
+
+| Chave | Valor / onde pegar |
+|---|---|
+| `DATABASE_URL` | a connection string do Neon (a MESMA do seu `.env` local) |
+| `NEXTAUTH_SECRET` | a MESMA do `.env` (ou gere outra: `openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | a URL pública do **frontend** (ex.: `https://adoptplace.vercel.app`) |
+| `UPLOADTHING_TOKEN` | painel do uploadthing.com (opcional; sem ele o upload de foto falha) |
+
+**Projeto frontend** (Settings → Environment Variables):
+
+| Chave | Valor |
+|---|---|
+| `NITRO_PRESET` | `vercel` |
+
+Checklist de ordem: (1) deploy backend → anota URL · (2) deploy frontend → anota URL ·
+(3) põe a URL do frontend em `NEXTAUTH_URL` (backend) e a URL do backend no `frontend/vercel.json` ·
+(4) redeploy dos dois · (5) testa login na URL do frontend.
+
 ## Observação honesta (pode exigir 1 ajuste)
 
 TanStack Start (nitro, preset `vercel`) + rewrite `/api` na Vercel é a rota recomendada, mas a
