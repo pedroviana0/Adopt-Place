@@ -164,9 +164,26 @@ o acento (cards/overlays/topbar sobre imagem ou profundidade), nunca em tudo; te
 
 ---
 
+## 9.1 Armadilha conhecida: actions vs. rotas HTTP
+
+`lib/actions/*.ts` (Server Actions, legado) e `app/api/**/route.ts` (o que o frontend
+realmente chama) **às vezes duplicam a mesma regra**. Ex.: `POST /api/solicitacoes`
+reimplementa `createAdoptionRequest` em vez de chamá-la. Ao adicionar efeito colateral
+(notificação, log, etc.), **instrumente a rota HTTP** — ou os dois — e **valide E2E**;
+só mexer na action pode não ter efeito nenhum em produção.
+
 ## 10. Roadmap
 
 - **Deploy** do sistema no ar (Neon + Vercel + Cloudflare) + resolver auth mesma-origem. **[prioridade]**
 - **Refino visual** teal/âmbar + Glass (Apple), incluindo navbar e marca/favicon.
 - **Feature de descoberta por swipe** (feed um-animal-por-vez, curtir→favoritos, proximidade por
-  geolocalização) — ainda em **ideação**, sem spec 005 nem código.
+  geolocalização) — ainda em **ideação**, sem spec 005 nem código. **Próximo passo escolhido.**
+
+**Concluído nesta rodada (2026-08-07):** histórico de adoções concluídas (`/dashboard/adotados`,
+fecha US6/FR-048-050), painel do ADMIN com destino real (corrige F4 da ROUTES-01) e
+**notificações in-app** (model `Notificacao`, `GET/POST /api/notificacoes`, sino na navbar).
+
+**Lacunas conhecidas que seguem abertas:** homologação manual da 004 (teclado, zoom 200%,
+contraste AA); `fotoUrl` de organização/acolhedor (existe no tipo do front, não no schema —
+decisão de produto); tratamento inconsistente de "papel errado" (F3); SSR real de sessão e chat
+em tempo real (ambos fora de escopo por decisão).
