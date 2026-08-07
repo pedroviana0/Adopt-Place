@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   UserCog,
   HeartPulse,
+  HeartHandshake,
   FileText,
   MessageCircle,
   Menu,
@@ -67,6 +68,7 @@ function DashLayout() {
           { to: "/dashboard/documentos", label: "Documentos", icon: FileText },
           { to: "/dashboard/mensagens", label: "Mensagens", icon: MessageCircle },
           { to: "/dashboard/solicitacoes", label: "Solicitações", icon: ClipboardList },
+          { to: "/dashboard/adotados", label: "Adoções concluídas", icon: HeartHandshake },
           { to: "/dashboard/perfil", label: "Meu perfil", icon: UserCog },
         ];
 
