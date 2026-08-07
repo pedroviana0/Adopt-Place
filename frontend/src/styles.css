@@ -89,6 +89,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-navbar-glass: var(--navbar-glass);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -150,6 +151,12 @@
   /* Âmbar de marca = laranja exato da logo (#ee831d). Uso intencional (CTAs, destaques). */
   --brand: oklch(0.714 0.165 56.6);
   --brand-foreground: oklch(0.27 0.06 55);
+  /* Banhos do fundo de página (padrão `page-canvas`): mesma família do brand/primary,
+     já com alpha — evita depender de color-mix e mantém o degradê suave. */
+  --canvas-wash-brand: oklch(0.714 0.165 56.6 / 22%);
+  --canvas-wash-primary: oklch(0.511 0.086 186.4 / 12%);
+  /* Fundo da navbar no estado "vidro" (após o primeiro scroll). */
+  --navbar-glass: oklch(0.986 0.005 197 / 62%);
   --destructive: oklch(0.52 0.19 27);
   --destructive-foreground: oklch(0.986 0.005 197);
   --success: oklch(0.42 0.1 150);
@@ -205,6 +212,9 @@
   --accent-foreground: oklch(0.2 0.03 70);
   --brand: oklch(0.74 0.16 57);
   --brand-foreground: oklch(0.2 0.05 55);
+  --canvas-wash-brand: oklch(0.74 0.16 57 / 14%);
+  --canvas-wash-primary: oklch(0.785 0.133 181.9 / 10%);
+  --navbar-glass: oklch(0.211 0.02 191 / 62%);
   --destructive: oklch(0.56 0.2 25);
   --destructive-foreground: oklch(0.96 0.012 90);
   --success: oklch(0.72 0.12 150);
@@ -292,4 +302,16 @@
     font-family: var(--font-serif);
     letter-spacing: -0.01em;
   }
+}
+
+/* Padrão de fundo de página (AdoptPlace).
+   Um banho contínuo de âmbar de marca no topo que se dissolve no fundo neutro —
+   aplicado à PÁGINA inteira, nunca por seção, para não criar degrau/emenda entre
+   blocos. Use `page-canvas` no container raiz da rota. */
+@utility page-canvas {
+  background-image:
+    radial-gradient(1100px 78vh at 8% -6%, var(--canvas-wash-brand) 0%, transparent 62%),
+    radial-gradient(900px 60vh at 96% -2%, var(--canvas-wash-primary) 0%, transparent 62%);
+  background-repeat: no-repeat;
+  background-color: var(--color-background);
 }

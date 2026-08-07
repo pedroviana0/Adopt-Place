@@ -60,9 +60,11 @@ function Home() {
   };
 
   return (
-    <div>
+    // Fundo contínuo da página (padrão `page-canvas`): o hero e a vitrine
+    // compartilham o mesmo banho de cor, sem emenda nem divisória entre eles.
+    <div className="page-canvas">
       {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand/20 via-brand/5 to-secondary/30">
+      <section className="relative overflow-hidden">
         <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:h-[calc(100dvh_-_4rem)] md:grid-cols-2 md:gap-10 md:py-0">
           <div>
             <h1 className="font-display text-[clamp(2.5rem,6vw,4.75rem)] font-bold leading-[1.03] tracking-tight text-primary">

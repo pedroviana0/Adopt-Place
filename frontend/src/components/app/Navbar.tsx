@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -11,6 +11,7 @@ import {
   MessageCircle,
   UserRound,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { NotificationBell } from "./NotificationBell";
 import { Button } from "@/components/ui/button";
@@ -73,8 +74,27 @@ export function Navbar() {
 
   const closeMobileMenu = () => setMobileOpen(false);
 
+  // No topo a barra é sólida (limpa, sem divisória); ao rolar vira vidro.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/55">
+    // O blur fica SEMPRE aplicado; só a opacidade do fundo muda. No topo o fundo
+    // é opaco (o blur não aparece) e ao rolar fica translúcido, revelando o vidro.
+    // Animar só background-color/box-shadow é confiável — transicionar
+    // backdrop-filter a partir de `none` não é.
+    <header
+      className={cn(
+        "sticky top-0 z-40 backdrop-blur-xl backdrop-saturate-150",
+        "transition-[background-color,box-shadow] duration-300 ease-out",
+        scrolled ? "bg-navbar-glass shadow-sm" : "bg-background shadow-none",
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center gap-6">
           <Logo className="shrink-0" />
