@@ -121,6 +121,61 @@ async function createDemoUsers(): Promise<void> {
   ]);
 }
 
+const IMG = (id: string) => `https://images.unsplash.com/photo-${id}?w=800&q=80&auto=format&fit=crop`;
+
+const DOG_PHOTOS = [
+  "1552053831-71594a27632d",
+  "1587300003388-59208cc962cb",
+  "1583512603805-3cc6b41f3edb",
+  "1517849845537-4d257902454a",
+  "1543466835-00a7907e9de1",
+  "1561037404-61cd46aa615b",
+  "1548199973-03cce0bbc87b",
+  "1534361960057-19889db9621e",
+  "1601758228041-f3b2795255f1",
+  "1518717758536-85ae29035b6d",
+].map(IMG);
+
+const CAT_PHOTOS = [
+  "1514888286974-6c03e2ca1dba",
+  "1533738363-b7f9aef128ce",
+  "1495360010541-f48722b34f7d",
+  "1518791841217-8f162f1e1131",
+  "1513245543132-31f507417b26",
+  "1592194996308-7b43878e84a6",
+  "1573865526739-10659fec78a5",
+  "1478098711619-5ab0b478d6e6",
+  "1526336024174-e58f5cb8b6ce",
+  "1425082661705-1834bfd09dca",
+].map(IMG);
+
+const DOG_NAMES = [
+  "Thor", "Bela", "Bidu", "Nina", "Rex", "Max", "Luke", "Fred", "Bob", "Zeca",
+  "Amora", "Mel", "Toby", "Cacau", "Pipoca", "Bento", "Aurora", "Simba", "Duque", "Frida",
+];
+const CAT_NAMES = [
+  "Luna", "Mia", "Nino", "Fiona", "Salem", "Amélie", "Maru", "Pandora", "Oliver", "Nala",
+  "Fumaça", "Jade", "Pretinha", "Chiara", "Lola", "Gaia", "Otto", "Íris", "Pérola", "Zoe",
+];
+const CORES = [
+  "Caramelo", "Preto", "Branco", "Preto e branco", "Tricolor",
+  "Cinza", "Rajado", "Marrom", "Dourado", "Malhado",
+];
+const IDADES = [
+  "2 meses", "4 meses", "6 meses", "8 meses", "1 ano", "2 anos", "3 anos", "5 anos", "7 anos",
+];
+const PORTES = [Porte.P, Porte.M, Porte.G];
+const DESCRICOES = [
+  "Dócil e cheio de energia, adora companhia.",
+  "Carinhoso e tranquilo, ideal para apartamento.",
+  "Companheiro e obediente, já socializado.",
+  "Curioso e brincalhão, cheio de personalidade.",
+  "Calmo e caseiro, perfeito para dias tranquilos.",
+  "Filhote esperto e afetuoso, aprende rápido.",
+  "Sociável com outros animais e com crianças.",
+  "Resgatado com muito cuidado, pronto para um lar.",
+];
+
 async function createDemoAnimals(): Promise<void> {
   const organizacao = await prisma.organizacao.findFirst();
   if (!organizacao) return;
@@ -128,89 +183,33 @@ async function createDemoAnimals(): Promise<void> {
   const cachorro = await prisma.especie.create({ data: { nome: "Cachorro" } });
   const gato = await prisma.especie.create({ data: { nome: "Gato" } });
 
-  const animais = [
-    {
-      nome: "Thor",
-      especieId: cachorro.id,
-      porte: Porte.G,
-      sexo: Sexo.M,
-      cor: "Caramelo",
-      idadeEstimada: "2 anos",
-      castrado: true,
-      descricao: "Dócil e cheio de energia. Adora crianças e passeios longos.",
-      foto: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&q=80",
-    },
-    {
-      nome: "Luna",
-      especieId: gato.id,
-      porte: Porte.P,
-      sexo: Sexo.F,
-      cor: "Cinza",
-      idadeEstimada: "1 ano",
-      castrado: true,
-      descricao: "Carinhosa e tranquila, ideal para apartamento.",
-      foto: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&q=80",
-    },
-    {
-      nome: "Bela",
-      especieId: cachorro.id,
-      porte: Porte.M,
-      sexo: Sexo.F,
-      cor: "Preto e branco",
-      idadeEstimada: "3 anos",
-      castrado: true,
-      descricao: "Companheira e obediente, já socializada com outros cães.",
-      foto: "https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=800&q=80",
-    },
-    {
-      nome: "Mia",
-      especieId: gato.id,
-      porte: Porte.P,
-      sexo: Sexo.F,
-      cor: "Tricolor",
-      idadeEstimada: "8 meses",
-      castrado: false,
-      descricao: "Curiosa e brincalhona, adora um brinquedo de varinha.",
-      foto: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=800&q=80",
-    },
-    {
-      nome: "Bidu",
-      especieId: cachorro.id,
-      porte: Porte.P,
-      sexo: Sexo.M,
-      cor: "Branco",
-      idadeEstimada: "5 anos",
-      castrado: true,
-      descricao: "Calmo e caseiro, perfeito para quem busca um amigo tranquilo.",
-      foto: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&q=80",
-    },
-    {
-      nome: "Nina",
-      especieId: cachorro.id,
-      porte: Porte.M,
-      sexo: Sexo.F,
-      cor: "Caramelo",
-      idadeEstimada: "6 meses",
-      castrado: false,
-      descricao: "Filhote esperta e afetuosa, aprende rápido.",
-      foto: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80",
-    },
-  ] as const;
+  const TOTAL = 36;
+  let dogI = 0;
+  let catI = 0;
 
-  for (const a of animais) {
+  for (let i = 0; i < TOTAL; i++) {
+    const isDog = i % 2 === 0;
+    const idx = isDog ? dogI++ : catI++;
+    const nome = isDog
+      ? DOG_NAMES[idx % DOG_NAMES.length]
+      : CAT_NAMES[idx % CAT_NAMES.length];
+    const foto = isDog
+      ? DOG_PHOTOS[idx % DOG_PHOTOS.length]
+      : CAT_PHOTOS[idx % CAT_PHOTOS.length];
+
     await prisma.animal.create({
       data: {
-        nome: a.nome,
-        especieId: a.especieId,
-        porte: a.porte,
-        sexo: a.sexo,
-        cor: a.cor,
-        idadeEstimada: a.idadeEstimada,
-        castrado: a.castrado,
-        descricao: a.descricao,
+        nome,
+        especieId: isDog ? cachorro.id : gato.id,
+        porte: isDog ? PORTES[i % 3] : i % 4 === 0 ? Porte.M : Porte.P,
+        sexo: i % 3 === 0 || i % 5 === 0 ? Sexo.F : Sexo.M,
+        cor: CORES[i % CORES.length],
+        idadeEstimada: IDADES[i % IDADES.length],
+        castrado: i % 4 !== 0,
+        descricao: DESCRICOES[i % DESCRICOES.length],
         status: StatusAnimal.DISPONIVEL,
         organizacaoId: organizacao.id,
-        fotos: { create: { urlFoto: a.foto, principal: true, ordem: 0 } },
+        fotos: { create: { urlFoto: foto, principal: true, ordem: 0 } },
       },
     });
   }
