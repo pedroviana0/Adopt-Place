@@ -10,7 +10,7 @@ export function Logo({ className = "" }: { className?: string }) {
       <img
         src="/logo.png"
         alt="AdoptPlace"
-        className="h-9 w-auto rounded-md bg-white p-1 shadow-sm"
+        className="h-9 w-auto dark:rounded-md dark:bg-white dark:p-1 dark:shadow-sm"
       />
       <span className="hidden font-serif text-lg font-semibold text-foreground sm:inline">
         AdoptPlace

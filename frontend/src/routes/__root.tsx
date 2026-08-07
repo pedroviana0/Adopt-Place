@@ -166,7 +166,7 @@ function RootComponent() {
           <img
             src="/logo.png"
             alt="AdoptPlace"
-            className="mx-auto mb-2 h-8 w-auto rounded-md bg-white p-1 shadow-sm"
+            className="mx-auto mb-2 h-8 w-auto dark:rounded-md dark:bg-white dark:p-1 dark:shadow-sm"
           />
           AdoptPlace · Volta Redonda/RJ · TCC IFRJ Pinheiral 2026
         </footer>
