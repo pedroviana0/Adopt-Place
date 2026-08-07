@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Heart, Home as HomeIcon, Users } from "lucide-react";
+import { ArrowRight, PawPrint } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
@@ -42,6 +42,11 @@ function Home() {
     queryKey: ["vitrine", filters, page],
     queryFn: () => fetchVitrine({ ...filters, page }),
   });
+  const featuredQuery = useQuery({
+    queryKey: ["featured-animal"],
+    queryFn: () => fetchVitrine({ ...emptyFilters(), page: 1 }),
+  });
+  const featured = featuredQuery.data?.animals?.[0] ?? null;
 
   const paginados = vitrine.data?.animals ?? [];
   const pagination = vitrine.data?.pagination;
@@ -57,47 +62,57 @@ function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="border-b bg-gradient-to-b from-secondary/40 to-background">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              Volta Redonda/RJ · Adoção responsável
-            </span>
-            <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight md:text-6xl">
-              Encontre seu parceiro ideal
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand/20 via-brand/5 to-secondary/30">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
+          <div>
+            <h1 className="font-display text-6xl font-bold leading-[1.02] tracking-tight text-primary md:text-7xl lg:text-8xl">
+              Uma vida mais feliz começa com a{" "}
+              <span className="text-brand">adoção</span>.
             </h1>
-            <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-              O AdoptPlace conecta animais resgatados por organizações e acolhedores independentes a
-              famílias prontas para dar um lar cheio de amor.
+            <p className="mt-6 max-w-md text-xl text-muted-foreground md:text-2xl">
+              Encontre o companheiro ideal entre animais resgatados pertinho de você.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button asChild size="lg">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full bg-brand px-7 text-brand-foreground hover:bg-brand/90"
+              >
                 <a href="#vitrine">
-                  Ver animais disponíveis <ArrowRight className="h-4 w-4" />
+                  Adotar agora <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="ghost" className="rounded-full">
                 <Link to="/cadastro/organizacao">Sou uma organização</Link>
               </Button>
             </div>
+            <p className="mt-6 text-sm text-muted-foreground">
+              <strong className="font-semibold text-foreground">{metrics.disponiveis}</strong>{" "}
+              disponíveis ·{" "}
+              <strong className="font-semibold text-foreground">{metrics.adotados}</strong>{" "}
+              adoções ·{" "}
+              <strong className="font-semibold text-foreground">{metrics.parceiros}</strong>{" "}
+              parceiros
+            </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <MetricCard
-              icon={<Heart className="h-5 w-5" />}
-              label="Animais disponíveis"
-              value={metrics.disponiveis}
+          <div className="relative mx-auto w-full max-w-md">
+            <HeroBlobPhoto
+              src={featured?.fotoPrincipal ?? null}
+              alt={featured ? `${featured.nome}, disponível para adoção` : "Animais para adoção"}
             />
-            <MetricCard
-              icon={<HomeIcon className="h-5 w-5" />}
-              label="Adoções realizadas"
-              value={metrics.adotados}
-            />
-            <MetricCard
-              icon={<Users className="h-5 w-5" />}
-              label="Parceiros responsáveis"
-              value={metrics.parceiros}
-            />
+            <div className="absolute -bottom-2 left-0 sm:-left-2">
+              <PawBadge />
+            </div>
+            {featured && (
+              <Link
+                to="/animais/$animalId"
+                params={{ animalId: featured.id }}
+                className="absolute bottom-3 right-1 rounded-full bg-background/85 px-3 py-1.5 text-sm font-medium text-foreground shadow-md backdrop-blur transition hover:bg-background"
+              >
+                Conheça {featured.nome} →
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -182,24 +197,60 @@ function Home() {
   );
 }
 
-function MetricCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-}) {
+// Blob orgânico do hero (foto do animal recortada numa forma teal).
+const HERO_BLOB =
+  "M411.5,308Q392,366,340,397.5Q288,429,229.5,420Q171,411,120,378Q69,345,60.5,287.5Q52,230,72,175Q92,120,143,86Q194,52,255,58.5Q316,65,362,102Q408,139,421,194.5Q434,250,411.5,308Z";
+
+function HeroBlobPhoto({ src, alt }: { src: string | null; alt: string }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary">
-          {icon}
-        </span>
-        <span className="text-sm">{label}</span>
-      </div>
-      <p className="mt-2 font-serif text-3xl font-semibold">{value}</p>
+    <svg viewBox="0 0 480 480" className="h-auto w-full" role="img" aria-label={alt}>
+      <defs>
+        <clipPath id="heroBlobClip">
+          <path d={HERO_BLOB} />
+        </clipPath>
+      </defs>
+      {/* halo teal atrás da foto */}
+      <path
+        d={HERO_BLOB}
+        transform="translate(240 240) scale(1.07) translate(-240 -240)"
+        fill="var(--color-primary)"
+      />
+      {src ? (
+        <image
+          href={src}
+          x="0"
+          y="0"
+          width="480"
+          height="480"
+          preserveAspectRatio="xMidYMid slice"
+          clipPath="url(#heroBlobClip)"
+        />
+      ) : (
+        <rect width="480" height="480" fill="var(--color-secondary)" clipPath="url(#heroBlobClip)" />
+      )}
+    </svg>
+  );
+}
+
+function PawBadge() {
+  return (
+    <div className="relative grid h-24 w-24 place-items-center rounded-full bg-brand text-brand-foreground shadow-lg sm:h-28 sm:w-28">
+      <svg
+        viewBox="0 0 120 120"
+        className="absolute inset-0 h-full w-full animate-[spin_18s_linear_infinite] motion-reduce:animate-none"
+        aria-hidden="true"
+      >
+        <defs>
+          <path id="pawBadgeCircle" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
+        </defs>
+        <text fill="currentColor" fontSize="12" fontWeight="700" letterSpacing="2.4">
+          <textPath href="#pawBadgeCircle" startOffset="0">
+            ADOTAR · AMAR · CUIDAR · ADOTAR · AMAR ·{" "}
+          </textPath>
+        </text>
+      </svg>
+      <PawPrint className="h-7 w-7 sm:h-8 sm:w-8" aria-hidden="true" />
+      <span className="sr-only">Adotar, amar, cuidar</span>
     </div>
   );
 }
