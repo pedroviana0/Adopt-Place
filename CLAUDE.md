@@ -111,15 +111,20 @@ npm run build             # build — precisa passar
 
 Stack alvo, tudo em plano grátis:
 
+**Decisão (2026-08-07): tudo na Vercel** (backend + frontend na mesma plataforma/origem).
+
 | Peça | Serviço grátis | Observação |
 |---|---|---|
-| Banco | **Neon** | Postgres, auto-resume |
+| Banco | **Neon** (provisionado, sa-east-1) | Postgres, auto-resume; mesma URL serve local e prod |
 | Backend (Next) | **Vercel** (Hobby) | roda API + NextAuth + Prisma |
-| Frontend (Vite/TanStack) | **Cloudflare** Pages/Workers | o build já mira Cloudflare (nitro) |
+| Frontend (Vite/TanStack) | **Vercel** (preset nitro `vercel`) | rewrite `/api/*` → backend, mesma origem |
 
-- **Trabalho extra conhecido:** front e back em origens diferentes quebram o cookie de auth
-  first-party (hoje resolvido por proxy só em dev). Em produção precisa de **mesma origem**
-  (ex.: rotear `/api` do domínio do front pro back) — tarefa a planejar antes de publicar.
+- **Mesma origem resolve o auth:** front e back em origens diferentes quebram o cookie
+  first-party (em dev é o proxy do Vite). Em produção, o rewrite `/api` da Vercel faz esse papel.
+- **Rodar o stack completo local (SEM Docker):** o banco é o Neon (nuvem), então bastam 2 terminais:
+  `npm run dev` (backend :3000) e `npm --prefix frontend run dev` (front :8080). O `.env` (git-ignored)
+  guarda `DATABASE_URL` do Neon + `NEXTAUTH_SECRET`. Setup do banco (uma vez): `npm run prisma:generate`
+  → `npx prisma migrate deploy` → `npm run prisma:seed` (cria as 5 contas de teste; **não cria animais**).
 - **A IA não cria contas nem cola segredos.** Fluxo: a IA prepara config + runbook; o mantenedor
   cria as contas grátis, define `DATABASE_URL`/`NEXTAUTH_SECRET`/`NEXTAUTH_URL`/`UPLOADTHING_TOKEN`
   e dispara o deploy. `NEXTAUTH_SECRET`: `openssl rand -base64 32`.
