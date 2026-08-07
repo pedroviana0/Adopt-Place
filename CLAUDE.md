@@ -181,18 +181,46 @@ reimplementa `createAdoptionRequest` em vez de chamá-la. Ao adicionar efeito co
 (notificação, log, etc.), **instrumente a rota HTTP** — ou os dois — e **valide E2E**;
 só mexer na action pode não ter efeito nenhum em produção.
 
-## 10. Roadmap
+## 10. Estado atual (handoff) — atualizado 2026-08-07
 
-- **Deploy** do sistema no ar (Neon + Vercel + Cloudflare) + resolver auth mesma-origem. **[prioridade]**
-- **Refino visual** teal/âmbar + Glass (Apple), incluindo navbar e marca/favicon.
-- **Feature de descoberta por swipe** (feed um-animal-por-vez, curtir→favoritos, proximidade por
-  geolocalização) — ainda em **ideação**, sem spec 005 nem código. **Próximo passo escolhido.**
+**`main` = `4a45454`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
+**223 testes** passando).
 
-**Concluído nesta rodada (2026-08-07):** histórico de adoções concluídas (`/dashboard/adotados`,
-fecha US6/FR-048-050), painel do ADMIN com destino real (corrige F4 da ROUTES-01) e
-**notificações in-app** (model `Notificacao`, `GET/POST /api/notificacoes`, sino na navbar).
+### O que existe e funciona
+- **Jornada de adoção completa:** vitrine pública (filtros + paginação), cadastro (3 tipos),
+  login/sessão, triagem, favoritos, solicitação + acompanhamento, chat pós-aprovação.
+- **Gestão:** CRUD de animais + fotos + relacionamentos, Central de Saúde (agenda/cuidados/
+  registros/alertas), documentos internos, dashboard operacional, análise/decisão de solicitações,
+  admin de contas.
+- **Adoções concluídas:** `/dashboard/adotados` (fecha US6/FR-048-050).
+- **Notificações in-app:** model `Notificacao`, `GET/POST /api/notificacoes`, sino na navbar.
+  Eventos: solicitação recebida (responsável), aprovada/recusada e adoção concluída (adotante).
+- **Identidade:** teal + âmbar-de-marca (`--brand` = laranja da logo), Inter/Poppins/Fredoka
+  self-hospedadas, logo oficial (navbar/rodapé/login/favicon), login e navbar em Glass,
+  home com hero estilo landing que **cabe na viewport**, fundo contínuo `page-canvas`.
 
-**Lacunas conhecidas que seguem abertas:** homologação manual da 004 (teclado, zoom 200%,
-contraste AA); `fotoUrl` de organização/acolhedor (existe no tipo do front, não no schema —
-decisão de produto); tratamento inconsistente de "papel errado" (F3); SSR real de sessão e chat
-em tempo real (ambos fora de escopo por decisão).
+### Ambiente (roda sem Docker)
+Banco **Neon** (nuvem) — hoje com **5 contas de teste, 36 animais** DISPONIVEL. Dois terminais na
+raiz: `npm run dev` (backend `:3000`) e `npm --prefix frontend run dev` (front `:8080`).
+`.env` local é git-ignored. Login de teste: `adotante.aprovado@example.com` /
+`organizacao.teste@example.com` / `admin.teste@example.com` — senha `AdoptPlace@2026`.
+
+### Próximo passo combinado
+1. **Feature de descoberta por swipe** — ainda **ideação**: sem `spec 005` e sem código. O
+   mantenedor pediu que a **spec seja escrita e aprovada antes de codar**. Conceito: feed
+   um-animal-por-vez, arrastar → curtir (vai para **Favoritos**, NÃO abre solicitação) / pular
+   (rejeição **não** é armazenada), carrossel das fotos reais, proximidade por **Geolocation API +
+   Haversine** (sem API paga), fallback de cidade manual, coordenada arredondada por privacidade.
+   Precisa de campo de geo no `Animal` (backend).
+2. **Deploy** (requisito: sistema no ar) — config e runbook prontos em `DEPLOY.md`; falta o
+   mantenedor criar os 2 projetos na Vercel e colar as env vars, e então trocar o host em
+   `frontend/vercel.json`.
+3. **Pendências de design que o mantenedor vai enviar:** barra/desenho dos botões
+   **Entrar/Cadastrar** e o **menu do usuário** (achou as opções atuais genéricas).
+
+### Lacunas conhecidas (abertas por decisão ou por fazer)
+- Homologação manual da feature 004: teclado, zoom 200%, contraste AA.
+- `fotoUrl` de organização/acolhedor: existe no tipo do front, **não** no schema (decisão de produto).
+- Tratamento inconsistente de "papel errado" (defeito F3 da ROUTES-01).
+- SSR real de sessão e chat em tempo real: **fora de escopo** por decisão (chat usa polling).
+- **PR #116 está aberto e obsoleto** (substituído pelo #117, já mergeado) — pode ser fechado.
