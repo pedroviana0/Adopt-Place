@@ -143,6 +143,15 @@ o acento (cards/overlays/topbar sobre imagem ou profundidade), nunca em tudo; te
   (success/warning/info/selection), foco acessível e sombras já existem. **Usar tokens semânticos**
   (`bg-primary`, `text-accent`…), nunca cor hardcoded.
 - **Tipografia:** corpo **Inter**, títulos **Poppins** (self-hospedadas em `public/fonts`).
+- **Fundo de página (padrão `page-canvas`):** o fundo é **da página**, nunca por seção — aplique
+  `page-canvas` no container raiz da rota e deixe as seções **transparentes, sem `border-b`**.
+  Fundo por seção cria degrau/emenda entre blocos (erro corrigido em `c94e37b`).
+- **Navbar:** sólida no topo, **vidro após o primeiro scroll**. O blur fica sempre aplicado e só a
+  opacidade do fundo transiciona (`--navbar-glass`); animar `backdrop-filter` a partir de `none`
+  trava em `blur(0px)`.
+- **Alpha em cor:** o modificador `/opacidade` do Tailwind sobre token em `var()`
+  (ex.: `bg-background/60`) **não emite alpha** aqui. Crie um token explícito com alpha
+  (padrão dos `--canvas-wash-*` e `--navbar-glass`).
 - **Componentes:** shadcn em `components/ui`. `glass-card.tsx` é a base do visual Glass (usado na
   tela de login). Acessibilidade que o projeto já tem (foco visível, skip-link) deve ser mantida.
 - **Logo oficial:** wordmark **"AP"** (gato no A, cachorro no P; preto + laranja) em
