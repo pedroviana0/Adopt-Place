@@ -145,9 +145,11 @@ o acento (cards/overlays/topbar sobre imagem ou profundidade), nunca em tudo; te
 - **Tipografia:** corpo **Inter**, títulos **Poppins** (self-hospedadas em `public/fonts`).
 - **Componentes:** shadcn em `components/ui`. `glass-card.tsx` é a base do visual Glass (usado na
   tela de login). Acessibilidade que o projeto já tem (foco visível, skip-link) deve ser mantida.
-- **Pendência de marca:** o favicon é uma **pata oliva** (`public/favicon.svg`) — destoa do
-  teal/âmbar; realinhar ao decidir logo/wordmark.
-- **A definir com o mantenedor:** tom em 3–5 palavras, público nº 1, logo/wordmark, voz PT-BR.
+- **Logo oficial:** wordmark **"AP"** (gato no A, cachorro no P; preto + laranja) em
+  `frontend/public/logo.png` e `frontend/public/favicon.png`. Usada na navbar, rodapé e login
+  (num "chip" branco arredondado, pra funcionar no claro e no escuro). Fonte da arte:
+  `arthur-hideo-tcc-main/logo tcc.jpeg` (fora do repo).
+- **A definir com o mantenedor:** tom em 3–5 palavras, público nº 1, voz PT-BR.
 
 ---
 
