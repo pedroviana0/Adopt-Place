@@ -1,3 +1,7 @@
+> ⚠️ **HISTÓRICO / SUPERSEDIDO (2026-08-07).** A governança mudou para **dono único** e o
+> contexto canônico agora é o [`CLAUDE.md`](./CLAUDE.md). Mantido apenas como registro do
+> período em que o trabalho era dividido (Arthur=frontend / Pedro=backend).
+
 # AdoptPlace — Contexto de Continuação (Arthur/Claude · Frontend · Feature 003)
 
 > Documento de handoff para retomar o trabalho **da parte do Arthur (frontend)**
