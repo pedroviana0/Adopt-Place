@@ -63,16 +63,16 @@ function Home() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand/20 via-brand/5 to-secondary/30">
-        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:h-[calc(100dvh_-_4rem)] md:grid-cols-2 md:gap-10 md:py-0">
           <div>
-            <h1 className="font-display text-6xl font-bold leading-[1.02] tracking-tight text-primary md:text-7xl lg:text-8xl">
+            <h1 className="font-display text-[clamp(2.5rem,6vw,4.75rem)] font-bold leading-[1.03] tracking-tight text-primary">
               Uma vida mais feliz começa com a{" "}
               <span className="text-brand">adoção</span>.
             </h1>
-            <p className="mt-6 max-w-md text-xl text-muted-foreground md:text-2xl">
+            <p className="mt-4 max-w-md text-lg text-muted-foreground md:text-xl">
               Encontre o companheiro ideal entre animais resgatados pertinho de você.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               <Button
                 asChild
                 size="lg"
@@ -86,7 +86,7 @@ function Home() {
                 <Link to="/cadastro/organizacao">Sou uma organização</Link>
               </Button>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">
+            <p className="mt-5 text-sm text-muted-foreground">
               <strong className="font-semibold text-foreground">{metrics.disponiveis}</strong>{" "}
               disponíveis ·{" "}
               <strong className="font-semibold text-foreground">{metrics.adotados}</strong>{" "}
@@ -96,7 +96,7 @@ function Home() {
             </p>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md">
+          <div className="relative mx-auto w-full max-w-[20rem] sm:max-w-[22rem] lg:max-w-md">
             <HeroBlobPhoto
               src={featured?.fotoPrincipal ?? null}
               alt={featured ? `${featured.nome}, disponível para adoção` : "Animais para adoção"}
