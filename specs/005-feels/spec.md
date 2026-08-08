@@ -94,9 +94,9 @@ aparece uma única vez até a pilha esgotar.
 
 **Acceptance Scenarios**:
 
-1. **Given** um adotante ativo em `/feels`, **When** a tela carrega, **Then** vê um único cartão
-   com foto real, nome, espécie, porte, sexo, idade estimada, cidade/UF, distância aproximada e as
-   etiquetas de saúde já existentes, sem rolagem horizontal da página.
+1. **Given** um adotante ativo em `/feels`, **When** a tela carrega, **Then** vê um único cartão com
+   foto real ocupando a maior parte da área e, em hierarquia decrescente, nome com idade, a frase de
+   espécie e porte, e por fim sexo, cidade/UF e distância — sem rolagem horizontal da página.
 2. **Given** um cartão visível, **When** a pessoa arrasta para a direita, arrasta para a esquerda,
    usa os botões visíveis de curtir/pular ou pressiona as setas ←/→ do teclado, **Then** o cartão
    sai com a mesma consequência em qualquer um dos quatro caminhos e o próximo entra.
@@ -275,9 +275,14 @@ dos favoritos; repetir com um animal pulado.
 - **FR-011**: O feed DEVE existir em rota própria e protegida, acessível somente a usuário
   autenticado, ativo e de perfil adotante. Visitante DEVE ser direcionado a login ou cadastro; outros
   perfis DEVEM receber tratamento explícito de perfil sem acesso, coerente com o restante do produto.
-- **FR-012**: O feed DEVE apresentar um animal por vez, exibindo nome, espécie, raça quando houver,
-  porte, sexo, idade estimada, cidade e UF, distância aproximada e as etiquetas de saúde já
-  calculadas pelo produto.
+- **FR-012**: O cartão DEVE apresentar um animal por vez, com a foto ocupando a maior parte da área
+  e o conteúdo em três níveis de hierarquia decrescente: **(1)** nome e idade estimada; **(2)**
+  espécie e porte numa frase concordada em gênero — "Gata pequena", "Cachorro grande"; **(3)** sexo,
+  cidade/UF e distância aproximada. O cartão NÃO DEVE exibir raça nem etiquetas de saúde: raça é
+  opcional no schema e está ausente em toda a base, e as etiquetas repetiriam porte e sexo, que já
+  aparecem no texto. Ambos permanecem no perfil do animal.
+- **FR-012a**: O texto sobre a foto DEVE ter fundo próprio que garanta contraste WCAG AA
+  independentemente da imagem, já que a luminosidade das fotos é imprevisível.
 - **FR-013**: O feed DEVE incluir somente animais com status `DISPONIVEL`, excluindo os que a pessoa
   já favoritou, aqueles para os quais ela já possui solicitação de adoção, e os pulados na sessão
   atual.
