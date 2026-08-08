@@ -28,6 +28,32 @@ da sessão de 2026-08-07 registradas abaixo.
   uma interface abstrata, com implementação inicial em BrasilAPI/ViaCEP (gratuita, sem chave).
 - Q: Quando o geocoding é executado? → A: **Na escrita** (cadastro/edição de endereço), com a
   coordenada persistida. Nunca no caminho de leitura do feed.
+
+### Session 2026-08-08 — revisão após medição das APIs
+
+A decisão de usar API como fonte de coordenada foi **revertida por evidência**. Medições feitas
+contra as APIs reais:
+
+- Quatro CEPs de São Paulo em zonas opostas (Bela Vista, Santana, Capão Redondo, Itaquera)
+  retornam a **coordenada idêntica** `-23.5475, -46.63611`. O mesmo em Volta Redonda, entre
+  bairros distintos. O campo `location` da BrasilAPI é a coordenada do **município**, não do
+  endereço — não há geocoding de endereço acontecendo.
+- O centroide de município diverge da coordenada devolvida pela API em **0,5 a 1,9 km**, medido em
+  cinco cidades de portes diferentes. Irrelevante diante de raios de 25 km ou mais.
+- BrasilAPI responde **404** para CEP inexistente; ViaCEP responde **HTTP 200** com
+  `{"erro":"true"}`. Semânticas opostas para o mesmo caso.
+- Nominatim (OSM) entrega precisão real de rua, mas tem política de uso restritiva.
+
+- Q: Qual passa a ser a fonte da coordenada? → A: A **tabela de municípios**, sempre. Offline, sem
+  terceiro no caminho. A API de CEP deixa de ser fonte de coordenada.
+- Q: Para que serve então a API de CEP? → A: Validar que o CEP existe, preencher
+  logradouro/bairro/cidade/UF e devolver o **código IBGE**, que é a chave de junção com a tabela.
+- Q: E se a API de CEP cair? → A: A pessoa escolhe o município numa lista vinda da nossa própria
+  tabela e o cadastro conclui **sem nenhuma perda de coordenada**.
+- Q: Precisão de rua? → A: **Fora desta feature.** Nominatim fica para spec futura, se a ordenação
+  dentro de uma mesma cidade virar necessidade real.
+- Q: Manter registro da origem da coordenada? → A: Sim, campo de precisão, hoje sempre
+  `MUNICIPIO`. É o que permite refinar depois só o que precisa, sem varrer a base.
 - Q: Como o endereço vira coordenada? → A: **CEP obrigatório** no cadastro de organização,
   acolhedor e adotante; o CEP preenche logradouro/cidade/UF e origina a coordenada.
 - Q: E se a API de geocoding estiver fora do ar durante um cadastro? → A: Cai para o **centroide do
@@ -248,19 +274,19 @@ dos favoritos; repetir com um animal pulado.
 - **FR-002**: O cadastro de organização, acolhedor independente e adotante DEVE exigir CEP. A partir
   do CEP, o sistema DEVE preencher logradouro, cidade e UF, mantendo os campos editáveis para
   correção de complemento e número.
-- **FR-003**: O sistema DEVE obter e persistir a coordenada do endereço **no momento da escrita**
-  (cadastro ou edição de endereço) e NÃO DEVE executar geocoding em nenhum caminho de leitura,
-  inclusive na montagem do feed.
-- **FR-004**: O geocoding DEVE ser consumido através de uma interface única de provedor, com a
-  implementação ativa selecionada por variável de ambiente. A implementação inicial DEVE ser gratuita
-  e sem chave de acesso. Trocar de provedor NÃO DEVE exigir alteração no feed, nas rotas de cadastro
-  ou no modelo de dados.
-- **FR-005**: Quando o provedor de geocoding falhar, expirar ou não retornar coordenada, o sistema
-  DEVE usar o centroide do município informado e concluir a operação. A falha do provedor NÃO DEVE
-  impedir cadastro, edição de perfil ou uso do feed.
-- **FR-006**: Toda coordenada persistida DEVE registrar sua precisão de origem — `CEP` quando veio do
-  provedor, `MUNICIPIO` quando veio do centroide — para permitir refinamento posterior sem
-  regeocodificar o que já está preciso.
+- **FR-003**: A coordenada de uma pessoa ou responsável DEVE vir do **centroide do seu município**,
+  resolvido a partir da tabela de FR-001, e DEVE ser persistida no momento da escrita. Nenhum
+  caminho de leitura — incluindo a montagem do feed — DEVE chamar serviço externo.
+- **FR-004**: A consulta de CEP DEVE ser feita através de uma interface única de provedor, com a
+  implementação ativa selecionada por variável de ambiente. O provedor DEVE devolver, de forma
+  normalizada: endereço, cidade, UF e **código IBGE do município**, além de distinguir três
+  desfechos — encontrado, CEP inexistente e serviço indisponível — independentemente de o provedor
+  sinalizar isso por status HTTP ou por campo no corpo da resposta.
+- **FR-005**: O provedor de CEP NÃO DEVE ser fonte de coordenada. Sua indisponibilidade NÃO DEVE
+  impedir cadastro nem edição: nesse caso a pessoa DEVE poder escolher o município a partir da
+  tabela de FR-001, e a coordenada resultante é idêntica à que teria sido obtida com o provedor no ar.
+- **FR-006**: Toda coordenada persistida DEVE registrar sua origem — hoje sempre `MUNICIPIO` — para
+  permitir refinamento posterior apenas do que precisar, sem varrer a base inteira.
 - **FR-007**: O sistema NÃO DEVE persistir organização, acolhedor ou adotante sem localização válida.
   Um registro sem coordenada é estado inválido, não é caso a ser tratado no feed.
 - **FR-008**: A localização de um animal DEVE ser derivada da localização do seu responsável

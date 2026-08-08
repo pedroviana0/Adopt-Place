@@ -16,6 +16,33 @@ enum TipoPerfil {
   ADMIN
 }
 
+// De onde veio a coordenada gravada. Hoje sempre MUNICIPIO: as APIs de CEP
+// gratuitas devolvem o centroide do municipio, nao o ponto do endereco.
+// RUA existe para quando um geocoder de endereco entrar, permitindo refinar
+// so o que ainda estiver grosseiro.
+enum PrecisaoCoordenada {
+  MUNICIPIO
+  RUA
+}
+
+// Fonte de coordenada do produto: centroide de cada municipio brasileiro,
+// populado por seed a partir de prisma/data/municipios.csv.
+model Municipio {
+  codigoIbge      String @id
+  nome            String
+  nomeNormalizado String
+  uf              String
+  latitude        Float
+  longitude       Float
+
+  organizacoes Organizacao[]
+  acolhedores  AcolhedorIndependente[]
+  adotantes    Adotante[]
+
+  @@index([uf, nome], map: "idx_municipio_uf_nome")
+  @@index([nomeNormalizado], map: "idx_municipio_nome_normalizado")
+}
+
 enum Porte {
   P
   M
@@ -124,6 +151,12 @@ model Adotante {
   endereco                   String
   cidade                     String
   estado                     String
+  cep                        String?
+  municipioId                String?
+  municipio                  Municipio?          @relation(fields: [municipioId], references: [codigoIbge])
+  latitude                   Float?
+  longitude                  Float?
+  precisaoCoordenada         PrecisaoCoordenada?
   motivoAdocao               String?
   tipoAnimalDesejado         String?
   podeArcarCustosVet         Boolean?
@@ -160,32 +193,50 @@ model Adotante {
 }
 
 model Organizacao {
-  id               String   @id @default(cuid())
-  usuarioId        String   @unique
-  usuario          Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  razaoSocial      String
-  cnpj             String   @unique
-  telefone         String
-  endereco         String
-  cidade           String
-  estado           String
-  responsavelNome  String
-  capacidadeMaxima Int?
-  animais          Animal[]
+  id                 String              @id @default(cuid())
+  usuarioId          String              @unique
+  usuario            Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  razaoSocial        String
+  cnpj               String              @unique
+  telefone           String
+  endereco           String
+  cidade             String
+  estado             String
+  cep                String?
+  municipioId        String?
+  municipio          Municipio?          @relation(fields: [municipioId], references: [codigoIbge])
+  latitude           Float?
+  longitude          Float?
+  precisaoCoordenada PrecisaoCoordenada?
+  responsavelNome    String
+  capacidadeMaxima   Int?
+  animais            Animal[]
+
+  // Recorte geografico do feed: o banco reduz por faixa de lat/lng antes de o
+  // servidor calcular a distancia exata.
+  @@index([latitude, longitude], map: "idx_organizacao_coordenada")
 }
 
 model AcolhedorIndependente {
-  id              String   @id @default(cuid())
-  usuarioId       String   @unique
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  nomeCompleto    String
-  cpf             String   @unique
-  telefone        String
-  endereco        String
-  cidade          String
-  estado          String
-  capacidadeAtual Int      @default(0)
-  animais         Animal[]
+  id                 String              @id @default(cuid())
+  usuarioId          String              @unique
+  usuario            Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nomeCompleto       String
+  cpf                String              @unique
+  telefone           String
+  endereco           String
+  cidade             String
+  estado             String
+  cep                String?
+  municipioId        String?
+  municipio          Municipio?          @relation(fields: [municipioId], references: [codigoIbge])
+  latitude           Float?
+  longitude          Float?
+  precisaoCoordenada PrecisaoCoordenada?
+  capacidadeAtual    Int                 @default(0)
+  animais            Animal[]
+
+  @@index([latitude, longitude], map: "idx_acolhedor_coordenada")
 }
 
 model Especie {
@@ -206,32 +257,32 @@ model Raca {
 }
 
 model Animal {
-  id             String                 @id @default(cuid())
-  nome           String
-  especieId      String
-  especie        Especie                @relation(fields: [especieId], references: [id])
-  racaId         String?
-  raca           Raca?                  @relation(fields: [racaId], references: [id])
-  porte          Porte
-  sexo           Sexo
-  cor            String
-  idadeEstimada  String?
-  castrado       Boolean                @default(false)
-  descricao      String?
-  status         StatusAnimal           @default(RESGATADO)
-  organizacaoId  String?
-  organizacao    Organizacao?           @relation(fields: [organizacaoId], references: [id])
-  acolhedorId    String?
-  acolhedor      AcolhedorIndependente? @relation(fields: [acolhedorId], references: [id])
-  criadoEm       DateTime               @default(now())
-  fotos          FotoAnimal[]
-  registrosSaude RegistroSaude[]
+  id                 String                 @id @default(cuid())
+  nome               String
+  especieId          String
+  especie            Especie                @relation(fields: [especieId], references: [id])
+  racaId             String?
+  raca               Raca?                  @relation(fields: [racaId], references: [id])
+  porte              Porte
+  sexo               Sexo
+  cor                String
+  idadeEstimada      String?
+  castrado           Boolean                @default(false)
+  descricao          String?
+  status             StatusAnimal           @default(RESGATADO)
+  organizacaoId      String?
+  organizacao        Organizacao?           @relation(fields: [organizacaoId], references: [id])
+  acolhedorId        String?
+  acolhedor          AcolhedorIndependente? @relation(fields: [acolhedorId], references: [id])
+  criadoEm           DateTime               @default(now())
+  fotos              FotoAnimal[]
+  registrosSaude     RegistroSaude[]
   cuidadosPlanejados CuidadoPlanejado[]
-  documentosSaude DocumentoSaude[]
-  solicitacoes   SolicitacaoAdocao[]
-  favoritos      Favorito[]
-  relacionadosA  AnimalRelacionado[]    @relation("AnimalPrincipal")
-  relacionadosB  AnimalRelacionado[]    @relation("AnimalRelacionado")
+  documentosSaude    DocumentoSaude[]
+  solicitacoes       SolicitacaoAdocao[]
+  favoritos          Favorito[]
+  relacionadosA      AnimalRelacionado[]    @relation("AnimalPrincipal")
+  relacionadosB      AnimalRelacionado[]    @relation("AnimalRelacionado")
 
   @@index([status], map: "idx_animal_status")
   @@index([especieId], map: "idx_animal_especie_id")
@@ -271,30 +322,30 @@ model DoencaCatalogo {
 }
 
 model RegistroSaude {
-  id                  String            @id @default(cuid())
-  animalId            String
-  animal              Animal            @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  tipo                TipoRegistroSaude
-  dataRegistro        DateTime
-  dataProxima         DateTime?
-  responsavelRegistro String
-  nomeVacina          String?
-  ehVacinaCustomizada Boolean?
-  tipoMedicamento     String?
-  frequencia          String?
-  nomeDoenca          String?
-  ehDoencaCustomizada Boolean?
-  resultado           ResultadoTeste?
-  titulo              String?
-  procedimento        String?
+  id                    String            @id @default(cuid())
+  animalId              String
+  animal                Animal            @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  tipo                  TipoRegistroSaude
+  dataRegistro          DateTime
+  dataProxima           DateTime?
+  responsavelRegistro   String
+  nomeVacina            String?
+  ehVacinaCustomizada   Boolean?
+  tipoMedicamento       String?
+  frequencia            String?
+  nomeDoenca            String?
+  ehDoencaCustomizada   Boolean?
+  resultado             ResultadoTeste?
+  titulo                String?
+  procedimento          String?
   medicamentoTratamento String?
-  observacoes         String?
-  profissionalClinica String?
-  criadoEm            DateTime          @default(now())
-  atualizadoEm        DateTime          @default(now()) @updatedAt
-  documentos          DocumentoSaude[]
-  cuidadoOriginado    CuidadoPlanejado? @relation("OrigemRegistroSaude")
-  cuidadoRealizado    CuidadoPlanejado? @relation("RegistroRealizado")
+  observacoes           String?
+  profissionalClinica   String?
+  criadoEm              DateTime          @default(now())
+  atualizadoEm          DateTime          @default(now()) @updatedAt
+  documentos            DocumentoSaude[]
+  cuidadoOriginado      CuidadoPlanejado? @relation("OrigemRegistroSaude")
+  cuidadoRealizado      CuidadoPlanejado? @relation("RegistroRealizado")
 
   @@index([animalId], map: "idx_registro_saude_animal_id")
   @@index([tipo], map: "idx_registro_saude_tipo")
@@ -303,23 +354,23 @@ model RegistroSaude {
 }
 
 model CuidadoPlanejado {
-  id                      String                  @id @default(cuid())
-  animalId                String
-  animal                  Animal                  @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  tipo                    TipoCuidadoPlanejado
-  status                  StatusCuidadoPlanejado @default(PENDENTE)
-  dataHoraPlanejada       DateTime
-  titulo                  String
-  observacoes             String?
-  localProfissional       String?
-  origemRegistroSaudeId   String?                 @unique
-  origemRegistroSaude     RegistroSaude?          @relation("OrigemRegistroSaude", fields: [origemRegistroSaudeId], references: [id], onDelete: Cascade)
-  registroRealizadoId     String?                 @unique
-  registroRealizado       RegistroSaude?          @relation("RegistroRealizado", fields: [registroRealizadoId], references: [id], onDelete: SetNull)
-  canceladoEm             DateTime?
-  concluidoEm             DateTime?
-  criadoEm                DateTime                @default(now())
-  atualizadoEm            DateTime                @default(now()) @updatedAt
+  id                    String                 @id @default(cuid())
+  animalId              String
+  animal                Animal                 @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  tipo                  TipoCuidadoPlanejado
+  status                StatusCuidadoPlanejado @default(PENDENTE)
+  dataHoraPlanejada     DateTime
+  titulo                String
+  observacoes           String?
+  localProfissional     String?
+  origemRegistroSaudeId String?                @unique
+  origemRegistroSaude   RegistroSaude?         @relation("OrigemRegistroSaude", fields: [origemRegistroSaudeId], references: [id], onDelete: Cascade)
+  registroRealizadoId   String?                @unique
+  registroRealizado     RegistroSaude?         @relation("RegistroRealizado", fields: [registroRealizadoId], references: [id], onDelete: SetNull)
+  canceladoEm           DateTime?
+  concluidoEm           DateTime?
+  criadoEm              DateTime               @default(now())
+  atualizadoEm          DateTime               @default(now()) @updatedAt
 
   @@index([animalId])
   @@index([status, dataHoraPlanejada])
@@ -327,18 +378,18 @@ model CuidadoPlanejado {
 }
 
 model DocumentoSaude {
-  id                String             @id @default(cuid())
-  animalId          String
-  animal            Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  registroSaudeId   String?
-  registroSaude     RegistroSaude?     @relation(fields: [registroSaudeId], references: [id], onDelete: SetNull)
-  tipo              TipoDocumentoSaude
-  nomeArquivo       String
-  mimeType          String
-  tamanhoBytes      Int
-  urlArquivo        String
-  chaveArquivo      String?
-  criadoEm          DateTime           @default(now())
+  id              String             @id @default(cuid())
+  animalId        String
+  animal          Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  registroSaudeId String?
+  registroSaude   RegistroSaude?     @relation(fields: [registroSaudeId], references: [id], onDelete: SetNull)
+  tipo            TipoDocumentoSaude
+  nomeArquivo     String
+  mimeType        String
+  tamanhoBytes    Int
+  urlArquivo      String
+  chaveArquivo    String?
+  criadoEm        DateTime           @default(now())
 
   @@index([animalId, criadoEm])
   @@index([registroSaudeId])
@@ -401,26 +452,26 @@ model ConversaAdocao {
 }
 
 model ConversaParticipante {
-  id               String          @id @default(cuid())
-  conversaId       String
-  conversa         ConversaAdocao  @relation(fields: [conversaId], references: [id], onDelete: Cascade)
-  usuarioId        String
-  usuario          Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  ultimaLeituraEm  DateTime?
-  criadoEm         DateTime        @default(now())
+  id              String         @id @default(cuid())
+  conversaId      String
+  conversa        ConversaAdocao @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  usuarioId       String
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  ultimaLeituraEm DateTime?
+  criadoEm        DateTime       @default(now())
 
   @@unique([conversaId, usuarioId])
   @@index([usuarioId])
 }
 
 model MensagemAdocao {
-  id              String         @id @default(cuid())
-  conversaId      String
-  conversa        ConversaAdocao @relation(fields: [conversaId], references: [id], onDelete: Cascade)
-  autorUsuarioId  String
-  autor           Usuario        @relation(fields: [autorUsuarioId], references: [id], onDelete: Cascade)
-  texto           String
-  criadaEm        DateTime       @default(now())
+  id             String         @id @default(cuid())
+  conversaId     String
+  conversa       ConversaAdocao @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  autorUsuarioId String
+  autor          Usuario        @relation(fields: [autorUsuarioId], references: [id], onDelete: Cascade)
+  texto          String
+  criadaEm       DateTime       @default(now())
 
   @@index([conversaId, criadaEm])
   @@index([autorUsuarioId])

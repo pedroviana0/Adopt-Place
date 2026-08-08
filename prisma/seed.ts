@@ -1,6 +1,8 @@
 import { PrismaClient, TipoPerfil, Porte, Sexo, StatusAnimal } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import { seedMunicipios } from "./seed-municipios";
+
 const prisma = new PrismaClient();
 const DEMO_PASSWORD = "AdoptPlace@2026";
 
@@ -216,6 +218,9 @@ async function createDemoAnimals(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  // Municipios sao dado de referencia: ficam fora do clearTestData e sao
+  // populados antes das contas, que apontam para eles.
+  await seedMunicipios(prisma);
   await clearTestData();
   await createDemoUsers();
   await createDemoAnimals();

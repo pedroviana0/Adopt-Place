@@ -13,6 +13,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
+    "prisma:seed:municipios": "tsx prisma/seed-municipios.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
