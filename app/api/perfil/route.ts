@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { z } from "zod";
 
 import { getServerSession, INACTIVE_ACCOUNT_MESSAGE } from "@/lib/auth";
+import { aplicarLocalizacaoNoPatch, LocationError } from "@/lib/localizacao";
 import { prisma } from "@/lib/prisma";
 import {
   adopterProfileUpdateSchema,
@@ -182,7 +183,7 @@ export async function PATCH(request: Request) {
         where: { id: current.user.id },
         data: {
           ...(email ? { email } : {}),
-          adotante: { update: profile },
+          adotante: { update: await aplicarLocalizacaoNoPatch(profile) },
         },
         select: profileSelect,
       });
@@ -194,7 +195,7 @@ export async function PATCH(request: Request) {
         where: { id: current.user.id },
         data: {
           ...(email ? { email } : {}),
-          organizacao: { update: profile },
+          organizacao: { update: await aplicarLocalizacaoNoPatch(profile) },
         },
         select: profileSelect,
       });
@@ -206,7 +207,7 @@ export async function PATCH(request: Request) {
         where: { id: current.user.id },
         data: {
           ...(email ? { email } : {}),
-          acolhedor: { update: profile },
+          acolhedor: { update: await aplicarLocalizacaoNoPatch(profile) },
         },
         select: profileSelect,
       });
@@ -225,6 +226,11 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ profile });
   } catch (error) {
+    if (error instanceof LocationError) {
+      return error.code === "CEP_SERVICE_UNAVAILABLE"
+        ? errorResponse(503, error.code, error.message)
+        : errorResponse(400, error.code, error.message);
+    }
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"

@@ -4,6 +4,10 @@ import { AuthError } from "next-auth";
 
 import { errorState, validationErrorState } from "@/lib/actions/form-state";
 import { signIn } from "@/lib/auth";
+import {
+  camposDeLocalizacao,
+  resolverLocalizacaoOuFalhar,
+} from "@/lib/localizacao";
 import { prisma } from "@/lib/prisma";
 import {
   adopterRegistrationSchema,
@@ -26,6 +30,10 @@ export class RegistrationConflictError extends Error {
     this.name = "RegistrationConflictError";
   }
 }
+
+// Resolve a localizacao antes de qualquer escrita: cidade, UF e coordenada sao
+// derivadas do CEP pelo servidor, nunca aceitas prontas do navegador.
+const resolverOuFalhar = resolverLocalizacaoOuFalhar;
 
 export type RegisteredUserDTO = {
   id: string;
@@ -113,6 +121,7 @@ export async function createAdopterAccount(
 ): Promise<RegisteredUserDTO> {
   await assertEmailAvailable(input.email);
   await assertCpfAvailable(input.cpf);
+  const localizacao = await resolverOuFalhar(input);
   const senhaHash = await hash(input.password, 12);
 
   try {
@@ -128,8 +137,7 @@ export async function createAdopterAccount(
             telefone: input.telefone,
             instagram: input.instagram,
             endereco: input.endereco,
-            cidade: input.cidade,
-            estado: input.estado,
+            ...camposDeLocalizacao(localizacao),
           },
         },
       },
@@ -161,6 +169,7 @@ export async function createOrganizationAccount(
     throw new RegistrationConflictError("CNPJ_ALREADY_EXISTS");
   }
 
+  const localizacao = await resolverOuFalhar(input);
   const senhaHash = await hash(input.password, 12);
 
   try {
@@ -175,8 +184,7 @@ export async function createOrganizationAccount(
             cnpj: input.cnpj,
             telefone: input.telefone,
             endereco: input.endereco,
-            cidade: input.cidade,
-            estado: input.estado,
+            ...camposDeLocalizacao(localizacao),
             responsavelNome: input.responsavelNome,
             capacidadeMaxima: input.capacidadeMaxima,
           },
@@ -202,6 +210,7 @@ export async function createFosterAccount(
 ): Promise<RegisteredUserDTO> {
   await assertEmailAvailable(input.email);
   await assertCpfAvailable(input.cpf);
+  const localizacao = await resolverOuFalhar(input);
   const senhaHash = await hash(input.password, 12);
 
   try {
@@ -216,8 +225,7 @@ export async function createFosterAccount(
             cpf: input.cpf,
             telefone: input.telefone,
             endereco: input.endereco,
-            cidade: input.cidade,
-            estado: input.estado,
+            ...camposDeLocalizacao(localizacao),
           },
         },
       },

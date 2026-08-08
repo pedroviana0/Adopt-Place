@@ -7,6 +7,7 @@ import {
   createOrganizationAccount,
   RegistrationConflictError,
 } from "@/lib/actions/auth-register";
+import { LocationError } from "@/lib/localizacao";
 import { adopterRegistrationSchema } from "@/lib/schemas/adotante";
 import {
   fosterRegistrationSchema,
@@ -87,6 +88,13 @@ export async function POST(
         CNPJ_ALREADY_EXISTS: "CNPJ ja cadastrado.",
       } as const;
       return errorResponse(409, error.code, messages[error.code]);
+    }
+    if (error instanceof LocationError) {
+      // CEP inexistente e erro de preenchimento e aponta para o campo;
+      // provedor fora do ar e problema nosso e pede a escolha do municipio.
+      return error.code === "CEP_SERVICE_UNAVAILABLE"
+        ? errorResponse(503, error.code, error.message)
+        : errorResponse(400, error.code, error.message, { cep: [error.message] });
     }
     throw error;
   }
