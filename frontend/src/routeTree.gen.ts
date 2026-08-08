@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as DemoSwipeRouteImport } from './routes/demo-swipe'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
@@ -58,6 +59,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoSwipeRoute = DemoSwipeRouteImport.update({
+  id: '/demo-swipe',
+  path: '/demo-swipe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -251,6 +257,7 @@ const AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRouteWithChildren
+  '/demo-swipe': typeof DemoSwipeRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
@@ -287,6 +294,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/demo-swipe': typeof DemoSwipeRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/meu-perfil': typeof AuthenticatedMeuPerfilRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/cadastro': typeof CadastroRouteWithChildren
+  '/demo-swipe': typeof DemoSwipeRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cadastro'
+    | '/demo-swipe'
     | '/login'
     | '/vitrine'
     | '/dashboard'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/demo-swipe'
     | '/login'
     | '/vitrine'
     | '/meu-perfil'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/cadastro'
+    | '/demo-swipe'
     | '/login'
     | '/vitrine'
     | '/_authenticated/dashboard'
@@ -464,6 +476,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CadastroRoute: typeof CadastroRouteWithChildren
+  DemoSwipeRoute: typeof DemoSwipeRoute
   LoginRoute: typeof LoginRoute
   VitrineRoute: typeof VitrineRoute
   AnimaisAnimalIdRoute: typeof AnimaisAnimalIdRoute
@@ -490,6 +503,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastro'
       fullPath: '/cadastro'
       preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo-swipe': {
+      id: '/demo-swipe'
+      path: '/demo-swipe'
+      fullPath: '/demo-swipe'
+      preLoaderRoute: typeof DemoSwipeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -910,6 +930,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CadastroRoute: CadastroRouteWithChildren,
+  DemoSwipeRoute: DemoSwipeRoute,
   LoginRoute: LoginRoute,
   VitrineRoute: VitrineRoute,
   AnimaisAnimalIdRoute: AnimaisAnimalIdRoute,
