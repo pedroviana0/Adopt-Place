@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AnimalShowcaseSkeleton({
-  cards = 8,
+  cards = 10,
   showFilters = true,
 }: {
   cards?: number;
@@ -26,7 +26,7 @@ export function AnimalShowcaseSkeleton({
           </div>
         </div>
       )}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: cards }, (_, index) => (
           <div key={index} className="overflow-hidden rounded-xl border border-border bg-surface">
             <Skeleton className="aspect-square w-full rounded-none" />

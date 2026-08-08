@@ -8,7 +8,9 @@ import {
 import { prisma } from "@/lib/prisma";
 import type { ShowcaseFilters } from "@/lib/schemas/showcase";
 
-export const SHOWCASE_PAGE_SIZE = 12;
+// 30 cabe exatamente nas grades de 1, 2, 3 e 5 colunas usadas pela vitrine e
+// pela home, entao nenhuma pagina termina com uma fileira pela metade.
+export const SHOWCASE_PAGE_SIZE = 30;
 
 const tagHealthTypes: Partial<Record<ShowcaseFilters["tags"][number], TipoRegistroSaude>> = {
   vacinado: TipoRegistroSaude.VACINA,
