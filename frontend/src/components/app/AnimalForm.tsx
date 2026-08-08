@@ -31,7 +31,12 @@ import {
   type AnimalInputDTO,
   type OwnedAnimalDetail,
 } from "@/lib/data/animais";
-import { completeAnimalPrimaryPhoto, validateAnimalPhoto } from "@/lib/data/animal-photo-upload";
+import {
+  animalPhotoKey,
+  MIN_ANIMAL_PHOTOS,
+  uploadAnimalPhoto,
+  validateAnimalPhoto,
+} from "@/lib/data/animal-photo-upload";
 import {
   changeAnimalSpecies,
   getBreedsForSpecies,
@@ -48,8 +53,11 @@ export function AnimalForm({ animal, mode }: Props) {
   const queryClient = useQueryClient();
   const catalogos = useQuery({ queryKey: ["catalogos"], queryFn: fetchCatalogos });
   const [saving, setSaving] = useState(false);
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [createdAnimalId, setCreatedAnimalId] = useState<string | null>(null);
+  // Fotos que ja chegaram ao servidor. Se o envio falhar no meio, uma nova
+  // tentativa retoma de onde parou em vez de duplicar o que ja subiu.
+  const [uploadedKeys, setUploadedKeys] = useState<string[]>([]);
   const [form, setForm] = useState<AnimalInput>({
     nome: animal?.nome ?? "",
     especieId: animal?.especie.id ?? "",
@@ -71,16 +79,32 @@ export function AnimalForm({ animal, mode }: Props) {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "create" && !photo) {
-      toast.error("Selecione uma foto do animal.");
+    if (mode === "create" && photos.length < MIN_ANIMAL_PHOTOS) {
+      toast.error(
+        `Selecione pelo menos ${MIN_ANIMAL_PHOTOS} fotos do animal para poder anunciá-lo.`,
+      );
       return;
     }
-    if (photo) {
-      const photoError = validateAnimalPhoto(photo);
+    for (const file of photos) {
+      const photoError = validateAnimalPhoto(file);
       if (photoError) {
-        toast.error(photoError);
+        toast.error(`${file.name}: ${photoError}`);
         return;
       }
+    }
+    // Em edição as fotos já estão no servidor: o que impede o anúncio é o
+    // acervo atual do animal, não a seleção deste formulário.
+    if (
+      mode === "edit" &&
+      animal &&
+      form.status === StatusAnimal.DISPONIVEL &&
+      animal.status !== StatusAnimal.DISPONIVEL &&
+      animal.fotos.length < MIN_ANIMAL_PHOTOS
+    ) {
+      toast.error(
+        `Para anunciar, este animal precisa de pelo menos ${MIN_ANIMAL_PHOTOS} fotos. Envie mais fotos na aba Fotos.`,
+      );
+      return;
     }
     const parsed = animalSchema.safeParse(form);
     if (!parsed.success) {
@@ -114,18 +138,43 @@ export function AnimalForm({ animal, mode }: Props) {
     setSaving(true);
     try {
       if (mode === "create") {
+        // O animal precisa existir para receber fotos, mas só pode ser
+        // anunciado depois delas. Então nasce fora da vitrine e é publicado
+        // no fim, quando as fotos já estão lá.
+        const wantsPublish = input.status === StatusAnimal.DISPONIVEL;
+        const creationInput: AnimalInputDTO = wantsPublish
+          ? { ...input, status: StatusAnimal.EM_CUIDADOS }
+          : input;
+
         if (!persistedAnimalId) {
-          persistedAnimalId = await criarAnimal(input);
+          persistedAnimalId = await criarAnimal(creationInput);
           setCreatedAnimalId(persistedAnimalId);
         } else {
+          await atualizarAnimalGerenciado(persistedAnimalId, creationInput);
+        }
+
+        const enviadas = new Set(uploadedKeys);
+        for (const file of photos) {
+          const key = animalPhotoKey(file);
+          if (enviadas.has(key)) continue;
+          await uploadAnimalPhoto(persistedAnimalId, file);
+          enviadas.add(key);
+          setUploadedKeys([...enviadas]);
+        }
+
+        if (wantsPublish) {
           await atualizarAnimalGerenciado(persistedAnimalId, input);
         }
-        await completeAnimalPrimaryPhoto(persistedAnimalId, photo!);
+
         await queryClient.invalidateQueries({ queryKey: ["animais-gerenciados"] });
         await queryClient.invalidateQueries({
           queryKey: ["animal-gerenciado", persistedAnimalId],
         });
-        toast.success("Animal cadastrado com foto");
+        toast.success(
+          wantsPublish
+            ? "Animal cadastrado e anunciado"
+            : `Animal cadastrado com ${photos.length} fotos`,
+        );
         navigate({
           to: "/dashboard/animais/$animalId",
           params: { animalId: persistedAnimalId },
@@ -140,7 +189,7 @@ export function AnimalForm({ animal, mode }: Props) {
       const message = err instanceof Error ? err.message : "Erro ao salvar";
       toast.error(
         mode === "create" && persistedAnimalId
-          ? `O animal foi salvo, mas a foto nao foi concluida. Tente novamente. ${message}`
+          ? `O animal foi salvo, mas o envio das fotos não foi concluído. Tente novamente — as fotos que já subiram não serão duplicadas. ${message}`
           : message,
       );
     } finally {
@@ -285,8 +334,17 @@ export function AnimalForm({ animal, mode }: Props) {
           />
         </Field>
         {mode === "create" && (
-          <Field label="Foto principal" required className="md:col-span-2">
-            <AnimalPhotoInput file={photo} onChange={setPhoto} disabled={saving} />
+          <Field
+            label={`Fotos (mínimo ${MIN_ANIMAL_PHOTOS})`}
+            required
+            className="md:col-span-2"
+          >
+            <AnimalPhotoInput
+              files={photos}
+              onChange={setPhotos}
+              minFiles={MIN_ANIMAL_PHOTOS}
+              disabled={saving}
+            />
           </Field>
         )}
       </div>
@@ -302,7 +360,7 @@ export function AnimalForm({ animal, mode }: Props) {
         <Button type="submit" disabled={saving}>
           {saving
             ? mode === "create"
-              ? "Salvando e enviando foto..."
+              ? "Salvando e enviando fotos..."
               : "Salvando..."
             : mode === "create"
               ? "Cadastrar animal"

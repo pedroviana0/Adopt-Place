@@ -8,6 +8,14 @@ import {
   isCanonicalSpeciesName,
 } from "@/lib/animal-catalog";
 import {
+  countAnimalPhotos,
+  isPublishTransition,
+  MIN_PHOTOS_TO_PUBLISH,
+  newAnimalCannotPublishMessage,
+  PHOTOS_REQUIRED_TO_PUBLISH,
+  photosRequiredToPublishMessage,
+} from "@/lib/animal-publication";
+import {
   getResponsibleContext,
   ownsAnimal,
 } from "@/lib/api/responsible-context";
@@ -98,6 +106,15 @@ export async function createAnimal(
     return { error: firstValidationError(parsed.error), code: "INVALID_INPUT" };
   }
 
+  // Um animal recem-criado ainda nao tem foto nenhuma, entao nunca pode nascer
+  // anunciado. A interface cria, envia as fotos e so entao publica.
+  if (parsed.data.status === StatusAnimal.DISPONIVEL) {
+    return {
+      error: `${photosRequiredToPublishMessage}. ${newAnimalCannotPublishMessage}`,
+      code: PHOTOS_REQUIRED_TO_PUBLISH,
+    };
+  }
+
   const taxonomyError = await validateTaxonomy(
     parsed.data.especieId,
     parsed.data.racaId,
@@ -155,6 +172,16 @@ export async function updateAnimal(
     return { error: "Acesso negado", code: "FORBIDDEN" };
   }
 
+  if (isPublishTransition(animal.status, parsed.data.status)) {
+    const photos = await countAnimalPhotos(parsedId.data);
+    if (photos < MIN_PHOTOS_TO_PUBLISH) {
+      return {
+        error: `${photosRequiredToPublishMessage}. Este animal tem ${photos}`,
+        code: PHOTOS_REQUIRED_TO_PUBLISH,
+      };
+    }
+  }
+
   const taxonomyError = await validateTaxonomy(
     parsed.data.especieId,
     parsed.data.racaId,
@@ -196,6 +223,16 @@ export async function updateAnimalStatus(
   }
   if (!ownsAnimal(contextResult.context, animal)) {
     return { error: "Acesso negado", code: "FORBIDDEN" };
+  }
+
+  if (isPublishTransition(animal.status, parsedStatus.data)) {
+    const photos = await countAnimalPhotos(parsedId.data);
+    if (photos < MIN_PHOTOS_TO_PUBLISH) {
+      return {
+        error: `${photosRequiredToPublishMessage}. Este animal tem ${photos}`,
+        code: PHOTOS_REQUIRED_TO_PUBLISH,
+      };
+    }
   }
 
   await prisma.animal.update({

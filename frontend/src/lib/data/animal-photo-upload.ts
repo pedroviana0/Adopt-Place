@@ -1,9 +1,15 @@
 import { genUploader } from "uploadthing/client";
 import type { FileRoute } from "uploadthing/types";
 
-import { apiRequest } from "./api";
-
 export const MAX_ANIMAL_PHOTO_BYTES = 4 * 1024 * 1024;
+
+// Espelha MIN_PHOTOS_TO_PUBLISH do backend, que é quem realmente decide.
+// Aqui serve só para avisar antes de a pessoa perder o envio.
+export const MIN_ANIMAL_PHOTOS = 2;
+
+export function animalPhotoKey(file: File): string {
+  return `${file.name}-${file.size}-${file.lastModified}`;
+}
 
 export type UploadedAnimalPhoto = {
   id: string;
@@ -109,29 +115,3 @@ export async function uploadAnimalPhoto(
   }
 }
 
-export async function fetchAnimalPrimaryPhoto(
-  animalId: string,
-): Promise<{ id: string; principal: true } | null> {
-  const data = await apiRequest<{
-    animal: { fotos: { id: string; principal: boolean }[] };
-  }>(`/api/animais/gerenciados/${animalId}`, { method: "GET" });
-  const primary = data.animal.fotos.find((photo) => photo.principal);
-  return primary ? { id: primary.id, principal: true } : null;
-}
-
-export async function completeAnimalPrimaryPhoto(
-  animalId: string,
-  file: File,
-  onProgress?: (progress: number) => void,
-  uploadFiles?: AnimalPhotoUploadFiles,
-): Promise<{ id: string; principal: true }> {
-  const existingPrimary = await fetchAnimalPrimaryPhoto(animalId);
-  if (existingPrimary) return existingPrimary;
-
-  await uploadAnimalPhoto(animalId, file, onProgress, uploadFiles);
-  const primary = await fetchAnimalPrimaryPhoto(animalId);
-  if (!primary) {
-    throw new Error("A foto principal não foi confirmada. Tente novamente.");
-  }
-  return primary;
-}

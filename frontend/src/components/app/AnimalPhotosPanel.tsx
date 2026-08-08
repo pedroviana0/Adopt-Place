@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, Star, Trash2, Upload } from "lucide-react";
+import { ArrowDown, ArrowUp, Info, Star, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,10 +10,28 @@ import {
   reordenarFotos,
   type OwnedFoto,
 } from "@/lib/data/animais";
-import { uploadAnimalPhoto, validateAnimalPhoto } from "@/lib/data/animal-photo-upload";
+import {
+  MIN_ANIMAL_PHOTOS,
+  uploadAnimalPhoto,
+  validateAnimalPhoto,
+} from "@/lib/data/animal-photo-upload";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
-export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos: OwnedFoto[] }) {
+export function AnimalPhotosPanel({
+  animalId,
+  fotos,
+  status,
+}: {
+  animalId: string;
+  fotos: OwnedFoto[];
+  status: string;
+}) {
+  const anunciado = status === "DISPONIVEL";
+  // Enquanto o animal está na vitrine, o acervo não pode cair abaixo do mínimo
+  // do anúncio. O backend recusa de qualquer forma; aqui é só para não deixar
+  // a pessoa tentar.
+  const minimoFotos = anunciado ? MIN_ANIMAL_PHOTOS : 1;
+  const podeRemover = fotos.length > minimoFotos;
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -36,9 +54,12 @@ export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos
     run(() => definirFotoPrincipal(animalId, fotoId), "Foto principal atualizada");
 
   const remover = async (foto: OwnedFoto) => {
-    if (fotos.length <= 1) {
-      toast.error("O animal precisa de pelo menos uma foto.");
-      throw new Error("O animal precisa de pelo menos uma foto.");
+    if (!podeRemover) {
+      const motivo = anunciado
+        ? `Um animal anunciado precisa manter pelo menos ${MIN_ANIMAL_PHOTOS} fotos. Envie outra foto ou tire o animal da vitrine antes de remover esta.`
+        : "O animal precisa de pelo menos uma foto.";
+      toast.error(motivo);
+      throw new Error(motivo);
     }
     const novaPrincipalId = foto.principal ? fotos.find((f) => f.id !== foto.id)?.id : undefined;
     await run(() => excluirFoto(animalId, foto.id, novaPrincipalId), "Foto removida", true);
@@ -105,6 +126,18 @@ export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos
           {uploading ? "Enviando..." : "Adicionar foto"}
         </Button>
       </div>
+      {!anunciado && fotos.length < MIN_ANIMAL_PHOTOS && (
+        <p
+          role="status"
+          className="mb-3 flex items-start gap-2 rounded-lg border border-border bg-surface-subtle px-3 py-2 text-sm text-muted-foreground"
+        >
+          <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>
+            Para anunciar este animal na vitrine são necessárias pelo menos{" "}
+            {MIN_ANIMAL_PHOTOS} fotos. {fotos.length === 0 ? "Nenhuma enviada" : "Falta 1"}.
+          </span>
+        </p>
+      )}
       {fotos.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
           Este animal ainda nao tem fotos.
@@ -166,7 +199,7 @@ export function AnimalPhotosPanel({ animalId, fotos }: { animalId: string; fotos
                     item={`Foto ${i + 1}${f.principal ? " (principal)" : ""}`}
                     consequence="A foto será removida permanentemente do cadastro do animal."
                     confirmLabel="Remover foto"
-                    disabled={fotos.length <= 1}
+                    disabled={!podeRemover}
                     onConfirm={() => remover(f)}
                     trigger={
                       <Button

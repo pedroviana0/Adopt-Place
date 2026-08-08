@@ -1,8 +1,13 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, StatusAnimal } from "@prisma/client";
 import type { ZodError } from "zod";
 
+import {
+  MIN_PHOTOS_TO_PUBLISH,
+  PUBLISHED_MIN_PHOTOS,
+  publishedMinPhotosMessage,
+} from "@/lib/animal-publication";
 import {
   getResponsibleContext,
   getResponsibleContextForUser,
@@ -40,7 +45,7 @@ function firstValidationError(error: ZodError): string {
 }
 
 type OwnedAnimalResult =
-  | { context: ResponsibleContext }
+  | { context: ResponsibleContext; status: StatusAnimal }
   | { error: { code: string; message: string } };
 
 async function getOwnedAnimal(animalId: string): Promise<OwnedAnimalResult> {
@@ -51,7 +56,7 @@ async function getOwnedAnimal(animalId: string): Promise<OwnedAnimalResult> {
 
   const animal = await prisma.animal.findUnique({
     where: { id: animalId },
-    select: { organizacaoId: true, acolhedorId: true },
+    select: { organizacaoId: true, acolhedorId: true, status: true },
   });
 
   if (!animal) {
@@ -71,7 +76,7 @@ async function getOwnedAnimal(animalId: string): Promise<OwnedAnimalResult> {
     } as const;
   }
 
-  return { context: contextResult.context } as const;
+  return { context: contextResult.context, status: animal.status } as const;
 }
 
 export async function updatePhotoOrder(
@@ -188,6 +193,15 @@ export async function deleteAnimalPhoto(
   const target = photos.find((photo) => photo.id === parsedPhotoId.data);
   if (!target) {
     return { error: "Foto nao encontrada", code: "NOT_FOUND" };
+  }
+
+  // Sem isto a regra do anuncio seria contornavel: bastava publicar com duas
+  // fotos e apagar uma depois.
+  if (
+    owned.status === StatusAnimal.DISPONIVEL &&
+    photos.length <= MIN_PHOTOS_TO_PUBLISH
+  ) {
+    return { error: publishedMinPhotosMessage, code: PUBLISHED_MIN_PHOTOS };
   }
 
   const replacement = parsedInput.data.novaPrincipalId

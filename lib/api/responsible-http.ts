@@ -53,7 +53,9 @@ export function actionErrorResponse(result: {
           ? 404
           : code === "HAS_DEPENDENCIES" ||
               code === "PRIMARY_REPLACEMENT_REQUIRED" ||
-              code === "INVALID_TRANSITION"
+              code === "INVALID_TRANSITION" ||
+              code === "PHOTOS_REQUIRED_TO_PUBLISH" ||
+              code === "PUBLISHED_MIN_PHOTOS"
             ? 409
             : 400;
 
