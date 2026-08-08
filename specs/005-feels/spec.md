@@ -1,10 +1,13 @@
-# Feature Specification: Descoberta por swipe com proximidade real
+# Feature Specification: Feels — descoberta por swipe com proximidade real
 
-**Feature Branch**: `005-descoberta-por-swipe`
+**Feature Branch**: `005-feels`
 **Created**: 2026-08-07
-**Status**: Aguardando aprovação do mantenedor (nenhum código antes disso)
+**Status**: Aprovada pelo mantenedor em 2026-08-08. Nome do produto definido: **Feels**.
 **Input**: Ideação de descoberta por swipe registrada no handoff do `CLAUDE.md` (seção 10) + decisões
 da sessão de 2026-08-07 registradas abaixo.
+
+> **Nome.** A funcionalidade chama-se **Feels** na interface e na comunicação com quem usa. Nos
+> requisitos abaixo, "o feed" e "a pilha" designam a tela do Feels. A rota é `/feels`.
 
 > **Nota de leitura.** Esta feature entrega duas camadas de uma vez: a **camada de localização**
 > (CEP → coordenada → distância) e o **feed de swipe** que a consome. A separação em duas specs foi
@@ -85,13 +88,13 @@ conhecer animais disponíveis de um jeito leve, sem encarar uma grade de filtros
 **Why this priority**: é a feature pedida. Entrega valor sozinha assim que a US1 existir, e é o que
 será demonstrado na banca.
 
-**Independent Test**: com sessão de `adotante.aprovado@example.com`, abrir `/descobrir`, percorrer a
+**Independent Test**: com sessão de `adotante.aprovado@example.com`, abrir `/feels`, percorrer a
 pilha inteira por gesto no toque, por arraste no mouse e por teclado, e confirmar que cada animal
 aparece uma única vez até a pilha esgotar.
 
 **Acceptance Scenarios**:
 
-1. **Given** um adotante ativo em `/descobrir`, **When** a tela carrega, **Then** vê um único cartão
+1. **Given** um adotante ativo em `/feels`, **When** a tela carrega, **Then** vê um único cartão
    com foto real, nome, espécie, porte, sexo, idade estimada, cidade/UF, distância aproximada e as
    etiquetas de saúde já existentes, sem rolagem horizontal da página.
 2. **Given** um cartão visível, **When** a pessoa arrasta para a direita, arrasta para a esquerda,
