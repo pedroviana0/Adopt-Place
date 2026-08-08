@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { CampoLocalizacao } from "@/components/app/CampoLocalizacao";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cadastroAdotanteSchema, type CadastroAdotanteInput } from "@/lib/schemas/cadastro";
@@ -80,17 +81,20 @@ function Page() {
         <Field label="Endereço" error={f.formState.errors.endereco?.message}>
           <Input {...f.register("endereco")} />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="Cidade" error={f.formState.errors.cidade?.message}>
-            <Input {...f.register("cidade")} />
-          </Field>
-          <Field label="UF" error={f.formState.errors.estado?.message}>
-            <Input maxLength={2} {...f.register("estado")} />
-          </Field>
-          <Field label="Instagram (opcional)">
-            <Input {...f.register("instagram")} />
-          </Field>
-        </div>
+        <CampoLocalizacao
+          valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }}
+          onChange={(v) => {
+            f.setValue("cep", v.cep, { shouldValidate: v.cep.length === 8 });
+            f.setValue("municipioId", v.municipioId);
+          }}
+          onLogradouro={(logradouro) => {
+            if (!f.getValues("endereco")) f.setValue("endereco", logradouro);
+          }}
+          erro={f.formState.errors.cep?.message}
+        />
+        <Field label="Instagram (opcional)">
+          <Input {...f.register("instagram")} />
+        </Field>
         <Button type="submit" size="lg" className="w-full">
           Criar conta
         </Button>
