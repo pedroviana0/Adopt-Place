@@ -1,0 +1,30 @@
+# Fim de linha determinístico, em vez de depender do core.autocrlf de cada
+# máquina. O repositório já guarda LF; isto passa a garantir, e não apenas
+# observar. Nada do conteúdo versionado muda ao adotar este arquivo.
+* text=auto eol=lf
+
+# Scripts executados em Linux (build da Vercel): CRLF aqui quebra com
+# "bad interpreter: /bin/bash^M", e o erro não aponta para a causa.
+*.sh text eol=lf
+
+# Binários declarados por extensão. Sem isto o Git decide por heurística —
+# que acertou até hoje, mas um PNG classificado como texto recebe \r no meio
+# dos bytes e é corrompido em silêncio, sem aviso nenhum.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary
+
+# Gerado pelo TanStack Router: aparece como ruído em revisão de diff.
+frontend/src/routeTree.gen.ts linguist-generated=true
+
+# Base do IBGE: dado de referência, não código escrito à mão.
+prisma/data/municipios.csv linguist-generated=true
