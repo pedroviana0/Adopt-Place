@@ -56,9 +56,9 @@ function FeelsPage() {
   const verFoto = (animalId: string, indice: number) =>
     setFotoPorAnimal((atual) => ({ ...atual, [animalId]: indice }));
 
-  useEffect(() => {
-    if (sessao && sessao.tipoPerfil !== "ADOTANTE") navigate({ to: "/dashboard" });
-  }, [sessao, navigate]);
+  // Papel errado não é redirecionado em silêncio: quem chegou aqui com conta de
+  // organização ou acolhedor via a tela sumir sem entender por quê.
+  const papelErrado = Boolean(sessao) && sessao?.tipoPerfil !== "ADOTANTE";
 
   // Relê a posição a cada abertura da tela: quem está viajando vê a distância
   // de onde está, não de casa.
@@ -98,7 +98,31 @@ function FeelsPage() {
     },
   });
 
-  if (!sessao || sessao.tipoPerfil !== "ADOTANTE") return null;
+  if (papelErrado) {
+    return (
+      <div className="page-canvas flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-10">
+        <div className="max-w-sm text-center">
+          <h1 className="font-serif text-2xl font-semibold">O Feels é para quem adota</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Você está em <span className="font-medium">{sessao?.email}</span>, uma conta
+            de {sessao?.tipoPerfil === "ORGANIZACAO" ? "organização" : sessao?.tipoPerfil === "ACOLHEDOR" ? "acolhedor" : "administração"}.
+            Curtir um animal salva nos favoritos de um adotante, então esta tela só
+            existe para esse perfil.
+          </p>
+          <div className="mt-5 flex flex-col gap-2">
+            <Button onClick={() => navigate({ to: "/dashboard" })}>
+              Ir para o painel
+            </Button>
+            <Link to="/vitrine" className="text-sm text-muted-foreground hover:underline">
+              Ver os animais na vitrine
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessao) return null;
 
   const cartoes = feels.data?.cartoes ?? [];
   const cidades = feels.data?.cidades ?? [];
