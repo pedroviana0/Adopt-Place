@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, ImageOff, MapPin } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, Home, ImageOff, MapPin } from "lucide-react";
 
 import { descreverAnimal } from "@/lib/animal-descricao";
 import { sexoLabel } from "@/lib/domain/enums";
@@ -11,6 +12,7 @@ import type { Sexo } from "@/lib/domain/enums";
  * o outro.
  */
 export interface AnimalDoCartao {
+  id?: string;
   nome: string;
   sexo: string;
   porte: string;
@@ -18,6 +20,16 @@ export interface AnimalDoCartao {
   especie: string | null;
   cidade: string | null;
   fotos?: string[];
+  responsavel?: { tipo: "ORGANIZACAO" | "ACOLHEDOR"; nome: string | null };
+}
+
+/** Iniciais para o círculo, no mesmo padrão do menu de usuário. */
+function iniciais(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  const letras = [partes[0]?.[0], partes.length > 1 ? partes[partes.length - 1][0] : ""]
+    .filter(Boolean)
+    .join("");
+  return letras.toUpperCase() || "?";
 }
 
 /**
@@ -210,6 +222,31 @@ export function AnimalSwipeCard({
               </>
             )}
           </p>
+
+          {animal.responsavel && animal.id && (
+            <Link
+              to="/animais/$animalId"
+              params={{ animalId: animal.id }}
+              // A área do texto ignora ponteiro para não atrapalhar o arraste;
+              // este link precisa reativá-lo e não deixar o toque virar swipe.
+              onPointerDown={semArrastar}
+              className="pointer-events-auto mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 py-1 pl-1 pr-3 text-sm text-white backdrop-blur-sm transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <span
+                aria-hidden="true"
+                className="grid h-7 w-7 place-items-center rounded-full bg-white/25 text-xs font-medium"
+              >
+                {animal.responsavel.tipo === "ORGANIZACAO" && animal.responsavel.nome ? (
+                  iniciais(animal.responsavel.nome)
+                ) : (
+                  <Home className="h-3.5 w-3.5" />
+                )}
+              </span>
+              <span className="max-w-[13rem] truncate">
+                {animal.responsavel.nome ?? "Acolhedor independente"}
+              </span>
+            </Link>
+          )}
         </div>
       </div>
     </div>

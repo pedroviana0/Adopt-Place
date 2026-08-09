@@ -27,7 +27,17 @@ const selecaoAnimal = {
   especie: { select: { nome: true } },
   raca: { select: { nome: true } },
   registrosSaude: { select: { tipo: true } },
-  organizacao: { select: { cidade: true, estado: true, latitude: true, longitude: true } },
+  organizacao: {
+    select: {
+      cidade: true,
+      estado: true,
+      latitude: true,
+      longitude: true,
+      razaoSocial: true,
+    },
+  },
+  // Nome do acolhedor NAO entra na selecao: e pessoa fisica, e o produto
+  // decidiu identifica-lo so pelo papel. O que nao e lido nao vaza.
   acolhedor: { select: { cidade: true, estado: true, latitude: true, longitude: true } },
 };
 
@@ -72,6 +82,11 @@ export type CartaoDoFeels = {
   distanciaKm: number | null;
   fotos: string[];
   tags: ReturnType<typeof getAnimalTags>;
+  /**
+   * Quem cadastrou o animal. Organizacao e pessoa juridica e aparece pela razao
+   * social; acolhedor e pessoa fisica e aparece so pelo papel, sem nome.
+   */
+  responsavel: { tipo: "ORGANIZACAO" | "ACOLHEDOR"; nome: string | null };
 };
 
 export type ResultadoDoFeels = {
@@ -150,6 +165,9 @@ export async function getFeelsCards(
       distanciaKm: distancia === null ? null : Math.round(distancia * 10) / 10,
       fotos: animal.fotos.map((f) => f.urlFoto),
       tags: getAnimalTags(animal),
+      responsavel: animal.organizacao
+        ? { tipo: "ORGANIZACAO" as const, nome: animal.organizacao.razaoSocial }
+        : { tipo: "ACOLHEDOR" as const, nome: null },
     })),
     cidades: [...porCidade.values()].sort((a, b) => a.distanciaKm - b.distanciaKm),
   };

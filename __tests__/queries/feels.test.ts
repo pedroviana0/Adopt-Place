@@ -136,6 +136,55 @@ describe("getFeelsCards", () => {
     );
   });
 
+  it("identifica organizacao pela razao social", async () => {
+    vi.mocked(prisma.animal.findMany).mockResolvedValue([
+      animal("org", "Da ONG", "Volta Redonda", voltaRedonda, {
+        organizacao: {
+          cidade: "Volta Redonda",
+          estado: "RJ",
+          ...voltaRedonda,
+          razaoSocial: "Abrigo Serra da Bocaina",
+        },
+      }),
+    ] as never);
+
+    const { cartoes } = await getFeelsCards(voltaRedonda, filtros(), { animalIds: [] });
+
+    expect(cartoes[0].responsavel).toEqual({
+      tipo: "ORGANIZACAO",
+      nome: "Abrigo Serra da Bocaina",
+    });
+  });
+
+  it("nunca revela o nome do acolhedor, que e pessoa fisica", async () => {
+    vi.mocked(prisma.animal.findMany).mockResolvedValue([
+      animal("acolhido", "Do acolhedor", "Barra Mansa", { latitude: -22.5481, longitude: -44.1752 }, {
+        organizacao: null,
+        acolhedor: {
+          cidade: "Barra Mansa",
+          estado: "RJ",
+          latitude: -22.5481,
+          longitude: -44.1752,
+        },
+      }),
+    ] as never);
+
+    const { cartoes } = await getFeelsCards(voltaRedonda, filtros(), { animalIds: [] });
+
+    expect(cartoes[0].responsavel).toEqual({ tipo: "ACOLHEDOR", nome: null });
+  });
+
+  it("nao pede o nome do acolhedor ao banco: o que nao e lido nao vaza", async () => {
+    vi.mocked(prisma.animal.findMany).mockResolvedValue([] as never);
+
+    await getFeelsCards(voltaRedonda, filtros(), { animalIds: [] });
+
+    const chamada = vi.mocked(prisma.animal.findMany).mock.calls[0][0];
+    const selecaoAcolhedor = JSON.stringify(chamada?.select?.acolhedor);
+    expect(selecaoAcolhedor).not.toContain("nomeCompleto");
+    expect(selecaoAcolhedor).not.toContain("cpf");
+  });
+
   it("entrega todas as fotos do animal, para o carrossel do cartao", async () => {
     vi.mocked(prisma.animal.findMany).mockResolvedValue([base[1]] as never);
 

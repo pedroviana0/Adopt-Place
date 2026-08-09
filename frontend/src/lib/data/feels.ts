@@ -14,6 +14,7 @@ export interface CartaoDoFeels {
   distanciaKm: number | null;
   fotos: string[];
   tags: PublicAnimalTag[];
+  responsavel: { tipo: "ORGANIZACAO" | "ACOLHEDOR"; nome: string | null };
 }
 
 export interface CidadeNoAlcance {
