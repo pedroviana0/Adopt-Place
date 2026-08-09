@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { CampoLocalizacao } from "@/components/app/CampoLocalizacao";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cadastroAcolhedorSchema, type CadastroAcolhedorInput } from "@/lib/schemas/cadastro";
 import { cadastrarAcolhedor } from "@/lib/data/usuarios";
@@ -49,7 +50,7 @@ function Page() {
           </div>
           <div>
             <Label>Senha</Label>
-            <Input type="password" {...f.register("senha")} />
+            <PasswordInput autoComplete="new-password" {...f.register("senha")} />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
