@@ -111,7 +111,8 @@ function FeelsPage() {
       <header className="w-full max-w-sm">
         <h1 className="font-serif text-2xl font-semibold">Feels</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Arraste ou use as setas ← → do teclado. Curtir salva nos favoritos.
+          Arraste ou use ← → para decidir, ↑ ↓ para ver as outras fotos. Curtir
+          salva nos favoritos.
         </p>
       </header>
 
@@ -200,10 +201,14 @@ function FeelsPage() {
             leftActionLabel="Dispensar"
             rightIcon={<Heart className="h-20 w-20 text-white" fill="currentColor" />}
             leftIcon={<X className="h-20 w-20 text-white" strokeWidth={3} />}
-            renderOverlay={(_imagem, index) => {
+            renderOverlay={(_imagem, index, noTopo) => {
               const cartao = comFoto[index];
               return cartao ? (
-                <AnimalSwipeCard animal={cartao} distanciaKm={cartao.distanciaKm} />
+                <AnimalSwipeCard
+                  animal={cartao}
+                  distanciaKm={cartao.distanciaKm}
+                  ativo={noTopo}
+                />
               ) : null;
             }}
             onSwipe={(direcao, _imagem, index) => decidir(direcao, index)}

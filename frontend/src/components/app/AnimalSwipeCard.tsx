@@ -1,4 +1,5 @@
-import { MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, ImageOff, MapPin } from "lucide-react";
 
 import { descreverAnimal } from "@/lib/animal-descricao";
 import { sexoLabel } from "@/lib/domain/enums";
@@ -16,60 +17,184 @@ export interface AnimalDoCartao {
   idadeEstimada: string | null;
   especie: string | null;
   cidade: string | null;
+  fotos?: string[];
 }
 
-// Conteúdo do cartão do Feels, sobreposto à foto. A hierarquia é deliberada:
-// nome e idade decidem, espécie+porte é o bloqueio prático seguinte, e o resto
-// é contexto. Etiquetas de saúde ficam no perfil do animal — no swipe elas
-// competiriam com a foto sem mudar a decisão.
+/**
+ * Conteúdo do cartão do Feels, sobreposto à foto. A hierarquia é deliberada:
+ * nome e idade decidem, espécie+porte é o bloqueio prático seguinte, e o resto
+ * é contexto. Etiquetas de saúde ficam no perfil do animal — no swipe elas
+ * competiriam com a foto sem mudar a decisão.
+ *
+ * O carrossel existe porque uma foto só não sustenta a decisão: ninguém adota
+ * um animal por um ângulo. As setas ← → pertencem a curtir e dispensar, então
+ * trocar de foto usa toque nas laterais, botões visíveis e ↑ ↓ no teclado.
+ */
 export function AnimalSwipeCard({
   animal,
   distanciaKm,
+  ativo = true,
 }: {
   animal: AnimalDoCartao;
   distanciaKm?: number | null;
+  /** Só o cartão do topo escuta teclado e mostra controles. */
+  ativo?: boolean;
 }) {
+  const fotos = animal.fotos ?? [];
+  const [indice, setIndice] = useState(0);
+  const [falhou, setFalhou] = useState<Record<number, boolean>>({});
+
+  const total = fotos.length;
+  const temCarrossel = total > 1;
+
+  useEffect(() => {
+    setIndice(0);
+  }, [animal.nome, total]);
+
+  const irPara = (proximo: number) => {
+    if (total === 0) return;
+    setIndice(((proximo % total) + total) % total);
+  };
+
+  useEffect(() => {
+    if (!ativo || !temCarrossel) return;
+
+    const aoTeclar = (evento: KeyboardEvent) => {
+      if (evento.key !== "ArrowUp" && evento.key !== "ArrowDown") return;
+      if (evento.repeat || evento.metaKey || evento.ctrlKey || evento.altKey) return;
+      const alvo = evento.target;
+      if (alvo instanceof HTMLElement && ["INPUT", "TEXTAREA", "SELECT"].includes(alvo.tagName)) {
+        return;
+      }
+      evento.preventDefault();
+      setIndice((atual) => {
+        const passo = evento.key === "ArrowDown" ? 1 : -1;
+        return ((atual + passo) % total + total) % total;
+      });
+    };
+
+    window.addEventListener("keydown", aoTeclar);
+    return () => window.removeEventListener("keydown", aoTeclar);
+  }, [ativo, temCarrossel, total]);
+
   const descricao = descreverAnimal(animal.especie, animal.sexo, animal.porte);
-  const local = [animal.cidade, formatarDistancia(distanciaKm)]
-    .filter(Boolean)
-    .join(" · ");
+  const local = [animal.cidade, formatarDistancia(distanciaKm)].filter(Boolean).join(" · ");
+  const fotoAtual = fotos[indice];
+
+  // O arraste do cartão começa no pointerdown; sem barrar aqui, tocar num
+  // controle do carrossel viraria início de swipe.
+  const semArrastar = (evento: React.PointerEvent) => evento.stopPropagation();
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pt-16">
-      {/* Véu: sem ele o texto perde contraste sobre foto clara. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0) 100%)",
-        }}
-      />
+    <div className="absolute inset-0">
+      {fotoAtual && !falhou[indice] ? (
+        <img
+          src={fotoAtual}
+          alt={`Foto ${indice + 1} de ${total} de ${animal.nome}`}
+          className="h-full w-full object-cover"
+          draggable={false}
+          onError={() => setFalhou((f) => ({ ...f, [indice]: true }))}
+        />
+      ) : (
+        <div className="grid h-full w-full place-items-center bg-surface-subtle text-muted-foreground">
+          <div className="text-center">
+            <ImageOff className="mx-auto h-8 w-8" aria-hidden="true" />
+            <p className="mt-2 text-xs font-medium">
+              {fotoAtual ? "Foto indisponível" : "Sem foto"}
+            </p>
+          </div>
+        </div>
+      )}
 
-      <div className="relative">
-        <p className="font-serif text-3xl font-semibold leading-tight text-white">
-          {animal.nome}
-          {animal.idadeEstimada && (
-            <span className="text-2xl font-normal text-white/85">
-              , {animal.idadeEstimada}
-            </span>
-          )}
-        </p>
+      {temCarrossel && (
+        <>
+          {/* Posição na sequência, no padrão que as pessoas já conhecem. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 flex gap-1 p-2"
+          >
+            {fotos.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1 flex-1 rounded-full transition-colors ${
+                  i === indice ? "bg-white" : "bg-white/35"
+                }`}
+              />
+            ))}
+          </div>
 
-        {descricao && <p className="mt-1 text-xl text-white/85">{descricao}</p>}
-
-        <p className="mt-2 flex flex-wrap items-center gap-x-2 text-sm text-white/75">
-          <span>{sexoLabel[animal.sexo as Sexo] ?? animal.sexo}</span>
-          {local && (
+          {ativo && (
             <>
-              <span aria-hidden="true">·</span>
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                {local}
-              </span>
+              {/* Faixas de toque: o gesto que já se espera de uma galeria. */}
+              <button
+                type="button"
+                aria-label="Foto anterior"
+                onPointerDown={semArrastar}
+                onClick={() => irPara(indice - 1)}
+                className="group absolute inset-y-0 left-0 w-1/4 cursor-default focus-visible:outline-none"
+              >
+                <ChevronLeft
+                  className="ml-1 h-7 w-7 text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-90 group-focus-visible:opacity-100"
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                aria-label="Próxima foto"
+                onPointerDown={semArrastar}
+                onClick={() => irPara(indice + 1)}
+                className="group absolute inset-y-0 right-0 w-1/4 cursor-default focus-visible:outline-none"
+              >
+                <ChevronRight
+                  className="ml-auto mr-1 h-7 w-7 text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-90 group-focus-visible:opacity-100"
+                  aria-hidden="true"
+                />
+              </button>
             </>
           )}
-        </p>
+
+          <p className="sr-only" role="status" aria-live="polite">
+            {`Foto ${indice + 1} de ${total}`}
+          </p>
+        </>
+      )}
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pt-16">
+        {/* Véu: sem ele o texto perde contraste sobre foto clara. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0) 100%)",
+          }}
+        />
+
+        <div className="relative">
+          <p className="font-serif text-3xl font-semibold leading-tight text-white">
+            {animal.nome}
+            {animal.idadeEstimada && (
+              <span className="text-2xl font-normal text-white/85">
+                , {animal.idadeEstimada}
+              </span>
+            )}
+          </p>
+
+          {descricao && <p className="mt-1 text-xl text-white/85">{descricao}</p>}
+
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 text-sm text-white/75">
+            <span>{sexoLabel[animal.sexo as Sexo] ?? animal.sexo}</span>
+            {local && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                  {local}
+                </span>
+              </>
+            )}
+          </p>
+        </div>
       </div>
     </div>
   );

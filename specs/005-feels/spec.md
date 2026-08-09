@@ -334,7 +334,12 @@ dos favoritos; repetir com um animal pulado.
   recuperável e oferecer nova tentativa, sem descartar decisões já confirmadas.
 - **FR-021**: O cartão DEVE apresentar todas as fotos reais do animal em carrossel, com indicação de
   posição e total; a navegação entre fotos NÃO DEVE disparar curtir nem pular. Animal com uma única
-  foto NÃO DEVE exibir controles de navegação.
+  foto NÃO DEVE exibir controles de navegação. O carrossel é obrigatório no cartão do Feels: uma
+  foto só não sustenta a decisão de adotar, e a regra de publicação já garante o mínimo de duas.
+  A vitrine segue com foto única — lá a pessoa abre o perfil para ver o resto.
+- **FR-021a**: A navegação entre fotos NÃO DEVE usar as setas ← →, que pertencem a curtir e
+  dispensar. DEVE usar toque nas laterais do cartão, controles visíveis alcançáveis por teclado e
+  as setas ↑ ↓.
 - **FR-022**: O cartão DEVE oferecer caminho para abrir o perfil público completo do animal sem
   destruir a pilha atual.
 
