@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { CampoLocalizacao } from "@/components/app/CampoLocalizacao";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cadastroAdotanteSchema, type CadastroAdotanteInput } from "@/lib/schemas/cadastro";
 import { cadastrarAdotante } from "@/lib/data/usuarios";
@@ -67,7 +68,7 @@ function Page() {
             <Input type="email" {...f.register("email")} />
           </Field>
           <Field label="Senha" error={f.formState.errors.senha?.message}>
-            <Input type="password" {...f.register("senha")} />
+            <PasswordInput autoComplete="new-password" {...f.register("senha")} />
           </Field>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

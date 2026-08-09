@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { login } from "@/lib/data/sessao";
 import { toast } from "sonner";
@@ -119,11 +120,12 @@ function LoginPage() {
                 <Label htmlFor="senha" className="text-white">
                   Senha
                 </Label>
-                <Input
+                <PasswordInput
                   id="senha"
-                  type="password"
                   autoComplete="current-password"
                   className={glassField}
+                  // Sobre o vidro escuro, o cinza padrão some.
+                  toggleClassName="text-white/70 hover:text-white focus-visible:ring-white"
                   {...form.register("senha")}
                 />
                 {form.formState.errors.senha && (

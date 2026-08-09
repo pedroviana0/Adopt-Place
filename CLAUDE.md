@@ -24,9 +24,17 @@ documentos, dashboard e chat. É um **TCC (IFRJ Pinheiral, 2026)** — apresenta
 - **Dono único: o mantenedor** (conta GitHub `thurreis7`). O antigo split "Arthur=frontend /
   Pedro=backend" **acabou** — o Pedro saiu (sem acesso ao Codex, viajando). A IA agora atua em
   **frontend e backend**, sempre sob direção do mantenedor no chat.
-- **Fluxo de merge: commit direto na `main`** (sem PR obrigatório) — decisão do mantenedor para
-  agilidade, já que é dev solo. **Em troca, o portão automático da seção 5 é obrigatório** e faz
-  o papel da revisão perdida: nada vai pra `main` sem `tsc` + `build` limpos.
+- **Fluxo de merge: branch + PR** (decisão de 2026-08-09). Todo trabalho nasce em branch própria,
+  nunca na `main`, e entra por PR. O portão da seção 5 continua obrigatório — ele roda antes de
+  cada commit, na branch.
+  - **Por que mudou:** com commit direto, a `main` fica quebrada no meio de uma feature. Aconteceu
+    nesta base: entre `5917f28` (20:04) e `ff4a13a` (20:14), o backend já recusava `cidade`/`estado`
+    e os formulários ainda os enviavam — cadastro quebrado por 10 minutos, com o portão verde nos
+    dois commits. Cada metade estava correta sozinha; o que quebra é a fronteira. Com deploy
+    automático a partir da `main`, aquela janela teria ido ao ar.
+  - **Granularidade:** uma branch por feature, não por commit. Dentro dela, commits pequenos.
+  - **Não há revisor externo.** O mantenedor assumiu a criação de todas as funcionalidades depois
+    do PR #115; o PR existe como ponto de parada e registro, não para aprovação de terceiro.
 - **Ações "pra fora" (deploy, publicar, mexer em conta/segredo) exigem confirmação** do mantenedor
   no chat. A IA **não cria contas nem digita credenciais/segredos** — prepara tudo e o mantenedor
   executa essa parte.
