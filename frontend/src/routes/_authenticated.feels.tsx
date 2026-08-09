@@ -49,6 +49,12 @@ function FeelsPage() {
   const [pulados, setPulados] = useState<string[]>(() => lerPulados());
   const [posicao, setPosicao] = useState<{ latitude: number; longitude: number } | null>(null);
   const [posicaoResolvida, setPosicaoResolvida] = useState(false);
+  // Foto visível por animal: vive aqui porque o arraste vertical do cartão,
+  // que pertence à pilha, também troca de foto.
+  const [fotoPorAnimal, setFotoPorAnimal] = useState<Record<string, number>>({});
+
+  const verFoto = (animalId: string, indice: number) =>
+    setFotoPorAnimal((atual) => ({ ...atual, [animalId]: indice }));
 
   useEffect(() => {
     if (sessao && sessao.tipoPerfil !== "ADOTANTE") navigate({ to: "/dashboard" });
@@ -111,8 +117,8 @@ function FeelsPage() {
       <header className="w-full max-w-sm">
         <h1 className="font-serif text-2xl font-semibold">Feels</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Arraste ou use ← → para decidir, ↑ ↓ para ver as outras fotos. Curtir
-          salva nos favoritos.
+          Arraste para os lados ou use ← → para decidir. Arraste para cima, ou
+          use ↑ ↓, para ver as outras fotos. Curtir salva nos favoritos.
         </p>
       </header>
 
@@ -208,10 +214,20 @@ function FeelsPage() {
                   animal={cartao}
                   distanciaKm={cartao.distanciaKm}
                   ativo={noTopo}
+                  indiceFoto={fotoPorAnimal[cartao.id] ?? 0}
+                  onIndiceFoto={(indice) => verFoto(cartao.id, indice)}
                 />
               ) : null;
             }}
             onSwipe={(direcao, _imagem, index) => decidir(direcao, index)}
+            onSwipeVertical={(direcao, index) => {
+              const cartao = comFoto[index];
+              if (!cartao || cartao.fotos.length < 2) return;
+              const atual = fotoPorAnimal[cartao.id] ?? 0;
+              // Arrastar para cima avança, como num feed de vídeo.
+              const passo = direcao === "cima" ? 1 : -1;
+              verFoto(cartao.id, atual + passo);
+            }}
           />
         </div>
       </AsyncState>

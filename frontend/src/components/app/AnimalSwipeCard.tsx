@@ -34,26 +34,30 @@ export function AnimalSwipeCard({
   animal,
   distanciaKm,
   ativo = true,
+  indiceFoto,
+  onIndiceFoto,
 }: {
   animal: AnimalDoCartao;
   distanciaKm?: number | null;
   /** Só o cartão do topo escuta teclado e mostra controles. */
   ativo?: boolean;
+  /**
+   * Índice da foto. Controlado de fora porque o arraste vertical do cartão —
+   * que pertence à pilha — também troca de foto.
+   */
+  indiceFoto?: number;
+  onIndiceFoto?: (indice: number) => void;
 }) {
   const fotos = animal.fotos ?? [];
-  const [indice, setIndice] = useState(0);
   const [falhou, setFalhou] = useState<Record<number, boolean>>({});
 
   const total = fotos.length;
   const temCarrossel = total > 1;
-
-  useEffect(() => {
-    setIndice(0);
-  }, [animal.nome, total]);
+  const indice = total === 0 ? 0 : (((indiceFoto ?? 0) % total) + total) % total;
 
   const irPara = (proximo: number) => {
     if (total === 0) return;
-    setIndice(((proximo % total) + total) % total);
+    onIndiceFoto?.(((proximo % total) + total) % total);
   };
 
   useEffect(() => {
@@ -67,15 +71,14 @@ export function AnimalSwipeCard({
         return;
       }
       evento.preventDefault();
-      setIndice((atual) => {
-        const passo = evento.key === "ArrowDown" ? 1 : -1;
-        return ((atual + passo) % total + total) % total;
-      });
+      onIndiceFoto?.(
+        ((indice + (evento.key === "ArrowDown" ? 1 : -1)) % total + total) % total,
+      );
     };
 
     window.addEventListener("keydown", aoTeclar);
     return () => window.removeEventListener("keydown", aoTeclar);
-  }, [ativo, temCarrossel, total]);
+  }, [ativo, temCarrossel, total, indice, onIndiceFoto]);
 
   const descricao = descreverAnimal(animal.especie, animal.sexo, animal.porte);
   const local = [animal.cidade, formatarDistancia(distanciaKm)].filter(Boolean).join(" · ");

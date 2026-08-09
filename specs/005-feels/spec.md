@@ -338,8 +338,12 @@ dos favoritos; repetir com um animal pulado.
   foto só não sustenta a decisão de adotar, e a regra de publicação já garante o mínimo de duas.
   A vitrine segue com foto única — lá a pessoa abre o perfil para ver o resto.
 - **FR-021a**: A navegação entre fotos NÃO DEVE usar as setas ← →, que pertencem a curtir e
-  dispensar. DEVE usar toque nas laterais do cartão, controles visíveis alcançáveis por teclado e
-  as setas ↑ ↓.
+  dispensar. DEVE usar **arraste vertical do cartão** — para cima avança, como num feed de vídeo —
+  além de toque nas laterais, controles visíveis alcançáveis por teclado e as setas ↑ ↓.
+- **FR-021b**: Com os dois eixos ativos, o cartão DEVE travar a direção do gesto: um arraste é
+  decisão **ou** troca de foto, nunca ambos. Enquanto o movimento for predominantemente vertical, o
+  cartão NÃO DEVE exibir a marcação de curtir ou dispensar. O limiar vertical DEVE ser menor que o
+  horizontal, porque trocar de foto é reversível e decidir não é.
 - **FR-022**: O cartão DEVE oferecer caminho para abrir o perfil público completo do animal sem
   destruir a pilha atual.
 
