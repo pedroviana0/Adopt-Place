@@ -3,7 +3,7 @@
 > **Este é o arquivo-fonte de contexto do projeto.** Leia-o inteiro antes de qualquer tarefa.
 > Ele define o produto, a arquitetura, as fronteiras de escopo e os guardrails que a IA
 > deve respeitar. Substitui o modelo de governança antigo (`ARTHUR-CONTEXT.md`, histórico).
-> _Atualizado: 2026-08-07._
+> _Atualizado: 2026-08-09._
 
 ---
 
@@ -59,7 +59,7 @@ Dois apps no mesmo repositório, com fronteira clara:
 app/                 Backend Next.js (rotas de API, páginas legadas do backend)
   api/**             Endpoints — fonte da verdade dos contratos
 lib/                 Queries, schemas (Zod), auth, integrações            [backend]
-prisma/              schema.prisma (22 models), migrations                [backend]
+prisma/              schema.prisma (23 models), migrations, data/municipios.csv [backend]
 __tests__/           Testes de backend (Vitest, mockam o Prisma)          [backend]
 frontend/            App de UI (Vite + TanStack Start)
   src/routes/        Rotas/páginas (file-based). routeTree.gen.ts é GERADO
@@ -68,7 +68,7 @@ frontend/            App de UI (Vite + TanStack Start)
   src/lib/data/      Camada que fala com /api (sessao, animais, favoritos…)
   src/styles.css     Tokens de tema (Teal & Amber) + @font-face
   public/fonts/      Fontes self-hospedadas (Inter, Poppins)
-specs/               Spec-kit (spec→plan→tasks) das features 001–004
+specs/               Spec-kit (spec→plan→tasks) das features 001–006
 CLAUDE.md            ESTE arquivo (harness canônico)
 ```
 
@@ -124,7 +124,7 @@ Stack alvo, tudo em plano grátis:
 - **Rodar o stack completo local (SEM Docker):** o banco é o Neon (nuvem), então bastam 2 terminais:
   `npm run dev` (backend :3000) e `npm --prefix frontend run dev` (front :8080). O `.env` (git-ignored)
   guarda `DATABASE_URL` do Neon + `NEXTAUTH_SECRET`. Setup do banco (uma vez): `npm run prisma:generate`
-  → `npx prisma migrate deploy` → `npm run prisma:seed` (cria as 5 contas de teste; **não cria animais**).
+  → `npx prisma migrate deploy` → `npm run prisma:seed` (cria as 7 contas de teste **e** 36 animais com 2 fotos).
 - **A IA não cria contas nem cola segredos.** Fluxo: a IA prepara config + runbook; o mantenedor
   cria as contas grátis, define `DATABASE_URL`/`NEXTAUTH_SECRET`/`NEXTAUTH_URL`/`UPLOADTHING_TOKEN`
   e dispara o deploy. `NEXTAUTH_SECRET`: `openssl rand -base64 32`.
@@ -181,10 +181,10 @@ reimplementa `createAdoptionRequest` em vez de chamá-la. Ao adicionar efeito co
 (notificação, log, etc.), **instrumente a rota HTTP** — ou os dois — e **valide E2E**;
 só mexer na action pode não ter efeito nenhum em produção.
 
-## 10. Estado atual (handoff) — atualizado 2026-08-07
+## 10. Estado atual (handoff) — atualizado 2026-08-09
 
-**`main` = `4a45454`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
-**223 testes** passando).
+**`main` = `acfd789`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
+**294 testes** passando).
 
 ### O que existe e funciona
 - **Jornada de adoção completa:** vitrine pública (filtros + paginação), cadastro (3 tipos),
@@ -198,29 +198,95 @@ só mexer na action pode não ter efeito nenhum em produção.
 - **Identidade:** teal + âmbar-de-marca (`--brand` = laranja da logo), Inter/Poppins/Fredoka
   self-hospedadas, logo oficial (navbar/rodapé/login/favicon), login e navbar em Glass,
   home com hero estilo landing que **cabe na viewport**, fundo contínuo `page-canvas`.
+- **Feels — descoberta por swipe (spec 005, concluída):** `/feels`, exclusiva de adotante.
+  Curtir grava favorito e **não** abre solicitação nem notifica ninguém; pular vive em
+  `sessionStorage` e some ao fechar a aba. Ordena por distância real; raio opcional de
+  25/50/100/200 km, padrão **qualquer distância**. O feed nomeia as cidades alcançadas.
+  Cartão com carrossel (arraste vertical, duplo clique, espaço, ↑ ↓, botões) e setas ← →
+  decidindo sem exigir clique antes. Componente base em `components/ui/tinder-like-swipe.tsx`.
+- **Localização por município:** model `Municipio` com os 5.571 municípios do IBGE e centroide
+  (`prisma/data/municipios.csv`, seed idempotente à parte do `clearTestData`). **A coordenada de
+  todo mundo vem do centroide do município.** O provedor de CEP (`lib/cep/`) serve só para validar
+  o CEP e devolver o código IBGE — ver seção 11.
+- **Cadastro por CEP:** cidade e UF são **derivadas pelo servidor**, não digitadas. Cadastro e
+  perfil aceitam `cep` (+ `municipioId` só quando o provedor está fora do ar).
+- **Regra de publicação:** animal só vai para `DISPONIVEL` com **no mínimo 2 fotos**. Imposta na
+  transição, e a exclusão de foto é barrada enquanto o animal está anunciado.
 
 ### Ambiente (roda sem Docker)
-Banco **Neon** (nuvem) — hoje com **5 contas de teste, 36 animais** DISPONIVEL. Dois terminais na
-raiz: `npm run dev` (backend `:3000`) e `npm --prefix frontend run dev` (front `:8080`).
-`.env` local é git-ignored. Login de teste: `adotante.aprovado@example.com` /
-`organizacao.teste@example.com` / `admin.teste@example.com` — senha `AdoptPlace@2026`.
+Banco **Neon** (nuvem) — hoje com **7 contas de teste e 36 animais** DISPONIVEL, espalhados por
+Volta Redonda, Barra Mansa, Resende e Angra dos Reis (0, 8, 37 e 58 km do adotante de teste), com
+2 fotos cada. Dois terminais na raiz — **PowerShell usa `;`, não `&&`**:
+
+```
+cd "…\adopt-place-git"; npm run dev                    # backend :3000
+cd "…\adopt-place-git"; npm --prefix frontend run dev  # front   :8080
+```
+
+`.env` local é git-ignored. Senha de todas: `AdoptPlace@2026`.
+`adotante.aprovado@` · `adotante.pendente@` · `organizacao.teste@` · `organizacao.resende@` ·
+`acolhedor.teste@` · `acolhedor.angra@` · `admin.teste@` (`example.com`).
+
+> **Rodar `npm run prisma:seed` recria as contas e desloga a sessão do navegador.** Tela em
+> "Carregando…" logo após um seed é isso, não defeito.
+>
+> **Não rode `npm run build` no frontend com o `vite dev` de pé:** o build recria `.output` embaixo
+> do watcher e derruba o dev server.
 
 ### Próximo passo combinado
-1. **Feature de descoberta por swipe** — ainda **ideação**: sem `spec 005` e sem código. O
-   mantenedor pediu que a **spec seja escrita e aprovada antes de codar**. Conceito: feed
-   um-animal-por-vez, arrastar → curtir (vai para **Favoritos**, NÃO abre solicitação) / pular
-   (rejeição **não** é armazenada), carrossel das fotos reais, proximidade por **Geolocation API +
-   Haversine** (sem API paga), fallback de cidade manual, coordenada arredondada por privacidade.
-   Precisa de campo de geo no `Animal` (backend).
+1. **Spec 006 — perfis públicos e busca por nome** (`specs/006-perfis-publicos/spec.md`): escrita e
+   aprovada, **sem código**. Perfil de ONG com ícone, descrição, endereço e catálogo filtrável;
+   acolhedor e adotante sem endereço público; busca só de organizações; triagem **e endereço do
+   adotante** apenas para quem tem solicitação dele.
 2. **Deploy** (requisito: sistema no ar) — config e runbook prontos em `DEPLOY.md`; falta o
    mantenedor criar os 2 projetos na Vercel e colar as env vars, e então trocar o host em
-   `frontend/vercel.json`.
-3. **Pendências de design que o mantenedor vai enviar:** barra/desenho dos botões
+   `frontend/vercel.json`. **Lembrar de `CEP_PROVIDER`** (opcional; padrão `brasilapi`).
+3. **Desfazer no Feels** (US6 da spec 005, P3): reverter a última decisão. Ficou mais relevante
+   depois que a seta passou a funcionar sem clique.
+4. **Pendências de design que o mantenedor vai enviar:** barra/desenho dos botões
    **Entrar/Cadastrar** e o **menu do usuário** (achou as opções atuais genéricas).
 
 ### Lacunas conhecidas (abertas por decisão ou por fazer)
 - Homologação manual da feature 004: teclado, zoom 200%, contraste AA.
-- `fotoUrl` de organização/acolhedor: existe no tipo do front, **não** no schema (decisão de produto).
-- Tratamento inconsistente de "papel errado" (defeito F3 da ROUTES-01).
+- `fotoUrl` de organização/acolhedor ainda não existe no schema; a **spec 006 reverte** essa
+  decisão, porque o perfil público precisa de imagem.
+- Papel errado: resolvido em `/feels` (explica em vez de redirecionar); **as demais rotas seguem
+  com o defeito F3 da ROUTES-01**.
 - SSR real de sessão e chat em tempo real: **fora de escopo** por decisão (chat usa polling).
+- Precisão de rua (Nominatim) fora de escopo: dentro de uma mesma cidade todos os animais ficam
+  equidistantes. Ver seção 11.
 - **PR #116 está aberto e obsoleto** (substituído pelo #117, já mergeado) — pode ser fechado.
+- **PR #119** é artefato de revisão desta rodada; seu merge move só o branch de referência.
+
+---
+
+## 11. Armadilha conhecida: a API de CEP não é fonte de coordenada
+
+Medido em 2026-08-08, antes de construir a localização. **As APIs de CEP gratuitas não
+geocodificam endereço.** Quatro CEPs de zonas opostas de São Paulo — Bela Vista, Santana, Capão
+Redondo e Itaquera, separados por dezenas de quilômetros — devolvem a coordenada **idêntica**
+`-23.5475, -46.63611`. O mesmo entre bairros de Volta Redonda. O campo `location` da BrasilAPI é o
+centroide do município.
+
+O centroide da nossa tabela diverge do que a API devolve em **0,5 a 1,9 km**, medido em cinco
+cidades de portes diferentes — ruído diante de raios de 25 km ou mais.
+
+**Consequência de desenho, que não deve ser revertida sem nova medição:**
+
+- A coordenada vem **sempre** de `Municipio`, offline. Nenhum caminho de leitura chama serviço
+  externo, e o custo de API por swipe é zero.
+- O provedor de CEP existe para **validar o CEP, preencher o endereço e devolver o código IBGE**,
+  que é a chave de junção com a tabela.
+- A interface `lib/cep/provider.ts` tem duas implementações reais porque as semânticas de erro são
+  **opostas**: BrasilAPI responde **404** para CEP inexistente, ViaCEP responde **HTTP 200** com
+  `{"erro":"true"}` no corpo. Tratar só o status faria CEP digitado errado virar "serviço fora do
+  ar" — que pede a ação contrária.
+- Precisão de rua exigiria Nominatim (política de uso restritiva) ou provedor pago. Fora de escopo.
+  Enquanto for assim, **animais da mesma cidade ficam equidistantes**.
+
+### Corolário para dados de teste
+
+Se todos os responsáveis estiverem na mesma cidade, **todos os cartões mostram a mesma distância** e
+a ordenação some da tela. O seed espalha os responsáveis de propósito. Pelo mesmo motivo, ao gerar
+dados de teste, mantenha **espécie, sexo e cidade em ciclos que não se alinham** — com períodos
+alinhados, uma cidade acaba só com machos, ou só com gatos, e o filtro parece quebrado.
