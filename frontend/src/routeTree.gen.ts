@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as CadastroRouteImport } from './routes/cadastro'
-import { Route as DemoSwipeRouteImport } from './routes/demo-swipe'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedFeelsRouteImport } from './routes/_authenticated.feels'
 import { Route as AuthenticatedMensagensRouteImport } from './routes/_authenticated.mensagens'
 import { Route as AuthenticatedMeuPerfilRouteImport } from './routes/_authenticated.meu-perfil'
 import { Route as AuthenticatedMeusFavoritosRouteImport } from './routes/_authenticated.meus-favoritos'
@@ -61,11 +61,6 @@ const CadastroRoute = CadastroRouteImport.update({
   path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoSwipeRoute = DemoSwipeRouteImport.update({
-  id: '/demo-swipe',
-  path: '/demo-swipe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -79,6 +74,11 @@ const VitrineRoute = VitrineRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedFeelsRoute = AuthenticatedFeelsRouteImport.update({
+  id: '/feels',
+  path: '/feels',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMensagensRoute = AuthenticatedMensagensRouteImport.update({
@@ -257,10 +257,10 @@ const AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRouteWithChildren
-  '/demo-swipe': typeof DemoSwipeRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/feels': typeof AuthenticatedFeelsRoute
   '/mensagens': typeof AuthenticatedMensagensRouteWithChildren
   '/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
@@ -294,9 +294,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo-swipe': typeof DemoSwipeRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
+  '/feels': typeof AuthenticatedFeelsRoute
   '/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
@@ -327,10 +327,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/cadastro': typeof CadastroRouteWithChildren
-  '/demo-swipe': typeof DemoSwipeRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/feels': typeof AuthenticatedFeelsRoute
   '/_authenticated/mensagens': typeof AuthenticatedMensagensRouteWithChildren
   '/_authenticated/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/_authenticated/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
@@ -367,10 +367,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cadastro'
-    | '/demo-swipe'
     | '/login'
     | '/vitrine'
     | '/dashboard'
+    | '/feels'
     | '/mensagens'
     | '/meu-perfil'
     | '/meus-favoritos'
@@ -404,9 +404,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/demo-swipe'
     | '/login'
     | '/vitrine'
+    | '/feels'
     | '/meu-perfil'
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
@@ -436,10 +436,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/cadastro'
-    | '/demo-swipe'
     | '/login'
     | '/vitrine'
     | '/_authenticated/dashboard'
+    | '/_authenticated/feels'
     | '/_authenticated/mensagens'
     | '/_authenticated/meu-perfil'
     | '/_authenticated/meus-favoritos'
@@ -476,7 +476,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CadastroRoute: typeof CadastroRouteWithChildren
-  DemoSwipeRoute: typeof DemoSwipeRoute
   LoginRoute: typeof LoginRoute
   VitrineRoute: typeof VitrineRoute
   AnimaisAnimalIdRoute: typeof AnimaisAnimalIdRoute
@@ -505,13 +504,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo-swipe': {
-      id: '/demo-swipe'
-      path: '/demo-swipe'
-      fullPath: '/demo-swipe'
-      preLoaderRoute: typeof DemoSwipeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -531,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/feels': {
+      id: '/_authenticated/feels'
+      path: '/feels'
+      fullPath: '/feels'
+      preLoaderRoute: typeof AuthenticatedFeelsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/mensagens': {
@@ -888,6 +887,7 @@ const AuthenticatedMensagensRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedFeelsRoute: typeof AuthenticatedFeelsRoute
   AuthenticatedMensagensRoute: typeof AuthenticatedMensagensRouteWithChildren
   AuthenticatedMeuPerfilRoute: typeof AuthenticatedMeuPerfilRoute
   AuthenticatedMeusFavoritosRoute: typeof AuthenticatedMeusFavoritosRoute
@@ -897,6 +897,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedFeelsRoute: AuthenticatedFeelsRoute,
   AuthenticatedMensagensRoute: AuthenticatedMensagensRouteWithChildren,
   AuthenticatedMeuPerfilRoute: AuthenticatedMeuPerfilRoute,
   AuthenticatedMeusFavoritosRoute: AuthenticatedMeusFavoritosRoute,
@@ -930,7 +931,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CadastroRoute: CadastroRouteWithChildren,
-  DemoSwipeRoute: DemoSwipeRoute,
   LoginRoute: LoginRoute,
   VitrineRoute: VitrineRoute,
   AnimaisAnimalIdRoute: AnimaisAnimalIdRoute,

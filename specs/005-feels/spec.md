@@ -317,6 +317,9 @@ dos favoritos; repetir com um animal pulado.
 - **FR-015**: O feed DEVE oferecer filtro opcional de raio com os valores 25, 50, 100 e 200 km e a
   opção de qualquer distância, sendo **qualquer distância** o padrão inicial. DEVE oferecer também
   filtro de espécie com cão, gato e todos.
+- **FR-015a**: O feed DEVE nomear as cidades alcançadas pelo critério atual, da mais próxima à mais
+  distante. "50 km" é abstrato; "Volta Redonda, Barra Mansa e Resende" diz à pessoa o que ela está
+  vendo. A contagem DEVE considerar toda a pilha, não apenas os cartões já carregados.
 - **FR-016**: O feed DEVE ser carregado em lotes e buscar o lote seguinte antes de a pilha visível
   acabar, de modo que a pessoa não espere entre um cartão e o próximo em uso contínuo.
 - **FR-017**: A posição da pessoa DEVE ser resolvida nesta ordem: coordenada do navegador quando a
@@ -345,6 +348,11 @@ dos favoritos; repetir com um animal pulado.
 - **FR-025**: Curtir e pular DEVEM ser acionáveis por quatro caminhos equivalentes: arraste por
   toque, arraste por ponteiro, botões visíveis e teclado. Todos DEVEM produzir exatamente o mesmo
   efeito.
+- **FR-025a**: As setas ← → DEVEM valer na tela inteira, sem exigir que a pessoa clique no cartão
+  antes. Um atalho que só funciona depois de um clique não é descoberto por ninguém, e em notebook o
+  teclado é o gesto natural. O atalho NÃO DEVE agir quando o foco estiver num campo de texto ou
+  seleção, nem quando a tecla estiver sendo segurada — segurar varreria a pilha inteira decidindo
+  tudo de uma vez.
 - **FR-026**: Um arraste abaixo do limiar de decisão DEVE retornar o cartão à posição original sem
   registrar ação. O limiar DEVE ser o mesmo para toque e ponteiro.
 - **FR-027**: Ações repetidas antes da confirmação do servidor NÃO DEVEM duplicar favoritos nem

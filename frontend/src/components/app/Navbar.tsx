@@ -108,6 +108,15 @@ export function Navbar() {
             </Link>
             {isAdopter && (
               <Link
+                to="/feels"
+                className={desktopLinkClass}
+                activeProps={{ className: activeDesktopLink, "aria-current": "page" }}
+              >
+                Feels
+              </Link>
+            )}
+            {isAdopter && (
+              <Link
                 to="/mensagens"
                 className={`${desktopLinkClass} flex items-center gap-1.5`}
                 activeProps={{ className: activeDesktopLink, "aria-current": "page" }}
@@ -275,6 +284,17 @@ export function Navbar() {
               >
                 Adotar
               </Link>
+
+              {sessao?.tipoPerfil === "ADOTANTE" && (
+                <Link
+                  to="/feels"
+                  onClick={closeMobileMenu}
+                  className={mobileLinkClass}
+                  activeProps={{ className: activeMobileLink, "aria-current": "page" }}
+                >
+                  Feels
+                </Link>
+              )}
 
               {!sessao && (
                 <>

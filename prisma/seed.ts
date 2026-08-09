@@ -232,13 +232,23 @@ const CAT_PHOTOS = [
   "1425082661705-1834bfd09dca",
 ].map(IMG);
 
-const DOG_NAMES = [
-  "Thor", "Bela", "Bidu", "Nina", "Rex", "Max", "Luke", "Fred", "Bob", "Zeca",
-  "Amora", "Mel", "Toby", "Cacau", "Pipoca", "Bento", "Aurora", "Simba", "Duque", "Frida",
+// Nomes separados por genero: o sexo do animal e derivado da lista de onde o
+// nome saiu, senao aparecem cartoes como "Thor — Cachorra pequena".
+const DOG_NAMES_M = [
+  "Thor", "Bidu", "Rex", "Max", "Luke", "Fred", "Bob", "Zeca", "Toby", "Bento",
+  "Simba", "Duque",
 ];
-const CAT_NAMES = [
-  "Luna", "Mia", "Nino", "Fiona", "Salem", "Amélie", "Maru", "Pandora", "Oliver", "Nala",
-  "Fumaça", "Jade", "Pretinha", "Chiara", "Lola", "Gaia", "Otto", "Íris", "Pérola", "Zoe",
+const DOG_NAMES_F = [
+  "Bela", "Nina", "Amora", "Mel", "Cacau", "Pipoca", "Aurora", "Frida",
+  "Maia", "Lua",
+];
+const CAT_NAMES_M = [
+  "Nino", "Salem", "Maru", "Oliver", "Otto", "Tom", "Félix", "Pipo", "Tigre",
+  "Nick",
+];
+const CAT_NAMES_F = [
+  "Luna", "Mia", "Fiona", "Amélie", "Pandora", "Nala", "Jade", "Chiara",
+  "Lola", "Gaia", "Íris", "Pérola", "Zoe", "Pretinha",
 ];
 const CORES = [
   "Caramelo", "Preto", "Branco", "Preto e branco", "Tricolor",
@@ -279,13 +289,24 @@ async function createDemoAnimals(): Promise<void> {
   const gato = await prisma.especie.create({ data: { nome: "Gato" } });
 
   const TOTAL = 36;
-  let dogI = 0;
-  let catI = 0;
+  const contadores = new Map<string, number>();
 
   for (let i = 0; i < TOTAL; i++) {
+    // Tres eixos independentes, por periodos que nao se alinham: especie troca
+    // a cada 1, sexo a cada 2, responsavel a cada 4. Assim cada responsavel
+    // recebe as quatro combinacoes — com periodos alinhados, uma cidade acabava
+    // so com machos, ou so com gatos.
     const isDog = i % 2 === 0;
-    const idx = isDog ? dogI++ : catI++;
-    const nomes = isDog ? DOG_NAMES : CAT_NAMES;
+    const macho = (i >> 1) % 2 === 0;
+    const responsavel = responsaveis[(i >> 2) % responsaveis.length];
+
+    const nomes = isDog
+      ? (macho ? DOG_NAMES_M : DOG_NAMES_F)
+      : (macho ? CAT_NAMES_M : CAT_NAMES_F);
+    // Um contador por balde: sem isso os nomes se repetem antes da lista acabar.
+    const chaveBalde = `${isDog ? "dog" : "cat"}-${macho ? "m" : "f"}`;
+    const idx = contadores.get(chaveBalde) ?? 0;
+    contadores.set(chaveBalde, idx + 1);
     const fotos = isDog ? DOG_PHOTOS : CAT_PHOTOS;
 
     await prisma.animal.create({
@@ -293,13 +314,13 @@ async function createDemoAnimals(): Promise<void> {
         nome: nomes[idx % nomes.length],
         especieId: isDog ? cachorro.id : gato.id,
         porte: isDog ? PORTES[i % 3] : i % 4 === 0 ? Porte.M : Porte.P,
-        sexo: i % 3 === 0 || i % 5 === 0 ? Sexo.F : Sexo.M,
+        sexo: macho ? Sexo.M : Sexo.F,
         cor: CORES[i % CORES.length],
         idadeEstimada: IDADES[i % IDADES.length],
         castrado: i % 4 !== 0,
         descricao: DESCRICOES[i % DESCRICOES.length],
         status: StatusAnimal.DISPONIVEL,
-        ...responsaveis[i % responsaveis.length],
+        ...responsavel,
         // Duas fotos: um animal anunciado precisa do minimo da regra de
         // publicacao, senao o proprio dado de teste viola o produto.
         fotos: {

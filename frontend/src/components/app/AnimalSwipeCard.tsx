@@ -1,9 +1,22 @@
 import { MapPin } from "lucide-react";
 
 import { descreverAnimal } from "@/lib/animal-descricao";
-import type { PublicAnimalSummary } from "@/lib/data/animais";
 import { sexoLabel } from "@/lib/domain/enums";
 import type { Sexo } from "@/lib/domain/enums";
+
+/**
+ * Só o que o cartão realmente mostra. Estreito de propósito: assim serve tanto
+ * ao resumo da vitrine quanto ao cartão do Feels, sem que um precise fingir ser
+ * o outro.
+ */
+export interface AnimalDoCartao {
+  nome: string;
+  sexo: string;
+  porte: string;
+  idadeEstimada: string | null;
+  especie: string | null;
+  cidade: string | null;
+}
 
 // Conteúdo do cartão do Feels, sobreposto à foto. A hierarquia é deliberada:
 // nome e idade decidem, espécie+porte é o bloqueio prático seguinte, e o resto
@@ -13,7 +26,7 @@ export function AnimalSwipeCard({
   animal,
   distanciaKm,
 }: {
-  animal: PublicAnimalSummary;
+  animal: AnimalDoCartao;
   distanciaKm?: number | null;
 }) {
   const descricao = descreverAnimal(animal.especie, animal.sexo, animal.porte);
