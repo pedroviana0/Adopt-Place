@@ -64,16 +64,20 @@ export function AnimalSwipeCard({
     if (!ativo || !temCarrossel) return;
 
     const aoTeclar = (evento: KeyboardEvent) => {
-      if (evento.key !== "ArrowUp" && evento.key !== "ArrowDown") return;
+      const espaco = evento.key === " " || evento.key === "Spacebar";
+      if (evento.key !== "ArrowUp" && evento.key !== "ArrowDown" && !espaco) return;
       if (evento.repeat || evento.metaKey || evento.ctrlKey || evento.altKey) return;
+
       const alvo = evento.target;
-      if (alvo instanceof HTMLElement && ["INPUT", "TEXTAREA", "SELECT"].includes(alvo.tagName)) {
-        return;
+      if (alvo instanceof HTMLElement) {
+        // Espaço aciona botão e link; dentro deles a tecla não é nossa.
+        if (["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(alvo.tagName)) return;
+        if (alvo.isContentEditable) return;
       }
+
       evento.preventDefault();
-      onIndiceFoto?.(
-        ((indice + (evento.key === "ArrowDown" ? 1 : -1)) % total + total) % total,
-      );
+      const passo = evento.key === "ArrowUp" ? -1 : 1;
+      onIndiceFoto?.(((indice + passo) % total + total) % total);
     };
 
     window.addEventListener("keydown", aoTeclar);
@@ -89,7 +93,12 @@ export function AnimalSwipeCard({
   const semArrastar = (evento: React.PointerEvent) => evento.stopPropagation();
 
   return (
-    <div className="absolute inset-0">
+    <div
+      className="absolute inset-0"
+      // Duplo clique avança a foto. Um clique simples fica livre porque o
+      // cartão inteiro é área de arraste — clicar sem querer não pode agir.
+      onDoubleClick={ativo && temCarrossel ? () => irPara(indice + 1) : undefined}
+    >
       {fotoAtual && !falhou[indice] ? (
         <img
           src={fotoAtual}
@@ -133,6 +142,9 @@ export function AnimalSwipeCard({
                 type="button"
                 aria-label="Foto anterior"
                 onPointerDown={semArrastar}
+                // Sem isto, dois cliques na lateral acionariam o botao duas
+                // vezes e ainda o duplo clique do cartao: tres fotos de uma vez.
+                onDoubleClick={(evento) => evento.stopPropagation()}
                 onClick={() => irPara(indice - 1)}
                 className="group absolute inset-y-0 left-0 w-1/4 cursor-default focus-visible:outline-none"
               >
@@ -145,6 +157,7 @@ export function AnimalSwipeCard({
                 type="button"
                 aria-label="Próxima foto"
                 onPointerDown={semArrastar}
+                onDoubleClick={(evento) => evento.stopPropagation()}
                 onClick={() => irPara(indice + 1)}
                 className="group absolute inset-y-0 right-0 w-1/4 cursor-default focus-visible:outline-none"
               >

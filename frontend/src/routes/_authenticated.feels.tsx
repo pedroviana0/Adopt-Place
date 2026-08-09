@@ -141,8 +141,9 @@ function FeelsPage() {
       <header className="w-full max-w-sm">
         <h1 className="font-serif text-2xl font-semibold">Feels</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Arraste para os lados ou use ← → para decidir. Arraste para cima, ou
-          use ↑ ↓, para ver as outras fotos. Curtir salva nos favoritos.
+          Arraste para os lados ou use ← → para decidir. Para ver as outras
+          fotos: arraste para cima, dê dois cliques, ou use espaço e ↑ ↓.
+          Curtir salva nos favoritos.
         </p>
       </header>
 
