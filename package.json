@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/porta-livre.mjs 3000 backend",
     "dev": "next dev",
     "postinstall": "prisma generate",
     "build": "next build",

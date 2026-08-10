@@ -21,9 +21,13 @@ documentos, dashboard e chat. É um **TCC (IFRJ Pinheiral, 2026)** — apresenta
 
 ## 2. Papel, dono e governança
 
-- **Dono único: o mantenedor** (conta GitHub `thurreis7`). O antigo split "Arthur=frontend /
-  Pedro=backend" **acabou** — o Pedro saiu (sem acesso ao Codex, viajando). A IA agora atua em
-  **frontend e backend**, sempre sob direção do mantenedor no chat.
+- **Direção: o mantenedor** (conta GitHub `thurreis7`). O antigo split "Arthur=frontend /
+  Pedro=backend" acabou; a IA atua em **frontend e backend**, sempre sob direção no chat.
+- **Delegação da spec 006 (2026-08-09):** a **execução** da 006 passou ao `pedroviana0`, que voltou
+  ao projeto e trabalha com outro sistema de IA. Ele é colaborador e dono do remote. A direção do
+  produto segue com o mantenedor. Quem for executar a 006 começa por
+  **`specs/006-perfis-publicos/HANDOFF.md`**, que traz o mapa de fontes, as medições e o plano em
+  ondas. (Este bullet substitui a nota anterior de "dono único / o Pedro saiu".)
 - **Fluxo de merge: branch + PR** (decisão de 2026-08-09). Todo trabalho nasce em branch própria,
   nunca na `main`, e entra por PR. O portão da seção 5 continua obrigatório — ele roda antes de
   cada commit, na branch.
@@ -191,8 +195,14 @@ só mexer na action pode não ter efeito nenhum em produção.
 
 ## 10. Estado atual (handoff) — atualizado 2026-08-09
 
-**`main` = `acfd789`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
-**294 testes** passando).
+**`main` = `c2394b2`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
+**294 testes** passando — reconferido em 2026-08-09).
+
+> **Em execução agora:** branch **`006-perfis-publicos`** (a partir de `c2394b2`), com a spec 006
+> aprovada, o levantamento feito e o plano em 8 ondas. Ponto de entrada obrigatório:
+> **`specs/006-perfis-publicos/HANDOFF.md`**. Ele registra três achados medidos que mudam o
+> desenho — entre eles, que o `mode: "insensitive"` do Prisma **não** ignora acento, o que obriga
+> uma coluna normalizada em `Organizacao` para cumprir FR-012.
 
 ### O que existe e funciona
 - **Jornada de adoção completa:** vitrine pública (filtros + paginação), cadastro (3 tipos),
@@ -239,13 +249,39 @@ cd "…\adopt-place-git"; npm --prefix frontend run dev  # front   :8080
 > "Carregando…" logo após um seed é isso, não defeito.
 >
 > **Não rode `npm run build` no frontend com o `vite dev` de pé:** o build recria `.output` embaixo
-> do watcher e derruba o dev server.
+> do watcher e derruba o dev server. O mesmo vale no backend: `npm run build` e `npm run dev`
+> disputam o `.next`.
+>
+> **Servidor duplicado é a causa raiz mais cara desta base.** Next e Vite caem em outra porta em
+> silêncio quando a padrão está ocupada, e o estrago não se parece com a causa: o navegador fica na
+> porta antiga servindo código velho ("minha alteração não funcionou"), o proxy do frontend aponta
+> para `:3000` fixo e não encontra um backend em `:3002`, e dois processos Next escrevendo no mesmo
+> `.next` corrompem o cache — deu **500 com `Unexpected end of JSON input` em `/api/animais`**, o
+> endpoint público da vitrine.
+>
+> Por isso existe `scripts/porta-livre.mjs`, ligado como `predev` nos dois `package.json`: o
+> `npm run dev` **falha alto** se a porta já estiver ocupada, em vez de subir em outra. Se aparecer
+> essa mensagem, ou o servidor que você quer já está no ar, ou sobrou um processo órfão — a
+> mensagem diz como encontrá-lo e encerrá-lo.
+>
+> **Órfãos são comuns aqui:** encerrar o terminal que iniciou o servidor nem sempre mata o processo
+> filho. Ele continua segurando a porta e servindo código antigo.
+>
+> **Servidor de dev órfão de sessão anterior (2026-08-09).** Com `:3000`/`:8080` já ocupados, o
+> Next e o Vite **não falham**: sobem em `:3002`/`:8081` e avisam só numa linha do log. Dois
+> `next dev` no mesmo `.next` corrompem o manifesto e a API passa a devolver **500** com
+> `SyntaxError: Unexpected end of JSON input` em `loadManifest` — parece defeito de código, e não
+> é. Cura: matar os `node.exe` cujo command line aponta para `adopt-place-git`, apagar `.next`,
+> subir o backend, **esperar ele responder** e só então subir o frontend. Receita em
+> `specs/006-perfis-publicos/HANDOFF.md`, §8.
 
 ### Próximo passo combinado
-1. **Spec 006 — perfis públicos e busca por nome** (`specs/006-perfis-publicos/spec.md`): escrita e
-   aprovada, **sem código**. Perfil de ONG com ícone, descrição, endereço e catálogo filtrável;
-   acolhedor e adotante sem endereço público; busca só de organizações; triagem **e endereço do
-   adotante** apenas para quem tem solicitação dele.
+1. **Spec 006 — perfis públicos e busca por nome** (`specs/006-perfis-publicos/spec.md`): aprovada,
+   levantamento feito, **execução delegada ao `pedroviana0`** (ver seção 2). Perfil de ONG com
+   ícone, descrição, endereço e catálogo filtrável; acolhedor e adotante sem endereço público;
+   busca só de organizações; triagem **e endereço do adotante** apenas para quem tem solicitação
+   dele. **Comece por `specs/006-perfis-publicos/HANDOFF.md`** — plano em 8 ondas, mapa de onde
+   buscar cada informação e as medições que sustentam o desenho.
 2. **Deploy** (requisito: sistema no ar) — config e runbook prontos em `DEPLOY.md`; falta o
    mantenedor criar os 2 projetos na Vercel e colar as env vars, e então trocar o host em
    `frontend/vercel.json`. **Lembrar de `CEP_PROVIDER`** (opcional; padrão `brasilapi`).
@@ -263,8 +299,12 @@ cd "…\adopt-place-git"; npm --prefix frontend run dev  # front   :8080
 - SSR real de sessão e chat em tempo real: **fora de escopo** por decisão (chat usa polling).
 - Precisão de rua (Nominatim) fora de escopo: dentro de uma mesma cidade todos os animais ficam
   equidistantes. Ver seção 11.
-- **PR #116 está aberto e obsoleto** (substituído pelo #117, já mergeado) — pode ser fechado.
-- **PR #119** é artefato de revisão desta rodada; seu merge move só o branch de referência.
+- **PR #116 foi fechado** (era obsoleto, substituído pelo #117). Conferido em 2026-08-09.
+- **PR #119** segue **aberto**; é artefato de revisão da rodada anterior e seu merge move só o
+  branch de referência. Nenhuma issue aberta no repositório (conferido em 2026-08-09).
+- **Busca sem acento não sai de graça:** o `mode: "insensitive"` do Prisma resolve caixa e só
+  caixa. Medido no Neon: `nome contains "sao paulo"` devolve **0**, `nomeNormalizado contains
+  "sao paulo"` devolve **4**. Vale para qualquer busca textual futura, não só a da 006.
 
 ---
 
