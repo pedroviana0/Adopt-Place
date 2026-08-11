@@ -2,7 +2,7 @@
 
 **Feature Branch**: `006-perfis-publicos`
 **Created**: 2026-08-08
-**Status**: Aguardando aprovação do mantenedor (nenhum código antes disso)
+**Status**: Pronta para planejamento
 **Input**: Pedido do mantenedor: "quando alguém pesquisa pelo nome da ONG na plataforma, ou clica no
 nome pelo anúncio, o perfil deve abrir — com ícone, descrição, localização e o catálogo de todos os
 animais em adoção, com filtros. E o perfil do adotante deve transmitir a triagem com transparência."
@@ -13,13 +13,23 @@ animais em adoção, com filtros. E o perfil do adotante deve transmitir a triag
 
 ### Session 2026-08-08
 
-- Q: Quem enxerga a triagem do adotante? → A: **Somente o responsável que recebeu uma solicitação
-  daquele adotante.** O perfil público mostra nome, cidade e um selo de triagem concluída.
+- Q: Quem enxerga a triagem do adotante? → A: **O próprio adotante, a administração e o responsável
+  que tenha ou tenha tido qualquer solicitação daquele adotante.** O perfil público mostra nome,
+  cidade e um selo de triagem concluída.
 - Q: Endereço exato no perfil público, de quem? → A: **Somente de organização.** Acolhedor e
   adotante expõem apenas o município.
-- Q: E o endereço do adotante na análise? → A: **Exibido à organização que recebeu a solicitação
-  dele.** Quem vai entregar um animal precisa saber onde ele vai morar. Público restrito, propósito
-  declarado, e fora do perfil público.
+- Q: E o endereço do adotante na análise? → A: **Exibido ao próprio adotante, à administração e ao
+  responsável que tenha ou tenha tido qualquer solicitação dele.** Quem vai entregar um animal
+  precisa saber onde ele vai morar. Público restrito, propósito declarado, e fora do perfil público.
+
+### Session 2026-08-10
+
+- Q: Como o acolhedor independente deve ser identificado publicamente? → A: **Primeiro nome mais a
+  inicial do último sobrenome**, por exemplo, “Marina S.”.
+- Q: Quais limites a busca pública deve aplicar? → A: **Mínimo de 2 caracteres e máximo de 10
+  resultados** por consulta.
+- Q: Qual deve ser o limite da descrição de organização e acolhedor? → A: **Máximo de 500
+  caracteres**.
 
 **Por que a transparência da triagem foi delimitada.** A triagem contém `numAdultosCasa`,
 `temCriancas`, `criancasFaixaEtaria`, `horasSozinho`, `janelasTeladas`, `murosSeguros`,
@@ -130,21 +140,21 @@ encontrar entenda meu trabalho.
 
 ### User Story 5 - Avaliar um adotante com a triagem (Priority: P1)
 
-Como organização que recebeu uma solicitação, quero ver a triagem completa de quem solicitou, para
+Como responsável que recebeu uma solicitação, quero ver a triagem completa de quem solicitou, para
 decidir com informação em vez de intuição.
 
 **Why this priority**: é o que o pedido de "transparência" realmente resolve, entregue a quem
 decide.
 
 **Independent Test**: com solicitação existente, abrir o perfil do adotante e ver a triagem; repetir
-com uma organização sem solicitação daquele adotante e confirmar que ela não vê.
+com um responsável sem solicitação daquele adotante e confirmar que ele não vê.
 
 **Acceptance Scenarios**:
 
-1. **Given** uma organização com solicitação de adoção de um adotante, **When** abre o perfil dele,
+1. **Given** um responsável com solicitação de adoção de um adotante, **When** abre o perfil dele,
    **Then** vê a triagem completa **e o endereço do adotante**, identificados como informação de
    análise daquela solicitação.
-2. **Given** uma organização sem nenhuma solicitação daquele adotante, **When** abre o perfil dele,
+2. **Given** um responsável sem nenhuma solicitação daquele adotante, **When** abre o perfil dele,
    **Then** vê apenas nome, município e o selo de triagem concluída — e a triagem não é entregue
    pela API, não apenas ocultada na tela.
 3. **Given** uma pessoa não autenticada ou outro adotante, **When** tenta abrir o perfil de um
@@ -167,8 +177,9 @@ e ausência total de endereço, CPF e nome completo.
 
 **Acceptance Scenarios**:
 
-1. **Given** um acolhedor com animais disponíveis, **When** seu perfil é aberto, **Then** mostra uma
-   identificação curta, o município e o catálogo, sem endereço, CPF ou nome completo.
+1. **Given** um acolhedor com animais disponíveis, **When** seu perfil é aberto, **Then** mostra o
+   primeiro nome e a inicial do último sobrenome, o município e o catálogo, sem endereço, CPF ou
+   nome completo.
 2. **Given** qualquer resposta desse perfil, **When** inspecionada, **Then** não contém endereço,
    CPF, telefone, e-mail nem coordenada.
 
@@ -196,13 +207,14 @@ e ausência total de endereço, CPF e nome completo.
 - **FR-002**: O perfil de organização DEVE exibir nome, município/UF, endereço, descrição e imagem
   de perfil quando houver, além do catálogo de animais disponíveis daquela conta.
 - **FR-003**: O perfil de acolhedor independente NÃO DEVE exibir endereço, CPF, nome completo,
-  telefone nem e-mail. DEVE exibir uma identificação curta, o município e o catálogo.
+  telefone nem e-mail. DEVE identificá-lo pelo primeiro nome e pela inicial do último sobrenome,
+  além de exibir o município e o catálogo.
 - **FR-004**: O perfil de adotante DEVE exibir nome, município e se a triagem foi concluída. NÃO
   DEVE exibir endereço, CPF, telefone nem e-mail.
 - **FR-005**: Perfil de conta desativada NÃO DEVE ser exibido, e a resposta NÃO DEVE permitir
   distinguir conta inexistente de conta desativada.
-- **FR-006**: Organização e acolhedor DEVEM poder manter descrição e imagem de perfil próprias.
-  Nenhuma conta DEVE conseguir alterar o perfil de outra.
+- **FR-006**: Organização e acolhedor DEVEM poder manter descrição própria, limitada a 500
+  caracteres, e imagem de perfil própria. Nenhuma conta DEVE conseguir alterar o perfil de outra.
 - **FR-007**: Perfil sem descrição ou sem imagem DEVE permanecer íntegro e legível.
 
 ### B. Catálogo dentro do perfil
@@ -222,8 +234,8 @@ e ausência total de endereço, CPF e nome completo.
   acentuação, caixa e espaços repetidos.
 - **FR-013**: A busca pública DEVE retornar somente organizações. Adotantes e acolhedores NÃO DEVEM
   ser pesquisáveis publicamente.
-- **FR-014**: A busca DEVE exigir um mínimo de caracteres, limitar a quantidade de resultados e
-  jamais retornar endereço, documento ou contato.
+- **FR-014**: A busca DEVE exigir no mínimo 2 caracteres, retornar no máximo 10 resultados por
+  consulta e jamais retornar endereço, documento ou contato.
 - **FR-015**: Resultado vazio DEVE ser explicado, com caminho para a vitrine.
 
 ### D. Triagem: quem vê
@@ -243,7 +255,9 @@ e ausência total de endereço, CPF e nome completo.
 
 ### E. Privacidade e escopo de dado
 
-- **FR-020**: Nenhuma resposta desta feature DEVE conter coordenada geográfica, CPF, CNPJ ou senha.
+- **FR-020**: Nenhuma nova resposta pública desta feature, nem o novo endpoint de perfil do
+  adotante em qualquer projeção, DEVE conter coordenada geográfica, CPF, CNPJ, e-mail, telefone ou
+  senha. Esta restrição não altera o contrato privado preexistente de manutenção do próprio perfil.
   Endereço aparece em exatamente dois lugares: no perfil público de organização, e no pacote de
   análise de FR-016a, entregue apenas a quem tem vínculo de solicitação.
 - **FR-021**: Os dados exibidos DEVEM vir do que já é coletado no cadastro. A triagem NÃO DEVE
@@ -287,7 +301,7 @@ e ausência total de endereço, CPF e nome completo.
 
 | Mudança | Entidade | Observação |
 |---|---|---|
-| `descricao` | Organizacao, AcolhedorIndependente | Texto livre com limite |
+| `descricao` | Organizacao, AcolhedorIndependente | Texto livre opcional, com máximo de 500 caracteres |
 | Imagem de perfil | Organizacao, AcolhedorIndependente | Reverte a decisão anterior de não ter `fotoUrl` no schema; hoje o campo existe só no tipo do frontend |
 | Nenhuma mudança | Adotante | Já tem nome, município e `triagemConcluida` |
 
@@ -297,7 +311,9 @@ e ausência total de endereço, CPF e nome completo.
 
 - **SC-001**: 100% dos perfis de organização com animais disponíveis exibem o catálogo completo
   daquela conta.
-- **SC-002**: 0 respostas desta feature contêm CPF, CNPJ, telefone, e-mail ou coordenada.
+- **SC-002**: 0 novas respostas públicas desta feature e 0 respostas do novo endpoint de perfil do
+  adotante contêm CPF, CNPJ, telefone, e-mail ou coordenada; o contrato privado preexistente de
+  manutenção do próprio perfil permanece fora deste critério.
 - **SC-003**: 0 respostas de **perfil público** de acolhedor ou de adotante contêm endereço.
 - **SC-004**: 100% das tentativas de ler a triagem ou o endereço do adotante sem o vínculo de FR-016
   são recusadas na API.
