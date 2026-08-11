@@ -148,7 +148,7 @@ function Home() {
           error={vitrine.error}
           isEmpty={paginados.length === 0}
           loadingLabel="Carregando animais disponíveis…"
-          loadingFallback={<AnimalShowcaseSkeleton cards={8} showFilters={false} />}
+          loadingFallback={<AnimalShowcaseSkeleton cards={10} showFilters={false} />}
           errorTitle="Não foi possível carregar os animais"
           onRetry={() => vitrine.refetch()}
           emptyState={{
@@ -164,7 +164,7 @@ function Home() {
           }}
         >
           <>
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {paginados.map((a) => (
                 <PublicAnimalCard key={a.id} animal={a} />
               ))}

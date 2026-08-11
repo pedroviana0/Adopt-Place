@@ -7,8 +7,8 @@ vi.mock("uploadthing/client", () => ({
 }));
 
 import {
+  animalPhotoKey,
   animalPhotoUploadErrorMessage,
-  completeAnimalPrimaryPhoto,
   uploadThingFetch,
   uploadAnimalPhoto,
   validateAnimalPhotoFile,
@@ -122,72 +122,15 @@ describe("official frontend animal photo upload", () => {
     ).rejects.toThrow("não foi confirmada");
   });
 
-  it("concludes a new animal only after a fresh read confirms its primary photo", async () => {
-    uploadFiles.mockResolvedValue([
-      {
-        serverData: {
-          photo: {
-            id: "photo-1",
-            animalId,
-            principal: true,
-            ordem: 0,
-          },
-        },
-      },
-    ]);
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ animal: { fotos: [] } }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            animal: { fotos: [{ id: "photo-1", principal: true }] },
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      );
-    vi.stubGlobal("fetch", fetchMock);
+  it("identifies a file stably so a retry does not re-send what already landed", () => {
+    const file = new File(["image"], "luna.jpg", { type: "image/jpeg" });
+    Object.defineProperty(file, "lastModified", { value: 1_700_000_000_000 });
+    const same = new File(["image"], "luna.jpg", { type: "image/jpeg" });
+    Object.defineProperty(same, "lastModified", { value: 1_700_000_000_000 });
+    const other = new File(["image"], "luna-2.jpg", { type: "image/jpeg" });
+    Object.defineProperty(other, "lastModified", { value: 1_700_000_000_000 });
 
-    await expect(
-      completeAnimalPrimaryPhoto(
-        animalId,
-        new File(["image"], "luna.jpg", { type: "image/jpeg" }),
-        undefined,
-        uploadFiles,
-      ),
-    ).resolves.toEqual({ id: "photo-1", principal: true });
-    expect(fetchMock).toHaveBeenCalledWith(
-      `/api/animais/gerenciados/${animalId}`,
-      expect.objectContaining({ credentials: "include" }),
-    );
-  });
-
-  it("does not upload a duplicate when retry finds an existing primary photo", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            animal: { fotos: [{ id: "photo-1", principal: true }] },
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      ),
-    );
-
-    await expect(
-      completeAnimalPrimaryPhoto(
-        animalId,
-        new File(["image"], "luna.jpg", { type: "image/jpeg" }),
-        undefined,
-        uploadFiles,
-      ),
-    ).resolves.toEqual({ id: "photo-1", principal: true });
-    expect(uploadFiles).not.toHaveBeenCalled();
+    expect(animalPhotoKey(file)).toBe(animalPhotoKey(same));
+    expect(animalPhotoKey(file)).not.toBe(animalPhotoKey(other));
   });
 });

@@ -67,7 +67,7 @@ function VitrinePage() {
         error={vitrine.error}
         isEmpty={items.length === 0}
         loadingLabel="Carregando vitrine de adoção…"
-        loadingFallback={<AnimalShowcaseSkeleton cards={8} showFilters={false} />}
+        loadingFallback={<AnimalShowcaseSkeleton cards={10} showFilters={false} />}
         errorTitle="Não foi possível carregar a vitrine"
         onRetry={() => vitrine.refetch()}
         emptyState={{
@@ -83,7 +83,7 @@ function VitrinePage() {
         }}
       >
         <>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {items.map((a) => (
               <PublicAnimalCard key={a.id} animal={a} />
             ))}

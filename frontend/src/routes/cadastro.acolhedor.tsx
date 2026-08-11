@@ -2,7 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { CampoLocalizacao } from "@/components/app/CampoLocalizacao";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cadastroAcolhedorSchema, type CadastroAcolhedorInput } from "@/lib/schemas/cadastro";
 import { cadastrarAcolhedor } from "@/lib/data/usuarios";
@@ -48,7 +50,7 @@ function Page() {
           </div>
           <div>
             <Label>Senha</Label>
-            <Input type="password" {...f.register("senha")} />
+            <PasswordInput autoComplete="new-password" {...f.register("senha")} />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -61,19 +63,20 @@ function Page() {
             <Input {...f.register("telefone")} />
           </div>
         </div>
+        <CampoLocalizacao
+          valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }}
+          onChange={(v) => {
+            f.setValue("cep", v.cep, { shouldValidate: v.cep.length === 8 });
+            f.setValue("municipioId", v.municipioId);
+          }}
+          onLogradouro={(logradouro) => {
+            if (!f.getValues("endereco")) f.setValue("endereco", logradouro);
+          }}
+          erro={f.formState.errors.cep?.message}
+        />
         <div>
           <Label>Endereço</Label>
-          <Input {...f.register("endereco")} />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>Cidade</Label>
-            <Input {...f.register("cidade")} />
-          </div>
-          <div>
-            <Label>UF</Label>
-            <Input maxLength={2} {...f.register("estado")} />
-          </div>
+          <Input {...f.register("endereco")} placeholder="Rua, número e complemento" />
         </div>
         <Button type="submit" size="lg" className="w-full">
           Criar conta

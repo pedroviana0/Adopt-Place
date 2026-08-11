@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const cepSchema = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ""))
+  .pipe(z.string().regex(/^\d{8}$/, "Informe um CEP com 8 dígitos"));
+
 export const cadastroAdotanteSchema = z.object({
   email: z.string().email("E-mail inválido"),
   senha: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
@@ -9,8 +14,9 @@ export const cadastroAdotanteSchema = z.object({
     .regex(/^\d{11}$/, "CPF deve ter 11 dígitos (apenas números)"),
   telefone: z.string().min(8, "Telefone inválido"),
   endereco: z.string().min(3, "Endereço inválido"),
-  cidade: z.string().min(2, "Cidade inválida"),
-  estado: z.string().length(2, "UF deve ter 2 letras"),
+  // Cidade e UF vêm do CEP, resolvidas pelo servidor.
+  cep: cepSchema,
+  municipioId: z.string().optional(),
   instagram: z.string().optional().or(z.literal("")),
 });
 export type CadastroAdotanteInput = z.infer<typeof cadastroAdotanteSchema>;
@@ -22,8 +28,8 @@ export const cadastroOrganizacaoSchema = z.object({
   cnpj: z.string().regex(/^\d{14}$/, "CNPJ deve ter 14 dígitos"),
   telefone: z.string().min(8),
   endereco: z.string().min(3),
-  cidade: z.string().min(2),
-  estado: z.string().length(2),
+  cep: cepSchema,
+  municipioId: z.string().optional(),
   responsavelNome: z.string().min(3),
   capacidadeMaxima: z.number().int().positive().optional(),
 });
@@ -36,8 +42,8 @@ export const cadastroAcolhedorSchema = z.object({
   cpf: z.string().regex(/^\d{11}$/),
   telefone: z.string().min(8),
   endereco: z.string().min(3),
-  cidade: z.string().min(2),
-  estado: z.string().length(2),
+  cep: cepSchema,
+  municipioId: z.string().optional(),
 });
 export type CadastroAcolhedorInput = z.infer<typeof cadastroAcolhedorSchema>;
 

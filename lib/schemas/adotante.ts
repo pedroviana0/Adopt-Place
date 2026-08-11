@@ -8,6 +8,7 @@ import {
   passwordSchema,
   requiredTextSchema,
 } from "@/lib/schemas/common";
+import { cepSchema, municipioIdSchema } from "@/lib/schemas/localizacao";
 
 const booleanSelectSchema = z.preprocess((value) => {
   if (value === "true") return true;
@@ -29,8 +30,9 @@ export const adopterRegistrationSchema = z.object({
   telefone: requiredTextSchema.min(8, "Informe um telefone valido."),
   instagram: optionalTextSchema,
   endereco: requiredTextSchema,
-  cidade: requiredTextSchema,
-  estado: requiredTextSchema.length(2, "Use a UF com 2 letras.").transform((value) => value.toUpperCase()),
+  // Cidade e UF sao derivadas do CEP pelo servidor, nao digitadas.
+  cep: cepSchema,
+  municipioId: municipioIdSchema.optional(),
   password: passwordSchema,
 }).strict();
 

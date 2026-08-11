@@ -2,7 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { CampoLocalizacao } from "@/components/app/CampoLocalizacao";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cadastroOrganizacaoSchema, type CadastroOrganizacaoInput } from "@/lib/schemas/cadastro";
 import { cadastrarOrganizacao } from "@/lib/data/usuarios";
@@ -56,7 +58,7 @@ function Page() {
           </div>
           <div>
             <Label>Senha</Label>
-            <Input type="password" {...f.register("senha")} />
+            <PasswordInput autoComplete="new-password" {...f.register("senha")} />
             {f.formState.errors.senha && (
               <p className="mt-1 text-xs text-destructive">{f.formState.errors.senha.message}</p>
             )}
@@ -94,19 +96,20 @@ function Page() {
             <p className="mt-1 text-xs text-destructive">{f.formState.errors.endereco.message}</p>
           )}
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <Label>Cidade</Label>
-            <Input {...f.register("cidade")} />
-          </div>
-          <div>
-            <Label>UF</Label>
-            <Input maxLength={2} {...f.register("estado")} />
-          </div>
-          <div>
-            <Label>Capacidade máx.</Label>
-            <Input type="number" {...f.register("capacidadeMaxima", { valueAsNumber: true })} />
-          </div>
+        <CampoLocalizacao
+          valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }}
+          onChange={(v) => {
+            f.setValue("cep", v.cep, { shouldValidate: v.cep.length === 8 });
+            f.setValue("municipioId", v.municipioId);
+          }}
+          onLogradouro={(logradouro) => {
+            if (!f.getValues("endereco")) f.setValue("endereco", logradouro);
+          }}
+          erro={f.formState.errors.cep?.message}
+        />
+        <div>
+          <Label>Capacidade máx.</Label>
+          <Input type="number" {...f.register("capacidadeMaxima", { valueAsNumber: true })} />
         </div>
         <Button type="submit" size="lg" className="w-full">
           Criar conta

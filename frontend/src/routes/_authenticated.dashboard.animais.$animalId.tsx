@@ -107,7 +107,11 @@ function Page() {
           <AnimalForm animal={animal} mode="edit" />
         </TabsContent>
         <TabsContent value="fotos" className="mt-6">
-          <AnimalPhotosPanel animalId={animal.id} fotos={animal.fotos} />
+          <AnimalPhotosPanel
+            animalId={animal.id}
+            fotos={animal.fotos}
+            status={animal.status}
+          />
         </TabsContent>
         <TabsContent value="saude" className="mt-6">
           <HealthPanel animalId={animal.id} />

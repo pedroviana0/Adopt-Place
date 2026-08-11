@@ -1,3 +1,3 @@
-export function firstSelectedFile(files: FileList | null): File | null {
-  return files?.[0] ?? null;
+export function selectedFiles(files: FileList | null): File[] {
+  return files ? Array.from(files) : [];
 }

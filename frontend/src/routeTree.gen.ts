@@ -15,6 +15,7 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedFeelsRouteImport } from './routes/_authenticated.feels'
 import { Route as AuthenticatedMensagensRouteImport } from './routes/_authenticated.mensagens'
 import { Route as AuthenticatedMeuPerfilRouteImport } from './routes/_authenticated.meu-perfil'
 import { Route as AuthenticatedMeusFavoritosRouteImport } from './routes/_authenticated.meus-favoritos'
@@ -73,6 +74,11 @@ const VitrineRoute = VitrineRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedFeelsRoute = AuthenticatedFeelsRouteImport.update({
+  id: '/feels',
+  path: '/feels',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMensagensRoute = AuthenticatedMensagensRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/feels': typeof AuthenticatedFeelsRoute
   '/mensagens': typeof AuthenticatedMensagensRouteWithChildren
   '/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
+  '/feels': typeof AuthenticatedFeelsRoute
   '/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/feels': typeof AuthenticatedFeelsRoute
   '/_authenticated/mensagens': typeof AuthenticatedMensagensRouteWithChildren
   '/_authenticated/meu-perfil': typeof AuthenticatedMeuPerfilRoute
   '/_authenticated/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/vitrine'
     | '/dashboard'
+    | '/feels'
     | '/mensagens'
     | '/meu-perfil'
     | '/meus-favoritos'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/vitrine'
+    | '/feels'
     | '/meu-perfil'
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/vitrine'
     | '/_authenticated/dashboard'
+    | '/_authenticated/feels'
     | '/_authenticated/mensagens'
     | '/_authenticated/meu-perfil'
     | '/_authenticated/meus-favoritos'
@@ -511,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/feels': {
+      id: '/_authenticated/feels'
+      path: '/feels'
+      fullPath: '/feels'
+      preLoaderRoute: typeof AuthenticatedFeelsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/mensagens': {
@@ -868,6 +887,7 @@ const AuthenticatedMensagensRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedFeelsRoute: typeof AuthenticatedFeelsRoute
   AuthenticatedMensagensRoute: typeof AuthenticatedMensagensRouteWithChildren
   AuthenticatedMeuPerfilRoute: typeof AuthenticatedMeuPerfilRoute
   AuthenticatedMeusFavoritosRoute: typeof AuthenticatedMeusFavoritosRoute
@@ -877,6 +897,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedFeelsRoute: AuthenticatedFeelsRoute,
   AuthenticatedMensagensRoute: AuthenticatedMensagensRouteWithChildren,
   AuthenticatedMeuPerfilRoute: AuthenticatedMeuPerfilRoute,
   AuthenticatedMeusFavoritosRoute: AuthenticatedMeusFavoritosRoute,

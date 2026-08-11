@@ -6,13 +6,20 @@ import {
   passwordSchema,
   requiredTextSchema,
 } from "@/lib/schemas/common";
-
-const stateSchema = requiredTextSchema
-  .length(2, "Use a UF com 2 letras.")
-  .transform((value) => value.toUpperCase());
+import { cepSchema, municipioIdSchema } from "@/lib/schemas/localizacao";
 
 const phoneSchema = requiredTextSchema.min(8, "Informe um telefone valido.");
 const capacitySchema = z.number().int().nonnegative();
+
+/**
+ * Cidade e UF sairam da entrada: agora sao derivadas do CEP pelo servidor. O
+ * que chega do navegador e o CEP e, so quando o provedor esta fora do ar, o
+ * municipio escolhido na lista.
+ */
+const localizacaoDeEntrada = {
+  cep: cepSchema,
+  municipioId: municipioIdSchema.optional(),
+};
 
 export const organizationRegistrationSchema = z.object({
   email: emailSchema,
@@ -24,8 +31,7 @@ export const organizationRegistrationSchema = z.object({
     .regex(/^\d{14}$/, "Informe um CNPJ valido."),
   telefone: phoneSchema,
   endereco: requiredTextSchema,
-  cidade: requiredTextSchema,
-  estado: stateSchema,
+  ...localizacaoDeEntrada,
   responsavelNome: requiredTextSchema.min(3, "Informe o responsavel."),
   capacidadeMaxima: capacitySchema.optional(),
 }).strict();
@@ -37,8 +43,7 @@ export const fosterRegistrationSchema = z.object({
   cpf: cpfSchema.transform((value) => value.replace(/\D/g, "")),
   telefone: phoneSchema,
   endereco: requiredTextSchema,
-  cidade: requiredTextSchema,
-  estado: stateSchema,
+  ...localizacaoDeEntrada,
 }).strict();
 
 const nonEmptyPatch = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
@@ -53,8 +58,8 @@ export const adopterProfileUpdateSchema = nonEmptyPatch(
     telefone: phoneSchema.optional(),
     instagram: z.string().trim().max(120).nullable().optional(),
     endereco: requiredTextSchema.optional(),
-    cidade: requiredTextSchema.optional(),
-    estado: stateSchema.optional(),
+    cep: cepSchema.optional(),
+    municipioId: municipioIdSchema.optional(),
   }),
 );
 
@@ -64,8 +69,8 @@ export const organizationProfileUpdateSchema = nonEmptyPatch(
     razaoSocial: requiredTextSchema.min(3).optional(),
     telefone: phoneSchema.optional(),
     endereco: requiredTextSchema.optional(),
-    cidade: requiredTextSchema.optional(),
-    estado: stateSchema.optional(),
+    cep: cepSchema.optional(),
+    municipioId: municipioIdSchema.optional(),
     responsavelNome: requiredTextSchema.min(3).optional(),
     capacidadeMaxima: capacitySchema.nullable().optional(),
   }),
@@ -77,8 +82,8 @@ export const fosterProfileUpdateSchema = nonEmptyPatch(
     nomeCompleto: requiredTextSchema.min(3).optional(),
     telefone: phoneSchema.optional(),
     endereco: requiredTextSchema.optional(),
-    cidade: requiredTextSchema.optional(),
-    estado: stateSchema.optional(),
+    cep: cepSchema.optional(),
+    municipioId: municipioIdSchema.optional(),
     capacidadeAtual: capacitySchema.optional(),
   }),
 );
