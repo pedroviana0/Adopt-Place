@@ -80,7 +80,10 @@ frontend/            App de UI (Vite + TanStack Start)
   src/lib/data/      Camada que fala com /api (sessao, animais, favoritos…)
   src/styles.css     Tokens de tema (Teal & Amber) + @font-face
   public/fonts/      Fontes self-hospedadas (Inter, Poppins)
-specs/               Spec-kit (spec→plan→tasks) das features 001–006
+specs/               Uma pasta por feature (001–006)
+  README.md          ÍNDICE das specs + regra de continuidade + modelo de ENTREGA
+  00N-*/spec.md      O que se quer e por quê (promessa)
+  00N-*/ENTREGA.md   O que foi entregue, o que não foi, decisões e armadilhas (fato)
 CLAUDE.md            ESTE arquivo (harness canônico)
 ```
 
@@ -177,11 +180,16 @@ o acento (cards/overlays/topbar sobre imagem ou profundidade), nunca em tudo; te
 ## 9. Fluxo por tarefa
 
 1. Sincronizar: `git checkout main && git fetch origin && git reset --hard origin/main`.
-2. Ler contratos reais (backend) antes de consumir no frontend.
-3. Implementar (usar tokens/semântica; não mover/criar/remover função sem pedido).
-4. **Portão da seção 5** (`tsc` + `build`; regra do `routeTree`).
-5. Commit direto na `main` (msg convencional PT + `Co-Authored-By: Claude`), push.
-6. Registrar decisões relevantes na memória do projeto.
+2. **Cumprir a regra de continuidade da seção 9.2** — ler o `ENTREGA.md` da spec anterior.
+3. Abrir a branch da feature (`git checkout -b 00N-nome-curto`). **Nunca trabalhar na `main`.**
+4. Ler contratos reais (backend) antes de consumir no frontend.
+5. Implementar (usar tokens/semântica; não mover/criar/remover função sem pedido).
+6. **Portão da seção 5** (`tsc` + `npm test` no backend; `tsc` + `build` no frontend; regra do
+   `routeTree`).
+7. Commit **na branch** (msg convencional PT + `Co-Authored-By: Claude`), push, e PR ao fechar a
+   feature. Commit direto na `main` **não é mais o fluxo** — ver seção 2.
+8. Preencher o `ENTREGA.md` da spec com o que aquela fatia entregou, e registrar decisões
+   relevantes na memória do projeto.
 
 ---
 
@@ -192,6 +200,58 @@ realmente chama) **às vezes duplicam a mesma regra**. Ex.: `POST /api/solicitac
 reimplementa `createAdoptionRequest` em vez de chamá-la. Ao adicionar efeito colateral
 (notificação, log, etc.), **instrumente a rota HTTP** — ou os dois — e **valide E2E**;
 só mexer na action pode não ter efeito nenhum em produção.
+
+---
+
+## 9.2 Regra de continuidade entre specs (OBRIGATÓRIA)
+
+**Toda spec tem dois documentos**, em `specs/00N-nome/`:
+
+- **`spec.md`** — o que se quer e por quê. É **promessa**.
+- **`ENTREGA.md`** — o que realmente aconteceu: o que foi entregue, o que **não** foi, as decisões
+  que não se reabrem, as armadilhas descobertas e onde o código vive. É **fato**.
+
+O índice de todas as specs, com estado e links, está em **`specs/README.md`**.
+
+### A regra
+
+> **Antes de escrever a primeira linha de código de uma spec N, leia o `ENTREGA.md` da spec N-1.**
+> Em seguida, analise o que a spec N exige e confronte com o que a anterior de fato entregou.
+> **Se ainda restar dúvida sobre por que o sistema é como é, leia também o `ENTREGA.md` da N-2.**
+>
+> Duas para trás é o **piso, não o teto**: o que se exige de fato é **entender tudo que já foi
+> entregue até o momento**. O índice em `specs/README.md` existe para tornar isso barato.
+
+### Por que isto é restrição, e não sugestão
+
+Cada spec desta base herdou da anterior decisões que **não estão escritas no código** e que custam
+caro para redescobrir — quando não são silenciosamente revertidas por quem não sabia:
+
+- A **005** trocou a estratégia de geolocalização inteira **depois de medir** que o pressuposto
+  original era falso. Quem mexer em distância sem ler a 005 reintroduz chamada de API externa no
+  caminho de leitura do feed — que é exatamente o que SC-002 daquela spec proíbe.
+- A **004** abandonou o verde oliva da própria `spec.md` depois de uma reversão completa (PR #115).
+  Quem ler só a spec aplica oliva num sistema teal.
+- A **003** decidiu que a raiz é service-only e que `legacy/` não se toca. Quem não ler edita o
+  frontend morto.
+- A **001** fixou os estados canônicos e a recusa automática das demais solicitações. Quem não ler
+  inventa um estado novo.
+
+### Ordem de autoridade quando as fontes divergem
+
+> **código real > `ENTREGA.md` > `CLAUDE.md` > `spec.md`**
+
+O `spec.md` descreve o que se pretendia; o `ENTREGA.md` descreve o que existe. Ao encontrar
+divergência, **não escolha em silêncio**: registre no `ENTREGA.md` da spec corrente e traga ao
+mantenedor.
+
+### Ao abrir uma spec nova
+
+Criar o `ENTREGA.md` **junto com** o `spec.md`, já com estado `EM ANDAMENTO` e as ondas em aberto —
+não no fim. Modelo pronto em `specs/README.md`. Preencher a cada onda concluída, com o hash do
+commit: **sem hash não é registro, é lembrança.**
+
+---
 
 ## 10. Estado atual (handoff) — atualizado 2026-08-09
 
