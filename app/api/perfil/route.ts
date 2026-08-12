@@ -4,6 +4,7 @@ import type { z } from "zod";
 
 import { getServerSession, INACTIVE_ACCOUNT_MESSAGE } from "@/lib/auth";
 import { aplicarLocalizacaoNoPatch, LocationError } from "@/lib/localizacao";
+import { normalizarNomeMunicipio } from "@/lib/municipios";
 import { prisma } from "@/lib/prisma";
 import {
   adopterProfileUpdateSchema,
@@ -32,6 +33,8 @@ const profileSelect = {
     select: {
       id: true,
       razaoSocial: true,
+      descricao: true,
+      fotoUrl: true,
       cnpj: true,
       telefone: true,
       endereco: true,
@@ -45,6 +48,8 @@ const profileSelect = {
     select: {
       id: true,
       nomeCompleto: true,
+      descricao: true,
+      fotoUrl: true,
       cpf: true,
       telefone: true,
       endereco: true,
@@ -191,11 +196,23 @@ export async function PATCH(request: Request) {
       const parsed = organizationProfileUpdateSchema.safeParse(parsedBody.body);
       if (!parsed.success) return validationResponse(parsed.error);
       const { email, ...profile } = parsed.data;
+      const organizationPatch = {
+        ...profile,
+        ...(profile.razaoSocial !== undefined
+          ? {
+              razaoSocialNormalizada: normalizarNomeMunicipio(
+                profile.razaoSocial,
+              ),
+            }
+          : {}),
+      };
       updated = await prisma.usuario.update({
         where: { id: current.user.id },
         data: {
           ...(email ? { email } : {}),
-          organizacao: { update: await aplicarLocalizacaoNoPatch(profile) },
+          organizacao: {
+            update: await aplicarLocalizacaoNoPatch(organizationPatch),
+          },
         },
         select: profileSelect,
       });

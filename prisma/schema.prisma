@@ -193,28 +193,32 @@ model Adotante {
 }
 
 model Organizacao {
-  id                 String              @id @default(cuid())
-  usuarioId          String              @unique
-  usuario            Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  razaoSocial        String
-  cnpj               String              @unique
-  telefone           String
-  endereco           String
-  cidade             String
-  estado             String
-  cep                String?
-  municipioId        String?
-  municipio          Municipio?          @relation(fields: [municipioId], references: [codigoIbge])
-  latitude           Float?
-  longitude          Float?
-  precisaoCoordenada PrecisaoCoordenada?
-  responsavelNome    String
-  capacidadeMaxima   Int?
-  animais            Animal[]
+  id                     String              @id @default(cuid())
+  usuarioId              String              @unique
+  usuario                Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  razaoSocial            String
+  razaoSocialNormalizada String
+  descricao              String?
+  fotoUrl                String?
+  cnpj                   String              @unique
+  telefone               String
+  endereco               String
+  cidade                 String
+  estado                 String
+  cep                    String?
+  municipioId            String?
+  municipio              Municipio?          @relation(fields: [municipioId], references: [codigoIbge])
+  latitude               Float?
+  longitude              Float?
+  precisaoCoordenada     PrecisaoCoordenada?
+  responsavelNome        String
+  capacidadeMaxima       Int?
+  animais                Animal[]
 
   // Recorte geografico do feed: o banco reduz por faixa de lat/lng antes de o
   // servidor calcular a distancia exata.
   @@index([latitude, longitude], map: "idx_organizacao_coordenada")
+  @@index([razaoSocialNormalizada], map: "idx_organizacao_razao_social_normalizada")
 }
 
 model AcolhedorIndependente {
@@ -222,6 +226,8 @@ model AcolhedorIndependente {
   usuarioId          String              @unique
   usuario            Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   nomeCompleto       String
+  descricao          String?
+  fotoUrl            String?
   cpf                String              @unique
   telefone           String
   endereco           String

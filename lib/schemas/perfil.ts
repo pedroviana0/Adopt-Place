@@ -10,6 +10,13 @@ import { cepSchema, municipioIdSchema } from "@/lib/schemas/localizacao";
 
 const phoneSchema = requiredTextSchema.min(8, "Informe um telefone valido.");
 const capacitySchema = z.number().int().nonnegative();
+const descriptionSchema = z
+  .string()
+  .trim()
+  .max(500, "A descricao deve ter no maximo 500 caracteres.")
+  .transform((value) => value || null)
+  .nullable()
+  .optional();
 
 /**
  * Cidade e UF sairam da entrada: agora sao derivadas do CEP pelo servidor. O
@@ -67,6 +74,7 @@ export const organizationProfileUpdateSchema = nonEmptyPatch(
   z.object({
     email: emailSchema.optional(),
     razaoSocial: requiredTextSchema.min(3).optional(),
+    descricao: descriptionSchema,
     telefone: phoneSchema.optional(),
     endereco: requiredTextSchema.optional(),
     cep: cepSchema.optional(),
@@ -80,6 +88,7 @@ export const fosterProfileUpdateSchema = nonEmptyPatch(
   z.object({
     email: emailSchema.optional(),
     nomeCompleto: requiredTextSchema.min(3).optional(),
+    descricao: descriptionSchema,
     telefone: phoneSchema.optional(),
     endereco: requiredTextSchema.optional(),
     cep: cepSchema.optional(),

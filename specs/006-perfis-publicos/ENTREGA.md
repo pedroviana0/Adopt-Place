@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | iniciada em 2026-08-09 |
 | **Branch** | `006-perfis-publicos` (empilhada sobre `fix/guarda-de-porta-no-dev`, PR #121) |
-| **Status** | **EM ANDAMENTO** — levantamento concluído, nenhuma onda executada |
+| **Status** | **EM ANDAMENTO** — Onda 0 concluída; Ondas 1–7 abertas |
 | **Spec** | [`spec.md`](spec.md) · **plano e mapa de fontes**: [`HANDOFF.md`](HANDOFF.md) |
 
 > **Este documento é preenchido enquanto a spec avança, não no fim.** Ao concluir cada onda,
@@ -33,7 +33,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 
 | Onda | Escopo | Commits | Estado |
 |---|---|---|---|
-| 0 | Fundação de dados: `descricao`, `fotoUrl`, `razaoSocialNormalizada` + migration | — | ☐ |
+| 0 | Fundação de dados: `descricao`, `fotoUrl`, `razaoSocialNormalizada` + migration | `6f4ebf6` | ☑ |
 | 1 | Perfil público de organização + catálogo (US1) | — | ☐ |
 | 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | — | ☐ |
 | 3 | Manter o próprio perfil: descrição + imagem (US4) | — | ☐ |
@@ -85,4 +85,24 @@ Feitas em 2026-08-09, contra o banco real. Detalhe em [`HANDOFF.md`](HANDOFF.md)
 
 ## 7. Onde o código vive
 
-*(preencher conforme as ondas entregam)*
+### Onda 0 — fundação de dados (commit `6f4ebf6`)
+
+- `prisma/schema.prisma`: campos de apresentação em `Organizacao` e
+  `AcolhedorIndependente`, coluna obrigatória `razaoSocialNormalizada` e índice.
+- `prisma/migrations/20260811210000_perfis_publicos/migration.sql`: adiciona campos
+  nullable, faz backfill com `translate`/`lower`/compressão de espaços/trim e cria o
+  índice sem reset ou drop.
+- `lib/actions/auth-register.ts`, `app/api/perfil/route.ts` e `prisma/seed.ts`:
+  gravam a coluna derivada exclusivamente por `normalizarNomeMunicipio()`.
+- `lib/schemas/perfil.ts`: descrição nullable com trim, vazio convertido em `null` e
+  limite de 500 caracteres; campos derivados continuam rejeitados.
+- `scripts/verify-razao-social-normalizada.ts`: verificador read-only contra todas
+  as organizações.
+- `__tests__/actions/auth-register.test.ts` e `__tests__/api/profile-screening.test.ts`:
+  cobertura de cadastro, sincronização atômica e validação de descrição.
+
+**Validação factual:** em banco local Docker, `prisma migrate deploy` aplicou as
+migrations pendentes de notificações, localização e Onda 0. O verificador encontrou
+1 organização e 0 divergências. `npm run prisma:validate`, `npx tsc --noEmit`,
+`npm test` (299 testes), frontend `npx tsc --noEmit` e `npm run build` passaram.
+`routeTree.gen.ts` e `legacy/` permaneceram inalterados; seed não foi executado.

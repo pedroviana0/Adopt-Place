@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import { normalizarNomeMunicipio } from "../lib/municipios";
 import { seedMunicipios } from "./seed-municipios";
 
 const prisma = new PrismaClient();
@@ -100,6 +101,9 @@ async function createDemoUsers(): Promise<void> {
       organizacao: {
         create: {
           razaoSocial: "Organizacao de Teste AdoptPlace",
+          razaoSocialNormalizada: normalizarNomeMunicipio(
+            "Organizacao de Teste AdoptPlace",
+          ),
           cnpj: "10000000000100",
           telefone: "(24) 90000-0001",
           endereco: "Rua Cem, 100",
@@ -119,6 +123,9 @@ async function createDemoUsers(): Promise<void> {
       organizacao: {
         create: {
           razaoSocial: "Abrigo Serra da Bocaina",
+          razaoSocialNormalizada: normalizarNomeMunicipio(
+            "Abrigo Serra da Bocaina",
+          ),
           cnpj: "10000000000280",
           telefone: "(24) 90000-0005",
           endereco: "Avenida Albino Rodrigues Neves, 300",
