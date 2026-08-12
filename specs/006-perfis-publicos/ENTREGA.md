@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | iniciada em 2026-08-09 |
 | **Branch** | `006-perfis-publicos` (empilhada sobre `fix/guarda-de-porta-no-dev`, PR #121) |
-| **Status** | **EM ANDAMENTO** — Ondas 0–1 concluídas; Ondas 2–7 abertas |
+| **Status** | **EM ANDAMENTO** — Ondas 0–6 concluídas; Onda 7 aberta |
 | **Spec** | [`spec.md`](spec.md) · **plano e mapa de fontes**: [`HANDOFF.md`](HANDOFF.md) |
 
 > **Este documento é preenchido enquanto a spec avança, não no fim.** Ao concluir cada onda,
@@ -25,7 +25,7 @@ de solicitação.
 | US3 | Encontrar organizações pelo nome | P2 | 5 | ☑ |
 | US4 | Manter o próprio perfil | P1 | 3 | ☑ |
 | US5 | Avaliar um adotante com a triagem | P1 | 4 | ☑ |
-| US6 | Perfil de acolhedor independente | P3 | 6 | ☐ |
+| US6 | Perfil de acolhedor independente | P3 | 6 | ☑ |
 
 ## 2. Ondas de execução
 
@@ -39,7 +39,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | 3 | Manter o próprio perfil: descrição + imagem (US4) | `aa6e44f` | ☑ |
 | 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | `0a1b7dd` | ☑ |
 | 5 | Busca por nome sobre coluna normalizada (US3) | `f0e36b3` | ☑ |
-| 6 | Perfil do acolhedor (US6) | — | ☐ |
+| 6 | Perfil do acolhedor (US6) | `3d8486c` | ☑ |
 | 7 | Dados de teste com acento + homologação na tela | — | ☐ |
 
 ## 3. Decisões que não se reabrem
@@ -203,3 +203,21 @@ interface confirmou caixa/espaços, estado vazio e navegação ao perfil. O test
 com nome acentuado permanece no roteiro da Onda 7; nenhum seed foi executado.
 `routeTree.gen.ts` foi versionado exclusivamente por `/busca`; `legacy/` permaneceu
 inalterado.
+
+### Onda 6 — perfil do acolhedor (commit `3d8486c`)
+
+- `GET /api/perfis/acolhedor/[id]` consulta somente acolhedor com conta ativa e responde
+  com primeiro nome e inicial do último sobrenome, município/UF, descrição e imagem.
+- Nome completo, endereço, CPF, CNPJ, e-mail, telefone, coordenadas e IDs internos não são
+  serializados. Perfil ausente e conta desativada compartilham o mesmo 404.
+- O catálogo reutiliza filtros e paginação da organização, mas isola animais `DISPONIVEL`
+  por `acolhedorId`; cards e detalhe já navegam ao perfil pelo identificador opaco.
+- A rota `/acolhedores/$acolhedorId` possui fallbacks de imagem, descrição e catálogo vazio,
+  além de textos acessíveis específicos para acolhedor.
+
+**Validação factual:** os testes T070/T071 começaram vermelhos por query e endpoint ausentes
+e terminaram com 5 testes focados. Backend `npx tsc --noEmit` e `npm test` (340 testes),
+frontend `npx tsc --noEmit` e `npm run build` passaram com servidores encerrados. A interface
+foi homologada sem autenticação nos estados sem e com descrição, imagem e animal; a fixture
+temporária foi integralmente restaurada. `routeTree.gen.ts` foi versionado exclusivamente pela
+nova rota; `legacy/` permaneceu inalterado e seed não foi executado.

@@ -189,17 +189,17 @@ curta não consulta a base; no máximo 10 resultados; nenhuma pessoa física/dad
 **Independent Test**: perfil anônimo mostra “Primeiro I.” e animais disponíveis próprios; resposta
 inteira não contém nome completo, endereço, CPF, telefone, e-mail ou coordenadas.
 
-- [ ] T070 [P] [US6] [TEST-FIRST] Criar testes vermelhos de derivação “primeiro nome + inicial do último sobrenome”, conta ativa/404 e catálogo owner-scoped em `__tests__/queries/public-foster-profile.test.ts` (FR-001, FR-003, FR-005, FR-008).
-- [ ] T071 [P] [US6] [TEST-FIRST] Criar contrato vermelho com varredura recursiva que falha para nome completo, endereço, CPF, telefone, e-mail e coordenadas em `__tests__/api/public-foster-profile.test.ts` (FR-003, FR-020, CR-007).
-- [ ] T072 [US6] Implementar derivação server-side da identificação e query estreita de acolhedor ativo em `lib/queries/public-profiles.ts`, sem selecionar campos proibidos na projeção pública (FR-003, FR-020).
-- [ ] T073 [US6] Implementar `GET /api/perfis/acolhedor/[id]` em `app/api/perfis/acolhedor/[id]/route.ts`, reutilizando filtros/paginação do catálogo e 404 indistinguível (FR-001, FR-003, FR-005, FR-008–FR-011).
-- [ ] T074 [US6] Ampliar tipos/cliente de perfis para `PROFILE-FOSTER-01` em `frontend/src/lib/data/perfis.ts` (CR-004).
-- [ ] T075 [US6] Criar rota pública `frontend/src/routes/acolhedores.$acolhedorId.tsx` com `page-canvas`, identificação mínima, município, descrição/imagem com fallback e catálogo reutilizado (FR-003, FR-007, NFR-001).
-- [ ] T076 [US6] Confirmar que links adicionados na Onda 2 resolvem o perfil do acolhedor em `frontend/src/components/app/PublicAnimalCard.tsx`, `frontend/src/components/app/AnimalSwipeCard.tsx` e `frontend/src/routes/animais.$animalId.tsx` sem fallback para nome completo (US2, US6).
-- [ ] T077 [US6] Executar o portão completo da Onda 6; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde dos testes de privacidade T070/T071.
-- [ ] T078 [US6] Criar commit verificável da Onda 6 contendo query/endpoint/rota, integração de links e testes de privacidade do acolhedor.
-- [ ] T079 [US6] Homologar anonimamente perfil com/sem descrição, imagem e animais e registrar evidência conforme `specs/006-perfis-publicos/quickstart.md`.
-- [ ] T080 [US6] Após existir o commit da Onda 6, registrar hash, allowlist, portões e evidência na linha da Onda 6 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T070 [P] [US6] [TEST-FIRST] Criar testes vermelhos de derivação “primeiro nome + inicial do último sobrenome”, conta ativa/404 e catálogo owner-scoped em `__tests__/queries/public-foster-profile.test.ts` (FR-001, FR-003, FR-005, FR-008).
+- [X] T071 [P] [US6] [TEST-FIRST] Criar contrato vermelho com varredura recursiva que falha para nome completo, endereço, CPF, telefone, e-mail e coordenadas em `__tests__/api/public-foster-profile.test.ts` (FR-003, FR-020, CR-007).
+- [X] T072 [US6] Implementar derivação server-side da identificação e query estreita de acolhedor ativo em `lib/queries/public-profiles.ts`, sem selecionar campos proibidos na projeção pública (FR-003, FR-020).
+- [X] T073 [US6] Implementar `GET /api/perfis/acolhedor/[id]` em `app/api/perfis/acolhedor/[id]/route.ts`, reutilizando filtros/paginação do catálogo e 404 indistinguível (FR-001, FR-003, FR-005, FR-008–FR-011).
+- [X] T074 [US6] Ampliar tipos/cliente de perfis para `PROFILE-FOSTER-01` em `frontend/src/lib/data/perfis.ts` (CR-004).
+- [X] T075 [US6] Criar rota pública `frontend/src/routes/acolhedores.$acolhedorId.tsx` com `page-canvas`, identificação mínima, município, descrição/imagem com fallback e catálogo reutilizado (FR-003, FR-007, NFR-001).
+- [X] T076 [US6] Confirmar que links adicionados na Onda 2 resolvem o perfil do acolhedor em `frontend/src/components/app/PublicAnimalCard.tsx`, `frontend/src/components/app/AnimalSwipeCard.tsx` e `frontend/src/routes/animais.$animalId.tsx` sem fallback para nome completo (US2, US6).
+- [X] T077 [US6] Executar o portão completo da Onda 6; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde dos testes de privacidade T070/T071.
+- [X] T078 [US6] Criar commit verificável da Onda 6 contendo query/endpoint/rota, integração de links e testes de privacidade do acolhedor.
+- [X] T079 [US6] Homologar anonimamente perfil com/sem descrição, imagem e animais e registrar evidência conforme `specs/006-perfis-publicos/quickstart.md`.
+- [X] T080 [US6] Após existir o commit da Onda 6, registrar hash, allowlist, portões e evidência na linha da Onda 6 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US6 fecha o mapa de perfis sem transformar residência em dado público.
 
