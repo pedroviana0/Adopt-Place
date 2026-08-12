@@ -3,10 +3,12 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -149,29 +151,42 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col bg-background">
-        <a
-          href="#main-content"
-          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-floating transition-transform focus:translate-y-0"
-        >
-          Pular para o conteúdo principal
-        </a>
-        <Navbar />
-        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1">
-          <Outlet />
-        </main>
-        <footer className="border-t border-border/60 bg-card/40 px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground">
-          <img
-            src="/logo.png"
-            alt="AdoptPlace"
-            className="mx-auto mb-2 h-8 w-auto dark:rounded-md dark:bg-white dark:p-1 dark:shadow-sm"
-          />
-          AdoptPlace · Volta Redonda/RJ · TCC IFRJ Pinheiral 2026
-        </footer>
-      </div>
-      <Toaster richColors closeButton />
+      <MotionConfig reducedMotion="user" transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}>
+        <div className="flex min-h-screen flex-col bg-background">
+          <a
+            href="#main-content"
+            className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-floating transition-transform focus:translate-y-0"
+          >
+            Pular para o conteúdo principal
+          </a>
+          <Navbar />
+          <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 overflow-clip">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={pathname}
+                className="min-h-full"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
+          </main>
+          <footer className="border-t border-border/60 bg-card/40 px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground">
+            <img
+              src="/logo.png"
+              alt="AdoptPlace"
+              className="mx-auto mb-2 h-8 w-auto dark:rounded-md dark:bg-white dark:p-1 dark:shadow-sm"
+            />
+            AdoptPlace · Volta Redonda/RJ · TCC IFRJ Pinheiral 2026
+          </footer>
+        </div>
+        <Toaster richColors closeButton />
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

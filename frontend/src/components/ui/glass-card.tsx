@@ -5,7 +5,7 @@ function GlassCard({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="glass-card"
       className={cn(
-        "bg-primary-foreground/30 border-primary-foreground/30 flex flex-col gap-6 rounded-2xl border py-6 text-white backdrop-blur-md",
+        "bg-primary-foreground/30 border-primary-foreground/30 flex flex-col gap-6 rounded-2xl border py-6 text-white backdrop-blur-md transition-[border-color,box-shadow,transform,background-color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-floating motion-reduce:transform-none motion-reduce:transition-none",
         className,
       )}
       {...props}
@@ -36,40 +36,22 @@ function GlassCardTitle({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function GlassCardDescription({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="glass-card-description"
-      className={cn("text-sm", className)}
-      {...props}
-    />
-  );
+function GlassCardDescription({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="glass-card-description" className={cn("text-sm", className)} {...props} />;
 }
 
 function GlassCardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="glass-card-action"
-      className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-        className,
-      )}
+      className={cn("col-start-2 row-span-2 row-start-1 self-start justify-self-end", className)}
       {...props}
     />
   );
 }
 
 function GlassCardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="glass-card-content"
-      className={cn("px-5", className)}
-      {...props}
-    />
-  );
+  return <div data-slot="glass-card-content" className={cn("px-5", className)} {...props} />;
 }
 
 function GlassCardFooter({ className, ...props }: React.ComponentProps<"div">) {

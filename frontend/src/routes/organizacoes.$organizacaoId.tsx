@@ -5,6 +5,7 @@ import { Building2, MapPin } from "lucide-react";
 
 import { EmptyState } from "@/components/app/EmptyState";
 import { ProfileCatalog } from "@/components/app/ProfileCatalog";
+import { LinkifiedText } from "@/components/app/LinkifiedText";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchPublicOrganizationProfile } from "@/lib/data/perfis";
 import type { ApiError } from "@/lib/data/api";
@@ -28,9 +29,7 @@ export const Route = createFileRoute("/organizacoes/$organizacaoId")({
 
 function PublicOrganizationPage() {
   const { organizacaoId } = Route.useParams();
-  const [filters, setFilters] = useState<ProfileCatalogFilters>(
-    EMPTY_PROFILE_CATALOG_FILTERS,
-  );
+  const [filters, setFilters] = useState<ProfileCatalogFilters>(EMPTY_PROFILE_CATALOG_FILTERS);
   const query = useQuery({
     queryKey: ["public-organization", organizacaoId, filters],
     queryFn: () => fetchPublicOrganizationProfile(organizacaoId, filters),
@@ -112,8 +111,11 @@ function PublicOrganizationPage() {
               </span>
             </p>
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {profile.descricao ??
-                "Esta organização ainda não adicionou uma descrição pública."}
+              {profile.descricao ? (
+                <LinkifiedText text={profile.descricao} />
+              ) : (
+                "Esta organização ainda não adicionou uma descrição pública."
+              )}
             </p>
           </div>
         </header>

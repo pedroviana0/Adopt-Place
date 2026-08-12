@@ -1,120 +1,78 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
+import { Building2, MapPin, UsersRound } from "lucide-react";
 import { CampoLocalizacao } from "@/components/app/CampoLocalizacao";
+import { CadastroField, CadastroSection, CadastroShell, CadastroSubmit } from "@/components/app/CadastroVisual";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
 import { cadastroOrganizacaoSchema, type CadastroOrganizacaoInput } from "@/lib/schemas/cadastro";
 import { cadastrarOrganizacao } from "@/lib/data/usuarios";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cadastro/organizacao")({
-  head: () => ({
-    meta: [
-      { title: "Cadastro de organização — AdoptPlace" },
-      { name: "description", content: "Cadastre sua organização protetora." },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Cadastro de organização — AdoptPlace" }, { name: "description", content: "Cadastre sua organização protetora." }] }),
   component: Page,
 });
 
 function Page() {
   const navigate = useNavigate();
   const f = useForm<CadastroOrganizacaoInput>({ resolver: zodResolver(cadastroOrganizacaoSchema) });
-  const onSubmit = async (d: CadastroOrganizacaoInput) => {
+  const onSubmit = async (data: CadastroOrganizacaoInput) => {
     try {
-      await cadastrarOrganizacao(d);
+      await cadastrarOrganizacao(data);
       toast.success("Organização cadastrada!");
       navigate({ to: "/dashboard" });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro no cadastro");
     }
   };
+
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
-      <Link to="/cadastro" className="text-xs text-muted-foreground hover:underline">
-        ← Outros tipos de conta
-      </Link>
-      <h1 className="mt-2 font-serif text-3xl font-semibold">Cadastro de organização</h1>
-      <form onSubmit={f.handleSubmit(onSubmit)} className="mt-6 space-y-4">
-        <div>
-          <Label>Razão social</Label>
-          <Input {...f.register("razaoSocial")} />
-          {f.formState.errors.razaoSocial && (
-            <p className="mt-1 text-xs text-destructive">
-              {f.formState.errors.razaoSocial.message}
-            </p>
-          )}
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>E-mail</Label>
-            <Input type="email" {...f.register("email")} />
-            {f.formState.errors.email && (
-              <p className="mt-1 text-xs text-destructive">{f.formState.errors.email.message}</p>
-            )}
+    <CadastroShell icon={Building2} eyebrow="Proteção animal em rede" title="Cadastro de organização" description="Apresente sua organização e tenha um espaço completo para divulgar animais e acompanhar adoções.">
+      <form noValidate onSubmit={f.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+        <CadastroSection icon={Building2} title="Dados da organização" description="Identificação institucional e credenciais de acesso.">
+          <CadastroField label="Razão social" htmlFor="razaoSocial" error={f.formState.errors.razaoSocial?.message}>
+            <Input id="razaoSocial" autoComplete="organization" aria-invalid={Boolean(f.formState.errors.razaoSocial)} {...f.register("razaoSocial")} />
+          </CadastroField>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CadastroField label="E-mail" htmlFor="email" error={f.formState.errors.email?.message}>
+              <Input id="email" type="email" autoComplete="email" aria-invalid={Boolean(f.formState.errors.email)} {...f.register("email")} />
+            </CadastroField>
+            <CadastroField label="Senha" htmlFor="senha" error={f.formState.errors.senha?.message} hint="Use uma senha segura para proteger a equipe.">
+              <PasswordInput id="senha" autoComplete="new-password" aria-invalid={Boolean(f.formState.errors.senha)} {...f.register("senha")} />
+            </CadastroField>
           </div>
-          <div>
-            <Label>Senha</Label>
-            <PasswordInput autoComplete="new-password" {...f.register("senha")} />
-            {f.formState.errors.senha && (
-              <p className="mt-1 text-xs text-destructive">{f.formState.errors.senha.message}</p>
-            )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CadastroField label="CNPJ (14 dígitos)" htmlFor="cnpj" error={f.formState.errors.cnpj?.message}>
+              <Input id="cnpj" inputMode="numeric" aria-invalid={Boolean(f.formState.errors.cnpj)} {...f.register("cnpj")} />
+            </CadastroField>
+            <CadastroField label="Telefone" htmlFor="telefone" error={f.formState.errors.telefone?.message}>
+              <Input id="telefone" type="tel" autoComplete="tel" aria-invalid={Boolean(f.formState.errors.telefone)} {...f.register("telefone")} />
+            </CadastroField>
           </div>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>CNPJ (14 dígitos)</Label>
-            <Input {...f.register("cnpj")} />
-            {f.formState.errors.cnpj && (
-              <p className="mt-1 text-xs text-destructive">{f.formState.errors.cnpj.message}</p>
-            )}
+        </CadastroSection>
+
+        <CadastroSection icon={UsersRound} title="Responsável e capacidade" description="Quem responde pela organização e quantos animais ela consegue acolher.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CadastroField label="Nome do responsável" htmlFor="responsavelNome" error={f.formState.errors.responsavelNome?.message}>
+              <Input id="responsavelNome" autoComplete="name" aria-invalid={Boolean(f.formState.errors.responsavelNome)} {...f.register("responsavelNome")} />
+            </CadastroField>
+            <CadastroField label="Capacidade máxima" htmlFor="capacidadeMaxima" error={f.formState.errors.capacidadeMaxima?.message} hint="Quantidade máxima de animais sob cuidado simultâneo.">
+              <Input id="capacidadeMaxima" type="number" min={1} aria-invalid={Boolean(f.formState.errors.capacidadeMaxima)} {...f.register("capacidadeMaxima", { valueAsNumber: true })} />
+            </CadastroField>
           </div>
-          <div>
-            <Label>Telefone</Label>
-            <Input {...f.register("telefone")} />
-            {f.formState.errors.telefone && (
-              <p className="mt-1 text-xs text-destructive">{f.formState.errors.telefone.message}</p>
-            )}
-          </div>
-        </div>
-        <div>
-          <Label>Nome do responsável</Label>
-          <Input {...f.register("responsavelNome")} />
-          {f.formState.errors.responsavelNome && (
-            <p className="mt-1 text-xs text-destructive">
-              {f.formState.errors.responsavelNome.message}
-            </p>
-          )}
-        </div>
-        <div>
-          <Label>Endereço</Label>
-          <Input {...f.register("endereco")} />
-          {f.formState.errors.endereco && (
-            <p className="mt-1 text-xs text-destructive">{f.formState.errors.endereco.message}</p>
-          )}
-        </div>
-        <CampoLocalizacao
-          valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }}
-          onChange={(v) => {
-            f.setValue("cep", v.cep, { shouldValidate: v.cep.length === 8 });
-            f.setValue("municipioId", v.municipioId);
-          }}
-          onLogradouro={(logradouro) => {
-            if (!f.getValues("endereco")) f.setValue("endereco", logradouro);
-          }}
-          erro={f.formState.errors.cep?.message}
-        />
-        <div>
-          <Label>Capacidade máx.</Label>
-          <Input type="number" {...f.register("capacidadeMaxima", { valueAsNumber: true })} />
-        </div>
-        <Button type="submit" size="lg" className="w-full">
-          Criar conta
-        </Button>
+        </CadastroSection>
+
+        <CadastroSection icon={MapPin} title="Localização" description="Endereço público utilizado para aproximar adotantes da organização.">
+          <CampoLocalizacao valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }} onChange={(value) => { f.setValue("cep", value.cep, { shouldValidate: value.cep.length === 8 }); f.setValue("municipioId", value.municipioId); }} onLogradouro={(logradouro) => { if (!f.getValues("endereco")) f.setValue("endereco", logradouro); }} erro={f.formState.errors.cep?.message} />
+          <CadastroField label="Endereço" htmlFor="endereco" error={f.formState.errors.endereco?.message}>
+            <Input id="endereco" autoComplete="street-address" placeholder="Rua, número e complemento" aria-invalid={Boolean(f.formState.errors.endereco)} {...f.register("endereco")} />
+          </CadastroField>
+        </CadastroSection>
+
+        <CadastroSubmit pending={f.formState.isSubmitting} />
       </form>
-    </div>
+    </CadastroShell>
   );
 }

@@ -128,7 +128,9 @@ function ProfileImageEditor({ perfil }: { perfil: PerfilDTO }) {
     <section className="mt-6 flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center">
       <Avatar className="h-20 w-20 border">
         {perfil.fotoUrl ? <AvatarImage src={perfil.fotoUrl} alt={`Imagem de ${label}`} /> : null}
-        <AvatarFallback className="text-xl font-semibold">{label.slice(0, 1).toUpperCase()}</AvatarFallback>
+        <AvatarFallback className="text-xl font-semibold">
+          {label.slice(0, 1).toUpperCase()}
+        </AvatarFallback>
       </Avatar>
       <div className="space-y-2">
         <h2 className="font-medium">Imagem pública do perfil</h2>
@@ -242,7 +244,9 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
             error={form.formState.errors.descricao?.message}
           >
             <Textarea id="descricao" rows={5} maxLength={500} {...form.register("descricao")} />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Cole links completos com <span className="font-medium text-foreground">https://</span>{" "}
+              para exibir Linktree, Instagram ou site como link clicável no perfil.{" "}
               {form.watch("descricao").length}/500 caracteres
             </p>
           </Field>
