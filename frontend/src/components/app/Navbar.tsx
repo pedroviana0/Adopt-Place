@@ -204,7 +204,7 @@ export function Navbar() {
           ) : (
             <>
               <NotificationBell />
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="max-w-72 gap-2 rounded-full px-2">
                     <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-sm">
