@@ -21,6 +21,7 @@ import { Route as AuthenticatedMeuPerfilRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMeusFavoritosRouteImport } from './routes/_authenticated.meus-favoritos'
 import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated.minhas-solicitacoes'
 import { Route as AuthenticatedTriagemRouteImport } from './routes/_authenticated.triagem'
+import { Route as AdotantesAdotanteIdRouteImport } from './routes/adotantes.$adotanteId'
 import { Route as AnimaisAnimalIdRouteImport } from './routes/animais.$animalId'
 import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
 import { Route as CadastroAcolhedorRouteImport } from './routes/cadastro.acolhedor'
@@ -108,6 +109,11 @@ const AuthenticatedTriagemRoute = AuthenticatedTriagemRouteImport.update({
   id: '/triagem',
   path: '/triagem',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AdotantesAdotanteIdRoute = AdotantesAdotanteIdRouteImport.update({
+  id: '/adotantes/$adotanteId',
+  path: '/adotantes/$adotanteId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AnimaisAnimalIdRoute = AnimaisAnimalIdRouteImport.update({
   id: '/animais/$animalId',
@@ -273,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/triagem': typeof AuthenticatedTriagemRoute
+  '/adotantes/$adotanteId': typeof AdotantesAdotanteIdRoute
   '/animais/$animalId': typeof AnimaisAnimalIdRoute
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
   '/cadastro/adotante': typeof CadastroAdotanteRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/triagem': typeof AuthenticatedTriagemRoute
+  '/adotantes/$adotanteId': typeof AdotantesAdotanteIdRoute
   '/animais/$animalId': typeof AnimaisAnimalIdRoute
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
   '/cadastro/adotante': typeof CadastroAdotanteRoute
@@ -345,6 +353,7 @@ export interface FileRoutesById {
   '/_authenticated/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/_authenticated/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/_authenticated/triagem': typeof AuthenticatedTriagemRoute
+  '/adotantes/$adotanteId': typeof AdotantesAdotanteIdRoute
   '/animais/$animalId': typeof AnimaisAnimalIdRoute
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
   '/cadastro/adotante': typeof CadastroAdotanteRoute
@@ -386,6 +395,7 @@ export interface FileRouteTypes {
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
     | '/triagem'
+    | '/adotantes/$adotanteId'
     | '/animais/$animalId'
     | '/cadastro/acolhedor'
     | '/cadastro/adotante'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
     | '/triagem'
+    | '/adotantes/$adotanteId'
     | '/animais/$animalId'
     | '/cadastro/acolhedor'
     | '/cadastro/adotante'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meus-favoritos'
     | '/_authenticated/minhas-solicitacoes'
     | '/_authenticated/triagem'
+    | '/adotantes/$adotanteId'
     | '/animais/$animalId'
     | '/cadastro/acolhedor'
     | '/cadastro/adotante'
@@ -491,6 +503,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRouteWithChildren
   LoginRoute: typeof LoginRoute
   VitrineRoute: typeof VitrineRoute
+  AdotantesAdotanteIdRoute: typeof AdotantesAdotanteIdRoute
   AnimaisAnimalIdRoute: typeof AnimaisAnimalIdRoute
   OrganizacoesOrganizacaoIdRoute: typeof OrganizacoesOrganizacaoIdRoute
 }
@@ -580,6 +593,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/triagem'
       preLoaderRoute: typeof AuthenticatedTriagemRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/adotantes/$adotanteId': {
+      id: '/adotantes/$adotanteId'
+      path: '/adotantes/$adotanteId'
+      fullPath: '/adotantes/$adotanteId'
+      preLoaderRoute: typeof AdotantesAdotanteIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/animais/$animalId': {
       id: '/animais/$animalId'
@@ -954,6 +974,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRouteWithChildren,
   LoginRoute: LoginRoute,
   VitrineRoute: VitrineRoute,
+  AdotantesAdotanteIdRoute: AdotantesAdotanteIdRoute,
   AnimaisAnimalIdRoute: AnimaisAnimalIdRoute,
   OrganizacoesOrganizacaoIdRoute: OrganizacoesOrganizacaoIdRoute,
 }

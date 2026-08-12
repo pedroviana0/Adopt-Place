@@ -18,6 +18,23 @@ const optionalCuid = z.preprocess(
 
 export const publicProfileIdSchema = z.string().cuid();
 
+export type PublicAdopterProfileDTO = {
+  access: "PUBLIC";
+  id: string;
+  nome: string;
+  municipio: string;
+  uf: string;
+  triagemConcluida: boolean;
+};
+
+export type RestrictedAdopterProfileDTO = Omit<PublicAdopterProfileDTO, "access"> & {
+  access: "RESTRICTED";
+  enderecoAnalise: { endereco: string; cep: string | null; cidade: string; estado: string };
+  triagem: Record<string, string | number | boolean | null>;
+};
+
+export type AdopterProfileDTO = PublicAdopterProfileDTO | RestrictedAdopterProfileDTO;
+
 export const publicProfileCatalogFilterSchema = z
   .object({
     especieId: optionalCuid,

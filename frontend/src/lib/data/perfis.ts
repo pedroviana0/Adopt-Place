@@ -52,3 +52,28 @@ export async function fetchPublicOrganizationProfile(
     { method: "GET" },
   );
 }
+
+export interface PublicAdopterProfile {
+  access: "PUBLIC";
+  id: string;
+  nome: string;
+  municipio: string;
+  uf: string;
+  triagemConcluida: boolean;
+}
+
+export interface RestrictedAdopterProfile extends Omit<PublicAdopterProfile, "access"> {
+  access: "RESTRICTED";
+  enderecoAnalise: { endereco: string; cep: string | null; cidade: string; estado: string };
+  triagem: Record<string, string | number | boolean | null>;
+}
+
+export type AdopterProfile = PublicAdopterProfile | RestrictedAdopterProfile;
+
+export async function fetchAdopterProfile(id: string): Promise<AdopterProfile> {
+  const data = await apiRequest<{ profile: AdopterProfile }>(
+    `/api/perfis/adotante/${encodeURIComponent(id)}`,
+    { method: "GET" },
+  );
+  return data.profile;
+}

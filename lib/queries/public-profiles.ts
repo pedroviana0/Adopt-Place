@@ -1,9 +1,11 @@
-import { Prisma, StatusAnimal } from "@prisma/client";
+import { Prisma, StatusAnimal, TipoPerfil } from "@prisma/client";
+import type { Session } from "next-auth";
 
 import { SHOWCASE_PAGE_SIZE } from "@/lib/queries/animal-showcase";
 import { prisma } from "@/lib/prisma";
 import type { PublicProfileCatalogFilters } from "@/lib/schemas/public-profiles";
 import { getAnimalTags } from "@/lib/tags";
+import type { AdopterProfileDTO } from "@/lib/schemas/public-profiles";
 
 const publicOrganizationSelect = {
   id: true,
@@ -115,6 +117,136 @@ export async function getPublicOrganizationProfile(
         total,
         totalPages: Math.max(1, Math.ceil(total / SHOWCASE_PAGE_SIZE)),
       },
+    },
+  };
+}
+
+const adopterPublicSelect = {
+  id: true,
+  nomeCompleto: true,
+  cidade: true,
+  estado: true,
+  triagemConcluida: true,
+  usuario: { select: { ativo: true } },
+} satisfies Prisma.AdotanteSelect;
+
+const adopterRestrictedSelect = {
+  ...adopterPublicSelect,
+  endereco: true,
+  cep: true,
+  motivoAdocao: true,
+  tipoAnimalDesejado: true,
+  podeArcarCustosVet: true,
+  adocaoParaPresente: true,
+  adocaoParaPresenteDetalhe: true,
+  tipoMoradia: true,
+  moradiaPropria: true,
+  numAdultosCasa: true,
+  temCriancas: true,
+  criancasFaixaEtaria: true,
+  todosConordamAdocao: true,
+  condominioPermiteAnimal: true,
+  janelasTeladas: true,
+  acessoRua: true,
+  murosSeguros: true,
+  horasSozinho: true,
+  responsavelViagem: true,
+  planoEmGravidez: true,
+  alergicosNaCasa: true,
+  alergicosNaCasaDetalhe: true,
+  planoMudanca: true,
+  historicoDevolucao: true,
+  historicoPercaDescuido: true,
+  cienteLongevidade: true,
+  permiteVisitaProtetor: true,
+  ciendeNaoRepassar: true,
+  teveAnimaisAntes: true,
+  animaisAnterioresDescricao: true,
+  temOutrosAnimais: true,
+  outrosAnimaisDescricao: true,
+} satisfies Prisma.AdotanteSelect;
+
+async function canReadRestrictedAdopter(targetId: string, session: Session | null) {
+  if (!session?.user?.id) return false;
+  const viewer = await prisma.usuario.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      ativo: true,
+      tipoPerfil: true,
+      adotante: { select: { id: true } },
+      organizacao: { select: { id: true } },
+      acolhedor: { select: { id: true } },
+    },
+  });
+  if (!viewer?.ativo) return false;
+  if (viewer.tipoPerfil === TipoPerfil.ADMIN) return true;
+  if (viewer.tipoPerfil === TipoPerfil.ADOTANTE) return viewer.adotante?.id === targetId;
+
+  const ownership =
+    viewer.tipoPerfil === TipoPerfil.ORGANIZACAO && viewer.organizacao
+      ? { organizacaoId: viewer.organizacao.id }
+      : viewer.tipoPerfil === TipoPerfil.ACOLHEDOR && viewer.acolhedor
+        ? { acolhedorId: viewer.acolhedor.id }
+        : null;
+  if (!ownership) return false;
+
+  return Boolean(
+    await prisma.solicitacaoAdocao.findFirst({
+      where: { adotanteId: targetId, animal: ownership },
+      select: { id: true },
+    }),
+  );
+}
+
+export async function getAdopterProfile(
+  targetId: string,
+  session: Session | null,
+): Promise<AdopterProfileDTO | null> {
+  const restricted = await canReadRestrictedAdopter(targetId, session);
+  if (!restricted) {
+    const adopter = await prisma.adotante.findUnique({
+      where: { id: targetId },
+      select: adopterPublicSelect,
+    });
+    if (!adopter?.usuario.ativo) return null;
+    return {
+      access: "PUBLIC",
+      id: adopter.id,
+      nome: adopter.nomeCompleto,
+      municipio: adopter.cidade,
+      uf: adopter.estado,
+      triagemConcluida: adopter.triagemConcluida,
+    };
+  }
+
+  const adopter = await prisma.adotante.findUnique({
+    where: { id: targetId },
+    select: adopterRestrictedSelect,
+  });
+  if (!adopter?.usuario.ativo) return null;
+
+  const base = {
+    id: adopter.id,
+    nome: adopter.nomeCompleto,
+    municipio: adopter.cidade,
+    uf: adopter.estado,
+    triagemConcluida: adopter.triagemConcluida,
+  };
+
+  const {
+    id: _id, nomeCompleto: _nome, cidade, estado, endereco, cep,
+    triagemConcluida: _concluida, usuario: _usuario,
+    todosConordamAdocao, ciendeNaoRepassar, ...triagem
+  } = adopter;
+  return {
+    access: "RESTRICTED",
+    ...base,
+    enderecoAnalise: { endereco, cep, cidade, estado },
+    triagem: {
+      ...triagem,
+      todosConcordamAdocao: todosConordamAdocao,
+      cienteNaoRepassar: ciendeNaoRepassar,
     },
   };
 }

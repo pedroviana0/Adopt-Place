@@ -140,18 +140,18 @@ atualiza somente a própria conta; arquivo/tipo/tamanho/papel inválido é recus
 pública; próprio adotante, ADMIN e responsável com solicitação em qualquer status recebem triagem e
 endereço, nunca telefone.
 
-- [ ] T045 [US5] [TEST-FIRST] Criar suíte vermelha que prova que visitante, outro adotante, responsável sem vínculo e responsável de outra conta não executam query sensível nem recebem triagem/endereço em `__tests__/api/adopter-profile-access.test.ts` (FR-016, FR-017, FR-020, CR-007).
-- [ ] T046 [US5] [TEST-FIRST] Na mesma suíte `__tests__/api/adopter-profile-access.test.ts`, cobrir autorização do próprio adotante, ADMIN e responsável com solicitações `EM_ANALISE`, `APROVADA`, `RECUSADA` e `CONCLUIDA`, fazendo falhar se houver filtro de status (FR-016, FR-016a, FR-018, CR-007).
-- [ ] T047 [US5] [TEST-FIRST] Adicionar varredura recursiva vermelha das duas projeções para proibir CPF/CNPJ/e-mail/telefone/coordenadas e endereço fora de `enderecoAnalise` restrito em `__tests__/api/adopter-profile-access.test.ts` (FR-020, CR-007).
-- [ ] T048 [US5] Definir CUID e tipos discriminados `PUBLIC`/`RESTRICTED` no schema/DTO em `lib/schemas/public-profiles.ts`, sem aceitar papel ou vínculo do navegador (FR-004, FR-016, CR-005).
-- [ ] T049 [US5] Implementar resolução de sessão ativa e vínculo histórico antes de qualquer seleção sensível em `lib/queries/public-profiles.ts`, usando `SolicitacaoAdocao -> Animal -> responsável` sem predicado de status (FR-016–FR-018, CR-003).
-- [ ] T050 [US5] Implementar queries separadas pública/restrita em `lib/queries/public-profiles.ts`; excluir telefone de ambas e selecionar endereço/triagem somente após autorização (FR-016a, FR-017, FR-020).
-- [ ] T051 [US5] Implementar `GET /api/perfis/adotante/[id]` em `app/api/perfis/adotante/[id]/route.ts` com sessão opcional, 400 seguro e 404 indistinguível para ausente/desativado (FR-004, FR-005, FR-016).
-- [ ] T052 [US5] Adicionar cliente e tipos discriminados do adotante em `frontend/src/lib/data/perfis.ts` (FR-004, FR-016, CR-004).
-- [ ] T053 [US5] Criar rota `frontend/src/routes/adotantes.$adotanteId.tsx` com `page-canvas`, tokens semânticos e seções transparentes, renderizando projeção pública/restrita, reutilizando `frontend/src/components/app/TriagemReadOnly.tsx` e informando quem pode ver os dados (FR-004, FR-019, NFR-001; decisão herdada da 004).
-- [ ] T054 [US5] Ligar nomes de adotante existentes no fluxo de análise à nova rota em `frontend/src/routes/_authenticated.dashboard.solicitacoes.$solicitacaoId.tsx`, sem transportar autorização no link (US5, CR-003).
-- [ ] T055 [US5] Executar o portão completo da Onda 4; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde das proteções T045–T047.
-- [ ] T056 [US5] Criar commit verificável da Onda 4 contendo projeções, rota API/UI, testes de todos os status e exclusão explícita de telefone.
+- [X] T045 [US5] [TEST-FIRST] Criar suíte vermelha que prova que visitante, outro adotante, responsável sem vínculo e responsável de outra conta não executam query sensível nem recebem triagem/endereço em `__tests__/api/adopter-profile-access.test.ts` (FR-016, FR-017, FR-020, CR-007).
+- [X] T046 [US5] [TEST-FIRST] Na mesma suíte `__tests__/api/adopter-profile-access.test.ts`, cobrir autorização do próprio adotante, ADMIN e responsável com solicitações `EM_ANALISE`, `APROVADA`, `RECUSADA` e `CONCLUIDA`, fazendo falhar se houver filtro de status (FR-016, FR-016a, FR-018, CR-007).
+- [X] T047 [US5] [TEST-FIRST] Adicionar varredura recursiva vermelha das duas projeções para proibir CPF/CNPJ/e-mail/telefone/coordenadas e endereço fora de `enderecoAnalise` restrito em `__tests__/api/adopter-profile-access.test.ts` (FR-020, CR-007).
+- [X] T048 [US5] Definir CUID e tipos discriminados `PUBLIC`/`RESTRICTED` no schema/DTO em `lib/schemas/public-profiles.ts`, sem aceitar papel ou vínculo do navegador (FR-004, FR-016, CR-005).
+- [X] T049 [US5] Implementar resolução de sessão ativa e vínculo histórico antes de qualquer seleção sensível em `lib/queries/public-profiles.ts`, usando `SolicitacaoAdocao -> Animal -> responsável` sem predicado de status (FR-016–FR-018, CR-003).
+- [X] T050 [US5] Implementar queries separadas pública/restrita em `lib/queries/public-profiles.ts`; excluir telefone de ambas e selecionar endereço/triagem somente após autorização (FR-016a, FR-017, FR-020).
+- [X] T051 [US5] Implementar `GET /api/perfis/adotante/[id]` em `app/api/perfis/adotante/[id]/route.ts` com sessão opcional, 400 seguro e 404 indistinguível para ausente/desativado (FR-004, FR-005, FR-016).
+- [X] T052 [US5] Adicionar cliente e tipos discriminados do adotante em `frontend/src/lib/data/perfis.ts` (FR-004, FR-016, CR-004).
+- [X] T053 [US5] Criar rota `frontend/src/routes/adotantes.$adotanteId.tsx` com `page-canvas`, tokens semânticos e seções transparentes, renderizando projeção pública/restrita, reutilizando `frontend/src/components/app/TriagemReadOnly.tsx` e informando quem pode ver os dados (FR-004, FR-019, NFR-001; decisão herdada da 004).
+- [X] T054 [US5] Ligar nomes de adotante existentes no fluxo de análise à nova rota em `frontend/src/routes/_authenticated.dashboard.solicitacoes.$solicitacaoId.tsx`, sem transportar autorização no link (US5, CR-003).
+- [X] T055 [US5] Executar o portão completo da Onda 4; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde das proteções T045–T047.
+- [X] T056 [US5] Criar commit verificável da Onda 4 contendo projeções, rota API/UI, testes de todos os status e exclusão explícita de telefone.
 - [ ] T057 [US5] Após existir o commit da Onda 4, registrar hash, matriz de autorização, resultado vermelho→verde e portões na linha da Onda 4 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: o núcleo de CR-007 está verde e a API não seleciona dado sensível sem autorização.

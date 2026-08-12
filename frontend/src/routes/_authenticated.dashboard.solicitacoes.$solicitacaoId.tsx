@@ -102,7 +102,14 @@ function Page() {
       <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4">
         <div className="min-w-0 flex-1">
           <p className="font-serif text-xl font-semibold">
-            {solic.adotante.nomeCompleto} → {solic.animal.nome}
+            <Link
+              to="/adotantes/$adotanteId"
+              params={{ adotanteId: solic.adotante.id }}
+              className="hover:underline"
+            >
+              {solic.adotante.nomeCompleto}
+            </Link>{" "}
+            → {solic.animal.nome}
           </p>
           <p className="text-xs text-muted-foreground">
             Enviada em {new Date(solic.dataSolicitacao).toLocaleDateString("pt-BR")}
