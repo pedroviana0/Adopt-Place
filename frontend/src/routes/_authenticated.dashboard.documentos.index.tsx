@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Trash2, FileText, ExternalLink } from "lucide-react";
+import { Trash2, FileText, ExternalLink, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -189,6 +188,12 @@ function UploadForm({
   const [tipo, setTipo] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const clearFile = () => {
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,7 +222,7 @@ function UploadForm({
       toast.success("Documento enviado");
       setAnimalId("");
       setTipo("");
-      setFile(null);
+      clearFile();
       (e.target as HTMLFormElement).reset();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
@@ -268,12 +273,54 @@ function UploadForm({
           <Label htmlFor="doc-file" className="mb-1 block text-xs">
             Arquivo
           </Label>
-          <Input
+          <input
+            ref={fileInputRef}
             id="doc-file"
             type="file"
             accept="image/*,application/pdf"
+            className="sr-only"
+            aria-describedby="doc-file-help doc-file-status"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
+          <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-input bg-background p-3 sm:flex-row sm:items-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0"
+              disabled={busy}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+              {file ? "Trocar arquivo" : "Selecionar arquivo"}
+            </Button>
+            <div id="doc-file-status" className="min-w-0 flex-1" aria-live="polite">
+              {file ? (
+                <div className="flex min-w-0 items-center gap-2">
+                  <FileText className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate text-sm" title={file.name}>
+                    {file.name}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{fmtSize(file.size)}</span>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 shrink-0"
+                    disabled={busy}
+                    onClick={clearFile}
+                    aria-label={`Remover arquivo ${file.name}`}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              ) : (
+                <span className="text-sm text-muted-foreground">Nenhum arquivo selecionado</span>
+              )}
+            </div>
+          </div>
+          <p id="doc-file-help" className="mt-1.5 text-xs text-muted-foreground">
+            Selecione uma imagem ou um arquivo PDF de até 10 MB.
+          </p>
         </div>
       </div>
       <div className="mt-3">

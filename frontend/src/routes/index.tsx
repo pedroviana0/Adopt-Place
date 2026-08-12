@@ -6,7 +6,7 @@ import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
 import { AsyncState } from "@/components/app/AsyncState";
 import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchVitrine, fetchPublicMetrics } from "@/lib/data/animais";
 import { fetchCatalogos } from "@/lib/data/catalogos";
 
@@ -46,7 +46,36 @@ function Home() {
     queryKey: ["featured-animal"],
     queryFn: () => fetchVitrine({ ...emptyFilters(), page: 1 }),
   });
-  const featured = featuredQuery.data?.animals?.[0] ?? null;
+  const [featured, setFeatured] = useState<
+    NonNullable<typeof featuredQuery.data>["animals"][number] | null
+  >(null);
+
+  useEffect(() => {
+    const candidates = [...(featuredQuery.data?.animals ?? [])]
+      .filter((animal) => Boolean(animal.fotoPrincipal))
+      .sort(() => Math.random() - 0.5);
+    let cancelled = false;
+
+    const selectFirstLoadablePhoto = (index: number) => {
+      if (cancelled || index >= candidates.length) {
+        if (!cancelled) setFeatured(null);
+        return;
+      }
+      const candidate = candidates[index];
+      const image = new Image();
+      image.onload = () => {
+        if (!cancelled) setFeatured(candidate);
+      };
+      image.onerror = () => selectFirstLoadablePhoto(index + 1);
+      image.src = candidate.fotoPrincipal!;
+    };
+
+    setFeatured(null);
+    selectFirstLoadablePhoto(0);
+    return () => {
+      cancelled = true;
+    };
+  }, [featuredQuery.data]);
 
   const paginados = vitrine.data?.animals ?? [];
   const pagination = vitrine.data?.pagination;
