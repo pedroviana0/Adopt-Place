@@ -103,7 +103,7 @@ a organização/acolhedor correto em um acionamento, sem ampliar dados privados.
 - [X] T030 [US2] Alterar links do responsável em `frontend/src/components/app/PublicAnimalCard.tsx`, `frontend/src/components/app/AnimalSwipeCard.tsx` e `frontend/src/routes/animais.$animalId.tsx` para `/organizacoes/$organizacaoId` ou `/acolhedores/$acolhedorId` conforme tipo (US2, FR-001).
 - [X] T031 [US2] Executar o portão completo da Onda 2; confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado e que os quatro contratos passam nas suítes de T023–T025.
 - [X] T032 [US2] Criar commit verificável da Onda 2 contendo os quatro DTOs ampliados, tipos frontend, links e testes em `lib/`, `app/api/`, `frontend/src/` e `__tests__/`.
-- [ ] T033 [US2] Após existir o commit da Onda 2, registrar hash, quatro contratos e portões na linha da Onda 2 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T033 [US2] Após existir o commit da Onda 2, registrar hash, quatro contratos e portões na linha da Onda 2 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US2 é demonstrável a partir de cada anúncio sem depender da busca.
 

@@ -21,7 +21,7 @@ de solicitação.
 | | História | Prioridade | Onda | Estado |
 |---|---|---|---|---|
 | US1 | Conhecer uma organização e seus animais | P1 | 1 | ☑ |
-| US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☐ |
+| US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☑ |
 | US3 | Encontrar organizações pelo nome | P2 | 5 | ☐ |
 | US4 | Manter o próprio perfil | P1 | 3 | ☐ |
 | US5 | Avaliar um adotante com a triagem | P1 | 4 | ☐ |
@@ -35,7 +35,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 |---|---|---|---|
 | 0 | Fundação de dados: `descricao`, `fotoUrl`, `razaoSocialNormalizada` + migration | `6f4ebf6` | ☑ |
 | 1 | Perfil público de organização + catálogo (US1) | `7031605` | ☑ |
-| 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | — | ☐ |
+| 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | `3b8b935` | ☑ |
 | 3 | Manter o próprio perfil: descrição + imagem (US4) | — | ☐ |
 | 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | — | ☐ |
 | 5 | Busca por nome sobre coluna normalizada (US3) | — | ☐ |
@@ -126,3 +126,21 @@ em 375, 1024 e 1440 px, sem overflow horizontal, incluindo filtro/reversão, ra�
 condicional, catálogo próprio e estado de perfil inexistente. `routeTree.gen.ts` foi
 versionado porque a onda criou rota; `legacy/` permaneceu inalterado e seed não foi
 executado.
+
+### Onda 2 — navegação pelo responsável nos anúncios (commit `3b8b935`)
+
+- Vitrine, detalhe, favoritos e Feels agora incluem `responsavelId` e
+  `responsavelTipo`, usando o ID opaco da organização ou acolhedor e nunca `Usuario.id`.
+- Os selects Prisma permanecem estreitos; o Feels continua sem nome completo de
+  acolhedor, endereço, contatos ou coordenadas na resposta.
+- Cards, detalhe e cartão do Feels apontam para `/organizacoes/[id]` ou
+  `/acolhedores/[id]` conforme o tipo do responsável.
+- A regra herdada do Feels foi preservada: favoritos e animais já solicitados são
+  excluídos somente para o adotante da sessão, sem ocultação global.
+
+**Validação factual:** os testes contract-first falharam inicialmente pela ausência
+dos novos campos e depois passaram nos quatro fluxos. Backend `npx tsc --noEmit` e
+`npm test` (308 testes), frontend `npx tsc --noEmit` e `npm run build` passaram. A
+interface confirmou o perfil público da organização, catálogo próprio e links nos
+cards/detalhe. `routeTree.gen.ts` permaneceu inalterado porque a onda não criou rota;
+`legacy/` permaneceu inalterado e seed não foi executado.
