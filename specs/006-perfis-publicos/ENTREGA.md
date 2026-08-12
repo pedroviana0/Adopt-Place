@@ -22,7 +22,7 @@ de solicitação.
 |---|---|---|---|---|
 | US1 | Conhecer uma organização e seus animais | P1 | 1 | ☑ |
 | US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☑ |
-| US3 | Encontrar organizações pelo nome | P2 | 5 | ☐ |
+| US3 | Encontrar organizações pelo nome | P2 | 5 | ☑ |
 | US4 | Manter o próprio perfil | P1 | 3 | ☑ |
 | US5 | Avaliar um adotante com a triagem | P1 | 4 | ☑ |
 | US6 | Perfil de acolhedor independente | P3 | 6 | ☐ |
@@ -38,7 +38,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | `3b8b935` | ☑ |
 | 3 | Manter o próprio perfil: descrição + imagem (US4) | `aa6e44f` | ☑ |
 | 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | `0a1b7dd` | ☑ |
-| 5 | Busca por nome sobre coluna normalizada (US3) | — | ☐ |
+| 5 | Busca por nome sobre coluna normalizada (US3) | `f0e36b3` | ☑ |
 | 6 | Perfil do acolhedor (US6) | — | ☐ |
 | 7 | Dados de teste com acento + homologação na tela | — | ☐ |
 
@@ -185,3 +185,21 @@ status. Backend `npx tsc --noEmit` e `npm test` (326 testes), frontend `npx tsc 
 e `npm run build` passaram com servidores encerrados. A interface confirmou projeções
 pública e restrita sem telefone. `routeTree.gen.ts` foi versionado exclusivamente pela
 nova rota; `legacy/` permaneceu inalterado e seed não foi executado.
+
+### Onda 5 — busca por nome (commit `f0e36b3`)
+
+- `GET /api/busca/organizacoes` valida e normaliza o termo com a função compartilhada
+  `normalizarNomeMunicipio()` antes de consultar exclusivamente organizações ativas.
+- A query usa `razaoSocialNormalizada`, ordena por razão social, limita a 10 no Prisma e
+  seleciona somente ID, nome e município/UF; pessoas físicas e dados privados não entram
+  na consulta nem na serialização.
+- A rota `/busca` oferece validação acessível, resultados navegáveis, estado vazio e
+  entrada pública na navbar, sem alterar destinos condicionados por papel.
+
+**Validação factual:** as suítes começaram vermelhas por função e endpoint ausentes e
+terminaram com 9 testes focados. Backend `npx tsc --noEmit` e `npm test` (335 testes),
+frontend `npx tsc --noEmit` e `npm run build` passaram com servidores encerrados. A
+interface confirmou caixa/espaços, estado vazio e navegação ao perfil. O teste integrado
+com nome acentuado permanece no roteiro da Onda 7; nenhum seed foi executado.
+`routeTree.gen.ts` foi versionado exclusivamente por `/busca`; `legacy/` permaneceu
+inalterado.

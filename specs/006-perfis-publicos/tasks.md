@@ -176,7 +176,7 @@ curta não consulta a base; no máximo 10 resultados; nenhuma pessoa física/dad
 - [X] T066 [US3] Executar o portão completo da Onda 5; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde de FR-013/FR-020 em T058/T059.
 - [X] T067 [US3] Criar commit verificável da Onda 5 contendo query/endpoint, busca frontend/navbar e testes de normalização/privacidade.
 - [X] T068 [US3] Homologar busca com dados existentes e registrar que o teste definitivo com nome acentuado depende da Onda 7 em `specs/006-perfis-publicos/quickstart.md` sem alterar o roteiro aprovado.
-- [ ] T069 [US3] Após existir o commit da Onda 5, registrar hash, evidência vermelho→verde, limites e portões na linha da Onda 5 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T069 [US3] Após existir o commit da Onda 5, registrar hash, evidência vermelho→verde, limites e portões na linha da Onda 5 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US3 funciona no banco e nunca se torna diretório de pessoas físicas.
 
