@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | iniciada em 2026-08-09 |
 | **Branch** | `006-perfis-publicos` (empilhada sobre `fix/guarda-de-porta-no-dev`, PR #121) |
-| **Status** | **EM ANDAMENTO** — Ondas 0–6 concluídas; Onda 7 aberta |
+| **Status** | **CONCLUÍDA** — Ondas 0–7 entregues e portão final verde |
 | **Spec** | [`spec.md`](spec.md) · **plano e mapa de fontes**: [`HANDOFF.md`](HANDOFF.md) |
 
 > **Este documento é preenchido enquanto a spec avança, não no fim.** Ao concluir cada onda,
@@ -40,7 +40,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | `0a1b7dd` | ☑ |
 | 5 | Busca por nome sobre coluna normalizada (US3) | `f0e36b3` | ☑ |
 | 6 | Perfil do acolhedor (US6) | `3d8486c` | ☑ |
-| 7 | Dados de teste com acento + homologação na tela | — | ☐ |
+| 7 | Dados de teste com acento + homologação na tela | `b1fc15b` | ☑ |
 
 ## 3. Decisões que não se reabrem
 
@@ -73,7 +73,8 @@ Feitas em 2026-08-09, contra o banco real. Detalhe em [`HANDOFF.md`](HANDOFF.md)
 
 ## 5. O que a spec previa e não foi entregue
 
-*(preencher ao fechar a branch)*
+Nenhum requisito funcional da spec ficou aberto. A validação visual detalhada e os comandos
+executados estão registrados em `evidencias/onda-7.md`.
 
 ## 6. Armadilhas descobertas nesta spec
 
@@ -221,3 +222,20 @@ frontend `npx tsc --noEmit` e `npm run build` passaram com servidores encerrados
 foi homologada sem autenticação nos estados sem e com descrição, imagem e animal; a fixture
 temporária foi integralmente restaurada. `routeTree.gen.ts` foi versionado exclusivamente pela
 nova rota; `legacy/` permaneceu inalterado e seed não foi executado.
+
+### Onda 7 — seed acentuado e homologação final (commit `b1fc15b`)
+
+- O seed agora contém `Organização de Teste AdoptPlace`, descrições públicas de organizações
+  e acolhedores e continua calculando `razaoSocialNormalizada` exclusivamente com
+  `normalizarNomeMunicipio()`.
+- O seed preserva quatro responsáveis distribuídos por municípios, 36 animais disponíveis e
+  72 fotos. Sua execução foi avisada previamente e invalidou as sessões existentes.
+- O teste integrado falhou com a razão social sem acento e passou após o seed, provando que
+  `ORGANIZACAO` encontra `Organização` pela coluna normalizada.
+- A evidência integrada de perfis, busca, links, privacidade, acessibilidade e regressão está em
+  [`evidencias/onda-7.md`](evidencias/onda-7.md).
+
+**Validação factual:** backend `npx tsc --noEmit` e `npm test` (341 testes), frontend
+`npx tsc --noEmit` e `npm run build` passaram com os servidores encerrados. A árvore de rotas
+permaneceu idêntica à Onda 6 e `legacy/` não foi alterado. Não há dívida funcional conhecida
+da feature 006; os avisos de tamanho de chunk do build são preexistentes e não bloqueantes.

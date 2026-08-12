@@ -222,8 +222,8 @@ fluxos passam nos viewports/zoom alvo e as features 003–005 não regridem.
 - [X] T088 Executar regressão das features 003–005, teclado/foco, contraste, ausência de rolagem horizontal e chamadas externas de geocodificação, registrando comandos/resultados em `specs/006-perfis-publicos/evidencias/onda-7.md` e seguindo `specs/006-perfis-publicos/quickstart.md`.
 - [X] T089 Executar o portão completo final da Onda 7; confirmar que `frontend/src/routeTree.gen.ts` contém somente rotas novas legítimas e que `npx tsc --noEmit`, `npm test`, frontend `npx tsc --noEmit` e `npm run build` estão verdes.
 - [X] T090 Criar commit verificável da Onda 7 contendo `prisma/seed.ts`, `__tests__/seed/organization-search-seed.test.ts` e `specs/006-perfis-publicos/evidencias/onda-7.md` após o portão final verde.
-- [ ] T091 Somente após existir o commit T090, atualizar a linha da Onda 7, seções de código real, dívidas e status final em `specs/006-perfis-publicos/ENTREGA.md`, citando o hash verificável.
-- [ ] T092 Criar commit documental subsequente contendo `specs/006-perfis-publicos/ENTREGA.md` atualizado após a Onda 7.
+- [X] T091 Somente após existir o commit T090, atualizar a linha da Onda 7, seções de código real, dívidas e status final em `specs/006-perfis-publicos/ENTREGA.md`, citando o hash verificável.
+- [X] T092 Criar commit documental subsequente contendo `specs/006-perfis-publicos/ENTREGA.md` atualizado após a Onda 7.
 
 **Checkpoint**: feature pronta para revisão/PR; deploy continua fora desta lista sem confirmação.
 
