@@ -26,6 +26,7 @@ import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
 import { Route as CadastroAcolhedorRouteImport } from './routes/cadastro.acolhedor'
 import { Route as CadastroAdotanteRouteImport } from './routes/cadastro.adotante'
 import { Route as CadastroOrganizacaoRouteImport } from './routes/cadastro.organizacao'
+import { Route as OrganizacoesOrganizacaoIdRouteImport } from './routes/organizacoes.$organizacaoId'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated.dashboard.index'
 import { Route as AuthenticatedDashboardAdotadosRouteImport } from './routes/_authenticated.dashboard.adotados'
 import { Route as AuthenticatedDashboardAnimaisRouteImport } from './routes/_authenticated.dashboard.animais'
@@ -133,6 +134,12 @@ const CadastroOrganizacaoRoute = CadastroOrganizacaoRouteImport.update({
   path: '/organizacao',
   getParentRoute: () => CadastroRoute,
 } as any)
+const OrganizacoesOrganizacaoIdRoute =
+  OrganizacoesOrganizacaoIdRouteImport.update({
+    id: '/organizacoes/$organizacaoId',
+    path: '/organizacoes/$organizacaoId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/',
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
   '/cadastro/adotante': typeof CadastroAdotanteRoute
   '/cadastro/organizacao': typeof CadastroOrganizacaoRoute
+  '/organizacoes/$organizacaoId': typeof OrganizacoesOrganizacaoIdRoute
   '/cadastro/': typeof CadastroIndexRoute
   '/dashboard/adotados': typeof AuthenticatedDashboardAdotadosRoute
   '/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
@@ -305,6 +313,7 @@ export interface FileRoutesByTo {
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
   '/cadastro/adotante': typeof CadastroAdotanteRoute
   '/cadastro/organizacao': typeof CadastroOrganizacaoRoute
+  '/organizacoes/$organizacaoId': typeof OrganizacoesOrganizacaoIdRoute
   '/cadastro': typeof CadastroIndexRoute
   '/dashboard/adotados': typeof AuthenticatedDashboardAdotadosRoute
   '/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
@@ -340,6 +349,7 @@ export interface FileRoutesById {
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
   '/cadastro/adotante': typeof CadastroAdotanteRoute
   '/cadastro/organizacao': typeof CadastroOrganizacaoRoute
+  '/organizacoes/$organizacaoId': typeof OrganizacoesOrganizacaoIdRoute
   '/cadastro/': typeof CadastroIndexRoute
   '/_authenticated/dashboard/adotados': typeof AuthenticatedDashboardAdotadosRoute
   '/_authenticated/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/cadastro/acolhedor'
     | '/cadastro/adotante'
     | '/cadastro/organizacao'
+    | '/organizacoes/$organizacaoId'
     | '/cadastro/'
     | '/dashboard/adotados'
     | '/dashboard/animais'
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/cadastro/acolhedor'
     | '/cadastro/adotante'
     | '/cadastro/organizacao'
+    | '/organizacoes/$organizacaoId'
     | '/cadastro'
     | '/dashboard/adotados'
     | '/dashboard/perfil'
@@ -449,6 +461,7 @@ export interface FileRouteTypes {
     | '/cadastro/acolhedor'
     | '/cadastro/adotante'
     | '/cadastro/organizacao'
+    | '/organizacoes/$organizacaoId'
     | '/cadastro/'
     | '/_authenticated/dashboard/adotados'
     | '/_authenticated/dashboard/animais'
@@ -479,6 +492,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   VitrineRoute: typeof VitrineRoute
   AnimaisAnimalIdRoute: typeof AnimaisAnimalIdRoute
+  OrganizacoesOrganizacaoIdRoute: typeof OrganizacoesOrganizacaoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -601,6 +615,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cadastro/organizacao'
       preLoaderRoute: typeof CadastroOrganizacaoRouteImport
       parentRoute: typeof CadastroRoute
+    }
+    '/organizacoes/$organizacaoId': {
+      id: '/organizacoes/$organizacaoId'
+      path: '/organizacoes/$organizacaoId'
+      fullPath: '/organizacoes/$organizacaoId'
+      preLoaderRoute: typeof OrganizacoesOrganizacaoIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
@@ -934,6 +955,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   VitrineRoute: VitrineRoute,
   AnimaisAnimalIdRoute: AnimaisAnimalIdRoute,
+  OrganizacoesOrganizacaoIdRoute: OrganizacoesOrganizacaoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

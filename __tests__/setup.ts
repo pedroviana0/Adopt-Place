@@ -122,7 +122,12 @@ vi.mock("@/lib/prisma", () => ({
     },
     especie: { createMany: vi.fn(), findUnique: vi.fn(), findMany: vi.fn() },
     raca: { createMany: vi.fn(), findUnique: vi.fn(), findMany: vi.fn() },
-    organizacao: { findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn() },
+    organizacao: {
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
+    },
     acolhedorIndependente: {
       findUnique: vi.fn(),
       findMany: vi.fn(),

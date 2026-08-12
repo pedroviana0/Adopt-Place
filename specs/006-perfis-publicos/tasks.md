@@ -70,16 +70,16 @@ schema/migration passam sem reset ou perda de dados.
 dela; ausente e desativada produzem o mesmo 404; filtros/paginação funcionam; resposta não vaza dado
 proibido.
 
-- [ ] T012 [P] [US1] [TEST-FIRST] Criar testes vermelhos do contrato `PROFILE-ORG-01`, 404 indistinguível e allowlist sem CPF/CNPJ/e-mail/telefone/coordenadas em `__tests__/api/public-profiles.test.ts` (FR-002, FR-005, FR-020, CR-007).
-- [ ] T013 [P] [US1] [TEST-FIRST] Criar testes vermelhos de query para status `DISPONIVEL`, `organizacaoId`, filtros espécie/raça/porte/sexo, raça condicional e paginação 30 em `__tests__/queries/public-profile-catalog.test.ts` (FR-008–FR-011).
-- [ ] T014 [US1] Definir validação Zod compartilhada de CUID, filtros e página em `lib/schemas/public-profiles.ts`, reutilizando enums e sem aceitar identidade do responsável no query string (FR-009, CR-005).
-- [ ] T015 [US1] Implementar consulta estreita de organização ativa e catálogo owner-scoped em `lib/queries/public-profiles.ts`, reutilizando a ordenação/paginação de `lib/queries/animal-showcase.ts` sem serializar model Prisma (FR-002, FR-005, FR-008–FR-011, FR-020).
-- [ ] T016 [US1] Implementar `GET /api/perfis/organizacao/[id]` conforme `PROFILE-ORG-01` em `app/api/perfis/organizacao/[id]/route.ts`, com 400 seguro e mesmo 404 para ausente/desativada (FR-002, FR-005).
-- [ ] T017 [US1] Criar tipos e cliente HTTP do perfil/catálogo em `frontend/src/lib/data/perfis.ts`, mantendo chamadas relativas `/api/*` e DTOs estreitos (CR-004).
-- [ ] T018 [US1] Criar schemas Zod cliente para filtros/página em `frontend/src/lib/schemas/public-profiles.ts` e consumi-los no catálogo reutilizável com filtros reversíveis, raça condicional, paginação e estados vazio/loading/erro em `frontend/src/components/app/ProfileCatalog.tsx` (FR-008–FR-011, CR-005, Constituição V).
-- [ ] T019 [US1] Criar rota pública responsiva em `frontend/src/routes/organizacoes.$organizacaoId.tsx` com `page-canvas`, endereço institucional, descrição/imagem com fallback e links aos animais (FR-002, FR-007, NFR-001).
-- [ ] T020 [US1] Executar o portão completo da Onda 1; revisar e versionar a nova rota em `frontend/src/routeTree.gen.ts`; confirmar testes vermelhos de T012/T013 agora verdes.
-- [ ] T021 [US1] Criar commit verificável da Onda 1 contendo `lib/schemas/public-profiles.ts`, `lib/queries/public-profiles.ts`, `app/api/perfis/organizacao/[id]/route.ts`, testes e arquivos frontend da organização.
+- [X] T012 [P] [US1] [TEST-FIRST] Criar testes vermelhos do contrato `PROFILE-ORG-01`, 404 indistinguível e allowlist sem CPF/CNPJ/e-mail/telefone/coordenadas em `__tests__/api/public-profiles.test.ts` (FR-002, FR-005, FR-020, CR-007).
+- [X] T013 [P] [US1] [TEST-FIRST] Criar testes vermelhos de query para status `DISPONIVEL`, `organizacaoId`, filtros espécie/raça/porte/sexo, raça condicional e paginação 30 em `__tests__/queries/public-profile-catalog.test.ts` (FR-008–FR-011).
+- [X] T014 [US1] Definir validação Zod compartilhada de CUID, filtros e página em `lib/schemas/public-profiles.ts`, reutilizando enums e sem aceitar identidade do responsável no query string (FR-009, CR-005).
+- [X] T015 [US1] Implementar consulta estreita de organização ativa e catálogo owner-scoped em `lib/queries/public-profiles.ts`, reutilizando a ordenação/paginação de `lib/queries/animal-showcase.ts` sem serializar model Prisma (FR-002, FR-005, FR-008–FR-011, FR-020).
+- [X] T016 [US1] Implementar `GET /api/perfis/organizacao/[id]` conforme `PROFILE-ORG-01` em `app/api/perfis/organizacao/[id]/route.ts`, com 400 seguro e mesmo 404 para ausente/desativada (FR-002, FR-005).
+- [X] T017 [US1] Criar tipos e cliente HTTP do perfil/catálogo em `frontend/src/lib/data/perfis.ts`, mantendo chamadas relativas `/api/*` e DTOs estreitos (CR-004).
+- [X] T018 [US1] Criar schemas Zod cliente para filtros/página em `frontend/src/lib/schemas/public-profiles.ts` e consumi-los no catálogo reutilizável com filtros reversíveis, raça condicional, paginação e estados vazio/loading/erro em `frontend/src/components/app/ProfileCatalog.tsx` (FR-008–FR-011, CR-005, Constituição V).
+- [X] T019 [US1] Criar rota pública responsiva em `frontend/src/routes/organizacoes.$organizacaoId.tsx` com `page-canvas`, endereço institucional, descrição/imagem com fallback e links aos animais (FR-002, FR-007, NFR-001).
+- [X] T020 [US1] Executar o portão completo da Onda 1; revisar e versionar a nova rota em `frontend/src/routeTree.gen.ts`; confirmar testes vermelhos de T012/T013 agora verdes.
+- [X] T021 [US1] Criar commit verificável da Onda 1 contendo `lib/schemas/public-profiles.ts`, `lib/queries/public-profiles.ts`, `app/api/perfis/organizacao/[id]/route.ts`, testes e arquivos frontend da organização.
 - [ ] T022 [US1] Após existir o commit da Onda 1, registrar hash, contrato entregue, portões e evidências na linha da Onda 1 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US1 funciona anonimamente e isoladamente antes da navegação dos anúncios.
