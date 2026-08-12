@@ -20,6 +20,8 @@ export interface FavoritoAnimal {
   castrado: boolean;
   fotoPrincipal: string | null;
   responsavel: string | null;
+  responsavelId: string | null;
+  responsavelTipo: "ORGANIZACAO" | "ACOLHEDOR" | null;
   cidade: string | null;
   tags: PublicAnimalTag[];
 }

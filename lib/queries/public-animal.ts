@@ -34,8 +34,8 @@ export async function getPublicAnimalById(id: string) {
           dataRegistro: true,
         },
       },
-      organizacao: { select: { razaoSocial: true, cidade: true } },
-      acolhedor: { select: { nomeCompleto: true, cidade: true } },
+      organizacao: { select: { id: true, razaoSocial: true, cidade: true } },
+      acolhedor: { select: { id: true, nomeCompleto: true, cidade: true } },
       relacionadosA: {
         select: {
           animalRelacionado: {
@@ -55,8 +55,8 @@ export async function getPublicAnimalById(id: string) {
               especie: { select: { nome: true } },
               raca: { select: { nome: true } },
               registrosSaude: { select: { tipo: true } },
-              organizacao: { select: { razaoSocial: true, cidade: true } },
-              acolhedor: { select: { nomeCompleto: true, cidade: true } },
+              organizacao: { select: { id: true, razaoSocial: true, cidade: true } },
+              acolhedor: { select: { id: true, nomeCompleto: true, cidade: true } },
             },
           },
         },

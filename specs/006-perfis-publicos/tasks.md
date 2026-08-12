@@ -93,16 +93,16 @@ proibido.
 **Independent Test**: em cada um dos quatro fluxos, o DTO contém ID/tipo do perfil e o clique abre
 a organização/acolhedor correto em um acionamento, sem ampliar dados privados.
 
-- [ ] T023 [US2] [TEST-FIRST] Ampliar testes de vitrine e detalhe para exigir `responsavelId`/`responsavelTipo` e falhar com qualquer CPF/CNPJ/e-mail/telefone/endereço/coordenada em `__tests__/api/public-animais.test.ts` (FR-020, CR-007).
-- [ ] T024 [US2] [TEST-FIRST] Ampliar a suíte existente de favoritos para exigir referência navegável e identificação segura de acolhedor em `__tests__/api/adopter-journey.test.ts` (FR-001, FR-003, FR-020).
-- [ ] T025 [US2] [TEST-FIRST] Ampliar a suíte de query existente em `__tests__/queries/feels.test.ts` e criar o contrato HTTP de Feels em `__tests__/api/feels.test.ts` para exigir referência navegável sem nome completo/endereço de acolhedor (FR-003, FR-020).
-- [ ] T026 [US2] Incluir IDs de perfil nos selects e DTOs da vitrine em `lib/queries/animal-showcase.ts` e `app/api/animais/route.ts`, mantendo `Usuario.id` fora da resposta (FR-001, FR-020).
-- [ ] T027 [US2] Incluir IDs/tipos do responsável no detalhe e resumos relacionados em `lib/queries/public-animal.ts` e `app/api/animais/[id]/route.ts` (FR-001, FR-020).
-- [ ] T028 [US2] Incluir IDs/tipos do responsável e identificação pública do acolhedor em `lib/queries/favorites.ts` e `lib/queries/feels.ts` (FR-001, FR-003, FR-020).
-- [ ] T029 [US2] Atualizar tipos dos quatro contratos em `frontend/src/lib/data/animais.ts`, `frontend/src/lib/data/favoritos.ts` e `frontend/src/lib/data/feels.ts` (FR-001, CR-004).
-- [ ] T030 [US2] Alterar links do responsável em `frontend/src/components/app/PublicAnimalCard.tsx`, `frontend/src/components/app/AnimalSwipeCard.tsx` e `frontend/src/routes/animais.$animalId.tsx` para `/organizacoes/$organizacaoId` ou `/acolhedores/$acolhedorId` conforme tipo (US2, FR-001).
-- [ ] T031 [US2] Executar o portão completo da Onda 2; confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado e que os quatro contratos passam nas suítes de T023–T025.
-- [ ] T032 [US2] Criar commit verificável da Onda 2 contendo os quatro DTOs ampliados, tipos frontend, links e testes em `lib/`, `app/api/`, `frontend/src/` e `__tests__/`.
+- [X] T023 [US2] [TEST-FIRST] Ampliar testes de vitrine e detalhe para exigir `responsavelId`/`responsavelTipo` e falhar com qualquer CPF/CNPJ/e-mail/telefone/endereço/coordenada em `__tests__/api/public-animais.test.ts` (FR-020, CR-007).
+- [X] T024 [US2] [TEST-FIRST] Ampliar a suíte existente de favoritos para exigir referência navegável e identificação segura de acolhedor em `__tests__/api/adopter-journey.test.ts` (FR-001, FR-003, FR-020).
+- [X] T025 [US2] [TEST-FIRST] Ampliar a suíte de query existente em `__tests__/queries/feels.test.ts` e criar o contrato HTTP de Feels em `__tests__/api/feels.test.ts` para exigir referência navegável sem nome completo/endereço de acolhedor (FR-003, FR-020).
+- [X] T026 [US2] Incluir IDs de perfil nos selects e DTOs da vitrine em `lib/queries/animal-showcase.ts` e `app/api/animais/route.ts`, mantendo `Usuario.id` fora da resposta (FR-001, FR-020).
+- [X] T027 [US2] Incluir IDs/tipos do responsável no detalhe e resumos relacionados em `lib/queries/public-animal.ts` e `app/api/animais/[id]/route.ts` (FR-001, FR-020).
+- [X] T028 [US2] Incluir IDs/tipos do responsável e identificação pública do acolhedor em `lib/queries/favorites.ts` e `lib/queries/feels.ts` (FR-001, FR-003, FR-020).
+- [X] T029 [US2] Atualizar tipos dos quatro contratos em `frontend/src/lib/data/animais.ts`, `frontend/src/lib/data/favoritos.ts` e `frontend/src/lib/data/feels.ts` (FR-001, CR-004).
+- [X] T030 [US2] Alterar links do responsável em `frontend/src/components/app/PublicAnimalCard.tsx`, `frontend/src/components/app/AnimalSwipeCard.tsx` e `frontend/src/routes/animais.$animalId.tsx` para `/organizacoes/$organizacaoId` ou `/acolhedores/$acolhedorId` conforme tipo (US2, FR-001).
+- [X] T031 [US2] Executar o portão completo da Onda 2; confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado e que os quatro contratos passam nas suítes de T023–T025.
+- [X] T032 [US2] Criar commit verificável da Onda 2 contendo os quatro DTOs ampliados, tipos frontend, links e testes em `lib/`, `app/api/`, `frontend/src/` e `__tests__/`.
 - [ ] T033 [US2] Após existir o commit da Onda 2, registrar hash, quatro contratos e portões na linha da Onda 2 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US2 é demonstrável a partir de cada anúncio sem depender da busca.

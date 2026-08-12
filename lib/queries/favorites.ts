@@ -2,6 +2,7 @@ import { Prisma, StatusAnimal } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getAnimalTags } from "@/lib/tags";
+import { formatPublicFosterName } from "@/lib/public-profile-name";
 
 export const adopterFavoriteSelect = {
   animalId: true,
@@ -23,8 +24,8 @@ export const adopterFavoriteSelect = {
         take: 1,
         select: { urlFoto: true },
       },
-      organizacao: { select: { razaoSocial: true, cidade: true } },
-      acolhedor: { select: { nomeCompleto: true, cidade: true } },
+      organizacao: { select: { id: true, razaoSocial: true, cidade: true } },
+      acolhedor: { select: { id: true, nomeCompleto: true, cidade: true } },
     },
   },
 } satisfies Prisma.FavoritoSelect;
@@ -63,8 +64,10 @@ export function toFavoriteDTO(favorite: FavoriteRecord) {
       fotoPrincipal: animal.fotos[0]?.urlFoto ?? null,
       responsavel:
         animal.organizacao?.razaoSocial ??
-        animal.acolhedor?.nomeCompleto ??
+        (animal.acolhedor ? formatPublicFosterName(animal.acolhedor.nomeCompleto) : null) ??
         null,
+      responsavelId: animal.organizacao?.id ?? animal.acolhedor?.id ?? null,
+      responsavelTipo: animal.organizacao ? "ORGANIZACAO" as const : animal.acolhedor ? "ACOLHEDOR" as const : null,
       cidade: animal.organizacao?.cidade ?? animal.acolhedor?.cidade ?? null,
       tags: getAnimalTags(animal),
     },

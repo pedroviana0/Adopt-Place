@@ -104,6 +104,8 @@ export async function getPublicOrganizationProfile(
         raca: animal.raca?.nome ?? null,
         cidade: organization.cidade,
         responsavel: organization.razaoSocial,
+        responsavelId: organization.id,
+        responsavelTipo: "ORGANIZACAO" as const,
         tags: getAnimalTags(animal),
       })),
       filterOptions: { especies, racas },

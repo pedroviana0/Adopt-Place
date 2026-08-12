@@ -24,6 +24,8 @@ export interface PublicAnimalSummary {
   raca: string | null;
   cidade: string | null;
   responsavel: string | null;
+  responsavelId: string | null;
+  responsavelTipo: "ORGANIZACAO" | "ACOLHEDOR" | null;
   tags: PublicAnimalTag[];
 }
 

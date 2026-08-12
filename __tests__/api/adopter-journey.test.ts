@@ -74,7 +74,7 @@ const favoriteRecord = {
     castrado: true,
     registrosSaude: [{ tipo: "VACINA" }],
     fotos: [{ urlFoto: "https://example.com/luna.jpg" }],
-    organizacao: { razaoSocial: "Abrigo Legal", cidade: "Volta Redonda" },
+    organizacao: { id: "org-profile-1", razaoSocial: "Abrigo Legal", cidade: "Volta Redonda" },
     acolhedor: null,
   },
 };
@@ -172,6 +172,8 @@ describe("favorites contracts", () => {
             castrado: true,
             fotoPrincipal: "https://example.com/luna.jpg",
             responsavel: "Abrigo Legal",
+            responsavelId: "org-profile-1",
+            responsavelTipo: "ORGANIZACAO",
             cidade: "Volta Redonda",
             tags: expect.any(Array),
           },
