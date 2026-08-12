@@ -131,6 +131,7 @@ vi.mock("@/lib/prisma", () => ({
     },
     acolhedorIndependente: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
       update: vi.fn(),

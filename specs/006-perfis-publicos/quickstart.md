@@ -168,6 +168,17 @@ Use the same target adopter for all rows and inspect the network response, not o
 
 The adopter UI must explain who else can view the restricted data.
 
+### Evidência integrada da Onda 6 (2026-08-12)
+
+- Perfil público do acolhedor homologado sem autenticação em
+  `/acolhedores/cmsfg2tmc00047gy5lm4q3isg`.
+- Estado real sem descrição, imagem e animais confirmou fallbacks, município/UF e nome
+  derivado `Acolhedor T.`, sem nome completo ou endereço.
+- Fixture local temporária confirmou descrição, imagem, animal owner-scoped e link do card de
+  volta ao mesmo acolhedor; todos os valores do acolhedor e do animal foram restaurados após o
+  teste.
+- O catálogo reutilizado identifica corretamente o perfil de acolhedor nos textos acessíveis.
+
 ### Own profile maintenance and image
 
 1. Organization and foster can save description up to 500 chars; 501 fails on client and server.

@@ -7,6 +7,7 @@ import type { PublicProfileCatalogFilters } from "@/lib/schemas/public-profiles"
 import { getAnimalTags } from "@/lib/tags";
 import type { AdopterProfileDTO } from "@/lib/schemas/public-profiles";
 import { normalizarNomeMunicipio } from "@/lib/municipios";
+import { formatPublicFosterName } from "@/lib/public-profile-name";
 
 const publicOrganizationSelect = {
   id: true,
@@ -109,6 +110,99 @@ export async function getPublicOrganizationProfile(
         responsavel: organization.razaoSocial,
         responsavelId: organization.id,
         responsavelTipo: "ORGANIZACAO" as const,
+        tags: getAnimalTags(animal),
+      })),
+      filterOptions: { especies, racas },
+      pagination: {
+        page: filters.page,
+        perPage: SHOWCASE_PAGE_SIZE,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / SHOWCASE_PAGE_SIZE)),
+      },
+    },
+  };
+}
+
+const publicFosterSelect = {
+  id: true,
+  nomeCompleto: true,
+  descricao: true,
+  fotoUrl: true,
+  cidade: true,
+  estado: true,
+} satisfies Prisma.AcolhedorIndependenteSelect;
+
+export async function getPublicFosterProfile(
+  id: string,
+  filters: PublicProfileCatalogFilters,
+) {
+  const foster = await prisma.acolhedorIndependente.findFirst({
+    where: { id, usuario: { ativo: true } },
+    select: publicFosterSelect,
+  });
+  if (!foster) return null;
+
+  const where: Prisma.AnimalWhereInput = {
+    acolhedorId: id,
+    status: StatusAnimal.DISPONIVEL,
+    especieId: filters.especieId,
+    racaId: filters.racaId,
+    porte: filters.porte,
+    sexo: filters.sexo,
+  };
+  const availableOwnerScope: Prisma.AnimalWhereInput = {
+    acolhedorId: id,
+    status: StatusAnimal.DISPONIVEL,
+  };
+  const skip = (filters.page - 1) * SHOWCASE_PAGE_SIZE;
+  const [animals, total, especies, racas] = await prisma.$transaction([
+    prisma.animal.findMany({
+      where,
+      orderBy: [{ criadoEm: "desc" }, { nome: "asc" }],
+      skip,
+      take: SHOWCASE_PAGE_SIZE,
+      select: publicCatalogAnimalSelect,
+    }),
+    prisma.animal.count({ where }),
+    prisma.especie.findMany({
+      where: { animais: { some: availableOwnerScope } },
+      orderBy: { nome: "asc" },
+      select: { id: true, nome: true },
+    }),
+    prisma.raca.findMany({
+      where: { animais: { some: availableOwnerScope } },
+      orderBy: { nome: "asc" },
+      select: { id: true, nome: true, especieId: true },
+    }),
+  ]);
+  const publicName = formatPublicFosterName(foster.nomeCompleto);
+
+  return {
+    profile: {
+      id: foster.id,
+      tipo: "ACOLHEDOR" as const,
+      nome: publicName,
+      descricao: foster.descricao,
+      fotoUrl: foster.fotoUrl,
+      municipio: foster.cidade,
+      uf: foster.estado,
+    },
+    catalog: {
+      animals: animals.map((animal) => ({
+        id: animal.id,
+        nome: animal.nome,
+        porte: animal.porte,
+        sexo: animal.sexo,
+        idadeEstimada: animal.idadeEstimada,
+        castrado: animal.castrado,
+        status: animal.status,
+        fotoPrincipal: animal.fotos[0]?.urlFoto ?? null,
+        especie: animal.especie?.nome ?? null,
+        raca: animal.raca?.nome ?? null,
+        cidade: foster.cidade,
+        responsavel: publicName,
+        responsavelId: foster.id,
+        responsavelTipo: "ACOLHEDOR" as const,
         tags: getAnimalTags(animal),
       })),
       filterOptions: { especies, racas },

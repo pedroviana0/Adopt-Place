@@ -35,6 +35,21 @@ export interface PublicOrganizationProfileResponse {
   catalog: PublicProfileCatalog;
 }
 
+export interface PublicFosterProfile {
+  id: string;
+  tipo: "ACOLHEDOR";
+  nome: string;
+  descricao: string | null;
+  fotoUrl: string | null;
+  municipio: string;
+  uf: string;
+}
+
+export interface PublicFosterProfileResponse {
+  profile: PublicFosterProfile;
+  catalog: PublicProfileCatalog;
+}
+
 export async function fetchPublicOrganizationProfile(
   id: string,
   filters: ProfileCatalogFilters,
@@ -49,6 +64,24 @@ export async function fetchPublicOrganizationProfile(
 
   return apiRequest<PublicOrganizationProfileResponse>(
     `/api/perfis/organizacao/${encodeURIComponent(id)}?${query.toString()}`,
+    { method: "GET" },
+  );
+}
+
+export async function fetchPublicFosterProfile(
+  id: string,
+  filters: ProfileCatalogFilters,
+): Promise<PublicFosterProfileResponse> {
+  const parsed = profileCatalogFilterSchema.parse(filters);
+  const query = new URLSearchParams();
+  if (parsed.especieId) query.set("especieId", parsed.especieId);
+  if (parsed.racaId) query.set("racaId", parsed.racaId);
+  if (parsed.porte) query.set("porte", parsed.porte);
+  if (parsed.sexo) query.set("sexo", parsed.sexo);
+  query.set("page", String(parsed.page));
+
+  return apiRequest<PublicFosterProfileResponse>(
+    `/api/perfis/acolhedor/${encodeURIComponent(id)}?${query.toString()}`,
     { method: "GET" },
   );
 }

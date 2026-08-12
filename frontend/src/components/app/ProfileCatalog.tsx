@@ -29,6 +29,7 @@ type ProfileCatalogProps = {
   isError: boolean;
   error?: unknown;
   onRetry: () => void;
+  ownerKind?: "organização" | "acolhedor";
 };
 
 export function ProfileCatalog({
@@ -39,7 +40,9 @@ export function ProfileCatalog({
   isError,
   error,
   onRetry,
+  ownerKind = "organização",
 }: ProfileCatalogProps) {
+  const ownerLabel = ownerKind === "acolhedor" ? "acolhedor" : "organização";
   const racas = useMemo(
     () =>
       filters.especieId
@@ -60,14 +63,14 @@ export function ProfileCatalog({
   };
 
   return (
-    <section aria-labelledby="catalogo-organizacao" className="mt-10">
+    <section aria-labelledby="catalogo-perfil" className="mt-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="catalogo-organizacao" className="font-serif text-2xl font-semibold">
+          <h2 id="catalogo-perfil" className="font-serif text-2xl font-semibold">
             Animais disponíveis
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Somente animais sob responsabilidade desta organização.
+            Somente animais sob responsabilidade deste perfil de {ownerLabel}.
           </p>
         </div>
         {hasFilters && (
@@ -183,14 +186,14 @@ export function ProfileCatalog({
         isError={isError}
         error={error}
         isEmpty={(catalog?.animals.length ?? 0) === 0}
-        loadingLabel="Carregando catálogo da organização…"
+        loadingLabel={`Carregando catálogo do ${ownerLabel}…`}
         loadingFallback={<AnimalShowcaseSkeleton cards={6} showFilters={false} />}
         errorTitle="Não foi possível carregar o catálogo"
         onRetry={onRetry}
         emptyState={{
           title: hasFilters
             ? "Nenhum animal corresponde aos filtros"
-            : "Esta organização não possui animais disponíveis",
+            : `Este perfil de ${ownerLabel} não possui animais disponíveis`,
           description: hasFilters
             ? "Remova os filtros para consultar o catálogo completo."
             : "Volte em outro momento ou conheça outros animais na vitrine.",
@@ -211,7 +214,7 @@ export function ProfileCatalog({
 
           {(catalog?.pagination.totalPages ?? 1) > 1 && (
             <nav
-              aria-label="Paginação do catálogo da organização"
+              aria-label={`Paginação do catálogo do ${ownerLabel}`}
               className="mt-8 flex items-center justify-center gap-2"
             >
               <Button

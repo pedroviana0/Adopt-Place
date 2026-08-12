@@ -22,6 +22,7 @@ import { Route as AuthenticatedMeuPerfilRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMeusFavoritosRouteImport } from './routes/_authenticated.meus-favoritos'
 import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated.minhas-solicitacoes'
 import { Route as AuthenticatedTriagemRouteImport } from './routes/_authenticated.triagem'
+import { Route as AcolhedoresAcolhedorIdRouteImport } from './routes/acolhedores.$acolhedorId'
 import { Route as AdotantesAdotanteIdRouteImport } from './routes/adotantes.$adotanteId'
 import { Route as AnimaisAnimalIdRouteImport } from './routes/animais.$animalId'
 import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
@@ -115,6 +116,11 @@ const AuthenticatedTriagemRoute = AuthenticatedTriagemRouteImport.update({
   id: '/triagem',
   path: '/triagem',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AcolhedoresAcolhedorIdRoute = AcolhedoresAcolhedorIdRouteImport.update({
+  id: '/acolhedores/$acolhedorId',
+  path: '/acolhedores/$acolhedorId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdotantesAdotanteIdRoute = AdotantesAdotanteIdRouteImport.update({
   id: '/adotantes/$adotanteId',
@@ -286,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/triagem': typeof AuthenticatedTriagemRoute
+  '/acolhedores/$acolhedorId': typeof AcolhedoresAcolhedorIdRoute
   '/adotantes/$adotanteId': typeof AdotantesAdotanteIdRoute
   '/animais/$animalId': typeof AnimaisAnimalIdRoute
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
@@ -324,6 +331,7 @@ export interface FileRoutesByTo {
   '/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/triagem': typeof AuthenticatedTriagemRoute
+  '/acolhedores/$acolhedorId': typeof AcolhedoresAcolhedorIdRoute
   '/adotantes/$adotanteId': typeof AdotantesAdotanteIdRoute
   '/animais/$animalId': typeof AnimaisAnimalIdRoute
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
@@ -362,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/meus-favoritos': typeof AuthenticatedMeusFavoritosRoute
   '/_authenticated/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/_authenticated/triagem': typeof AuthenticatedTriagemRoute
+  '/acolhedores/$acolhedorId': typeof AcolhedoresAcolhedorIdRoute
   '/adotantes/$adotanteId': typeof AdotantesAdotanteIdRoute
   '/animais/$animalId': typeof AnimaisAnimalIdRoute
   '/cadastro/acolhedor': typeof CadastroAcolhedorRoute
@@ -405,6 +414,7 @@ export interface FileRouteTypes {
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
     | '/triagem'
+    | '/acolhedores/$acolhedorId'
     | '/adotantes/$adotanteId'
     | '/animais/$animalId'
     | '/cadastro/acolhedor'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/meus-favoritos'
     | '/minhas-solicitacoes'
     | '/triagem'
+    | '/acolhedores/$acolhedorId'
     | '/adotantes/$adotanteId'
     | '/animais/$animalId'
     | '/cadastro/acolhedor'
@@ -480,6 +491,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meus-favoritos'
     | '/_authenticated/minhas-solicitacoes'
     | '/_authenticated/triagem'
+    | '/acolhedores/$acolhedorId'
     | '/adotantes/$adotanteId'
     | '/animais/$animalId'
     | '/cadastro/acolhedor'
@@ -516,6 +528,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRouteWithChildren
   LoginRoute: typeof LoginRoute
   VitrineRoute: typeof VitrineRoute
+  AcolhedoresAcolhedorIdRoute: typeof AcolhedoresAcolhedorIdRoute
   AdotantesAdotanteIdRoute: typeof AdotantesAdotanteIdRoute
   AnimaisAnimalIdRoute: typeof AnimaisAnimalIdRoute
   OrganizacoesOrganizacaoIdRoute: typeof OrganizacoesOrganizacaoIdRoute
@@ -613,6 +626,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/triagem'
       preLoaderRoute: typeof AuthenticatedTriagemRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/acolhedores/$acolhedorId': {
+      id: '/acolhedores/$acolhedorId'
+      path: '/acolhedores/$acolhedorId'
+      fullPath: '/acolhedores/$acolhedorId'
+      preLoaderRoute: typeof AcolhedoresAcolhedorIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/adotantes/$adotanteId': {
       id: '/adotantes/$adotanteId'
@@ -995,6 +1015,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRouteWithChildren,
   LoginRoute: LoginRoute,
   VitrineRoute: VitrineRoute,
+  AcolhedoresAcolhedorIdRoute: AcolhedoresAcolhedorIdRoute,
   AdotantesAdotanteIdRoute: AdotantesAdotanteIdRoute,
   AnimaisAnimalIdRoute: AnimaisAnimalIdRoute,
   OrganizacoesOrganizacaoIdRoute: OrganizacoesOrganizacaoIdRoute,
