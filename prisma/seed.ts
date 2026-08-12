@@ -239,8 +239,6 @@ const CAT_PHOTOS = [
   "1592194996308-7b43878e84a6",
   "1573865526739-10659fec78a5",
   "1478098711619-5ab0b478d6e6",
-  "1526336024174-e58f5cb8b6ce",
-  "1425082661705-1834bfd09dca",
 ].map(IMG);
 
 // Nomes separados por genero: o sexo do animal e derivado da lista de onde o
@@ -254,12 +252,12 @@ const DOG_NAMES_F = [
   "Maia", "Lua",
 ];
 const CAT_NAMES_M = [
-  "Nino", "Salem", "Maru", "Oliver", "Otto", "Tom", "Félix", "Pipo", "Tigre",
+  "Nino", "Salem", "Maru", "Oliver", "Otto", "Tom", "Félix", "Pipo",
   "Nick",
 ];
 const CAT_NAMES_F = [
   "Luna", "Mia", "Fiona", "Amélie", "Pandora", "Nala", "Jade", "Chiara",
-  "Lola", "Gaia", "Íris", "Pérola", "Zoe", "Pretinha",
+  "Gaia", "Íris", "Pérola", "Zoe", "Pretinha",
 ];
 const CORES = [
   "Caramelo", "Preto", "Branco", "Preto e branco", "Tricolor",
