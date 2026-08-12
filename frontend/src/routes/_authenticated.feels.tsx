@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, X } from "lucide-react";
@@ -46,7 +46,9 @@ function FeelsPage() {
 
   const [raioKm, setRaioKm] = useState<RaioKm | undefined>(undefined);
   const [especie, setEspecie] = useState<FiltrosDoFeels["especie"]>("todos");
-  const [pulados, setPulados] = useState<string[]>(() => lerPulados());
+  // Não é estado visual: atualizar React durante a saída remontaria partes do
+  // feed. A referência acompanha a sessão e alimenta somente a próxima busca.
+  const pulados = useRef<string[]>(lerPulados());
   const [posicao, setPosicao] = useState<{ latitude: number; longitude: number } | null>(null);
   const [posicaoResolvida, setPosicaoResolvida] = useState(false);
   // Foto visível por animal: vive aqui porque o arraste vertical do cartão,
@@ -75,16 +77,27 @@ function FeelsPage() {
   }, []);
 
   const feels = useQuery({
-    queryKey: ["feels", raioKm, especie, posicao, pulados.length],
+    // Uma decisão pertence à pilha já carregada. Colocar `pulados.length` na
+    // chave remontava o feed após cada swipe com uma nova resposta do servidor,
+    // trocando inclusive o cartão que a pessoa já via atrás. Os IDs continuam
+    // sendo enviados em consultas legítimas (filtro/localização/nova abertura).
+    queryKey: ["feels", raioKm, especie, posicao],
     queryFn: () =>
       fetchFeels({
         raioKm,
         especie,
         latitude: posicao?.latitude,
         longitude: posicao?.longitude,
-        excluir: pulados,
+        excluir: pulados.current,
+        // Mantém um reservatório local completo. A pilha monta só três cards
+        // por vez, então cada decisão revela o próximo e promove apenas mais
+        // um da reserva ao fundo, sem recarregar a interface.
+        limite: 30,
       }),
     enabled: posicaoResolvida && sessao?.tipoPerfil === "ADOTANTE",
+    // O feed visível é uma fila: voltar à aba não pode trocar silenciosamente
+    // os cartões que já estavam empilhados. Nova abertura e filtros refazem a busca.
+    refetchOnWindowFocus: false,
   });
 
   const curtir = useMutation({
@@ -132,8 +145,11 @@ function FeelsPage() {
     const cartao = comFoto[index];
     if (!cartao) return;
 
-    if (direcao === "right") curtir.mutate(cartao.id);
-    setPulados(registrarPulado(cartao.id));
+    if (direcao === "right") {
+      curtir.mutate(cartao.id);
+    } else {
+      pulados.current = registrarPulado(cartao.id);
+    }
   };
 
   return (

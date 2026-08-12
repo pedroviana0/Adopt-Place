@@ -5,6 +5,7 @@ import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton"
 import { AsyncState } from "@/components/app/AsyncState";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -212,51 +213,14 @@ export function ProfileCatalog({
             ))}
           </div>
 
-          {(catalog?.pagination.totalPages ?? 1) > 1 && (
-            <nav
-              aria-label={`Paginação do catálogo do ${ownerLabel}`}
-              className="mt-8 flex items-center justify-center gap-2"
-            >
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={filters.page === 1}
-                onClick={() =>
-                  onFiltersChange(
-                    profileCatalogFilterSchema.parse({
-                      ...filters,
-                      page: Math.max(1, filters.page - 1),
-                    }),
-                  )
-                }
-              >
-                Anterior
-              </Button>
-              <span className="text-sm text-muted-foreground" aria-live="polite">
-                Página {catalog?.pagination.page ?? filters.page} de {catalog?.pagination.totalPages}
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={filters.page === catalog?.pagination.totalPages}
-                onClick={() =>
-                  onFiltersChange(
-                    profileCatalogFilterSchema.parse({
-                      ...filters,
-                      page: Math.min(
-                        catalog?.pagination.totalPages ?? filters.page,
-                        filters.page + 1,
-                      ),
-                    }),
-                  )
-                }
-              >
-                Próxima
-              </Button>
-            </nav>
-          )}
+          <PaginationControls
+            page={catalog?.pagination.page ?? filters.page}
+            totalPages={catalog?.pagination.totalPages ?? 1}
+            label={`Paginação do catálogo do ${ownerLabel}`}
+            onPageChange={(page) =>
+              onFiltersChange(profileCatalogFilterSchema.parse({ ...filters, page }))
+            }
+          />
         </>
       </AsyncState>
     </section>

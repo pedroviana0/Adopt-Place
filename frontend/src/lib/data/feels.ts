@@ -41,6 +41,7 @@ export interface FiltrosDoFeels {
   latitude?: number;
   longitude?: number;
   excluir: string[];
+  limite?: number;
 }
 
 export async function fetchFeels(filtros: FiltrosDoFeels): Promise<RespostaDoFeels> {
@@ -52,6 +53,7 @@ export async function fetchFeels(filtros: FiltrosDoFeels): Promise<RespostaDoFee
     params.set("longitude", String(filtros.longitude));
   }
   if (filtros.excluir.length > 0) params.set("excluir", filtros.excluir.join(","));
+  if (filtros.limite !== undefined) params.set("limite", String(filtros.limite));
 
   return apiRequest<RespostaDoFeels>(`/api/feels?${params.toString()}`, { method: "GET" });
 }
@@ -84,6 +86,21 @@ export function registrarPulado(animalId: string): string[] {
     sessionStorage.setItem(CHAVE_PULADOS, JSON.stringify(proximo));
   } catch {
     // Sessão sem storage (aba anônima restrita): a pilha ainda funciona em memória.
+  }
+  return proximo;
+}
+
+/**
+ * Remover um favorito devolve o animal ao conjunto elegível do Feels. A
+ * limpeza também corrige sessões antigas, quando curtir ainda registrava o ID
+ * como rejeitado no sessionStorage.
+ */
+export function removerPulado(animalId: string): string[] {
+  const proximo = lerPulados().filter((id) => id !== animalId);
+  try {
+    sessionStorage.setItem(CHAVE_PULADOS, JSON.stringify(proximo));
+  } catch {
+    // O backend continua sendo a fonte da verdade do favorito.
   }
   return proximo;
 }
