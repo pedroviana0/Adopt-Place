@@ -125,6 +125,13 @@ export function Navbar() {
             >
               Adotar
             </Link>
+            <Link
+              to="/busca"
+              className={desktopLinkClass}
+              activeProps={{ className: activeDesktopLink, "aria-current": "page" }}
+            >
+              Organizações
+            </Link>
             {isAdopter && (
               <Link
                 to="/feels"
@@ -349,6 +356,14 @@ export function Navbar() {
                   activeProps={{ className: activeMobileLink, "aria-current": "page" }}
                 >
                   Adotar
+                </Link>
+                <Link
+                  to="/busca"
+                  onClick={closeMobileMenu}
+                  className={mobileLinkClass}
+                  activeProps={{ className: activeMobileLink, "aria-current": "page" }}
+                >
+                  Organizações
                 </Link>
 
                 {sessao?.tipoPerfil === "ADOTANTE" && (

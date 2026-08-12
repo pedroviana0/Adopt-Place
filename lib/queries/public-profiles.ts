@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import type { PublicProfileCatalogFilters } from "@/lib/schemas/public-profiles";
 import { getAnimalTags } from "@/lib/tags";
 import type { AdopterProfileDTO } from "@/lib/schemas/public-profiles";
+import { normalizarNomeMunicipio } from "@/lib/municipios";
 
 const publicOrganizationSelect = {
   id: true,
@@ -249,4 +250,23 @@ export async function getAdopterProfile(
       cienteNaoRepassar: ciendeNaoRepassar,
     },
   };
+}
+
+export async function searchPublicOrganizations(term: string) {
+  const normalized = normalizarNomeMunicipio(term);
+  const organizations = await prisma.organizacao.findMany({
+    where: {
+      usuario: { ativo: true },
+      razaoSocialNormalizada: { contains: normalized },
+    },
+    orderBy: { razaoSocial: "asc" },
+    take: 10,
+    select: { id: true, razaoSocial: true, cidade: true, estado: true },
+  });
+  return organizations.map((organization) => ({
+    id: organization.id,
+    nome: organization.razaoSocial,
+    municipio: organization.cidade,
+    uf: organization.estado,
+  }));
 }

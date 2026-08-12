@@ -165,17 +165,17 @@ endereço, nunca telefone.
 **Independent Test**: termos com/sem acento, caixa e espaços encontram a mesma organização; entrada
 curta não consulta a base; no máximo 10 resultados; nenhuma pessoa física/dado privado aparece.
 
-- [ ] T058 [P] [US3] [TEST-FIRST] Criar testes vermelhos da query normalizada, filtro de conta ativa, limite 10 e ordenação em `__tests__/queries/organization-search.test.ts` (FR-012–FR-014, NFR-002, CR-007).
-- [ ] T059 [P] [US3] [TEST-FIRST] Criar testes vermelhos do contrato público que falham se adotante/acolhedor ou CPF/CNPJ/e-mail/telefone/endereço/coordenadas aparecerem em `__tests__/api/organization-search.test.ts` (FR-013, FR-020, CR-007).
-- [ ] T060 [US3] Definir schema Zod `q` com normalização existente, mínimo 2 após normalizar e máximo seguro de entrada em `lib/schemas/public-profiles.ts` (FR-012, FR-014, CR-005).
-- [ ] T061 [US3] Implementar busca Prisma em `lib/queries/public-profiles.ts` usando somente `Organizacao.razaoSocialNormalizada`, `usuario.ativo: true`, `take: 10` e allowlist estrita id/nome/município/UF, sem imagem ou campo adicional (FR-012–FR-014, NFR-002, CR-004).
-- [ ] T062 [US3] Implementar `GET /api/busca/organizacoes` em `app/api/busca/organizacoes/route.ts`, retornando 400 antes da query para termo inválido (FR-014).
-- [ ] T063 [US3] Ampliar `frontend/src/lib/schemas/public-profiles.ts` com schema Zod cliente do termo mínimo de 2 caracteres e criar cliente/tipos da busca em `frontend/src/lib/data/busca-organizacoes.ts` com chamada relativa e tratamento de vazio/validação (FR-013–FR-015, CR-005, Constituição V).
-- [ ] T064 [US3] Criar rota `frontend/src/routes/busca.tsx` com `page-canvas`, tokens semânticos e seções transparentes, busca acessível validada pelo schema cliente, resultados navegáveis, estado vazio e caminho para vitrine (FR-015, NFR-001; decisão herdada da 004).
-- [ ] T065 [US3] Integrar entrada de busca pública e navegação em `frontend/src/components/app/Navbar.tsx` sem alterar destinos por papel existentes (US3, FR-012).
-- [ ] T066 [US3] Executar o portão completo da Onda 5; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde de FR-013/FR-020 em T058/T059.
-- [ ] T067 [US3] Criar commit verificável da Onda 5 contendo query/endpoint, busca frontend/navbar e testes de normalização/privacidade.
-- [ ] T068 [US3] Homologar busca com dados existentes e registrar que o teste definitivo com nome acentuado depende da Onda 7 em `specs/006-perfis-publicos/quickstart.md` sem alterar o roteiro aprovado.
+- [X] T058 [P] [US3] [TEST-FIRST] Criar testes vermelhos da query normalizada, filtro de conta ativa, limite 10 e ordenação em `__tests__/queries/organization-search.test.ts` (FR-012–FR-014, NFR-002, CR-007).
+- [X] T059 [P] [US3] [TEST-FIRST] Criar testes vermelhos do contrato público que falham se adotante/acolhedor ou CPF/CNPJ/e-mail/telefone/endereço/coordenadas aparecerem em `__tests__/api/organization-search.test.ts` (FR-013, FR-020, CR-007).
+- [X] T060 [US3] Definir schema Zod `q` com normalização existente, mínimo 2 após normalizar e máximo seguro de entrada em `lib/schemas/public-profiles.ts` (FR-012, FR-014, CR-005).
+- [X] T061 [US3] Implementar busca Prisma em `lib/queries/public-profiles.ts` usando somente `Organizacao.razaoSocialNormalizada`, `usuario.ativo: true`, `take: 10` e allowlist estrita id/nome/município/UF, sem imagem ou campo adicional (FR-012–FR-014, NFR-002, CR-004).
+- [X] T062 [US3] Implementar `GET /api/busca/organizacoes` em `app/api/busca/organizacoes/route.ts`, retornando 400 antes da query para termo inválido (FR-014).
+- [X] T063 [US3] Ampliar `frontend/src/lib/schemas/public-profiles.ts` com schema Zod cliente do termo mínimo de 2 caracteres e criar cliente/tipos da busca em `frontend/src/lib/data/busca-organizacoes.ts` com chamada relativa e tratamento de vazio/validação (FR-013–FR-015, CR-005, Constituição V).
+- [X] T064 [US3] Criar rota `frontend/src/routes/busca.tsx` com `page-canvas`, tokens semânticos e seções transparentes, busca acessível validada pelo schema cliente, resultados navegáveis, estado vazio e caminho para vitrine (FR-015, NFR-001; decisão herdada da 004).
+- [X] T065 [US3] Integrar entrada de busca pública e navegação em `frontend/src/components/app/Navbar.tsx` sem alterar destinos por papel existentes (US3, FR-012).
+- [X] T066 [US3] Executar o portão completo da Onda 5; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde de FR-013/FR-020 em T058/T059.
+- [X] T067 [US3] Criar commit verificável da Onda 5 contendo query/endpoint, busca frontend/navbar e testes de normalização/privacidade.
+- [X] T068 [US3] Homologar busca com dados existentes e registrar que o teste definitivo com nome acentuado depende da Onda 7 em `specs/006-perfis-publicos/quickstart.md` sem alterar o roteiro aprovado.
 - [ ] T069 [US3] Após existir o commit da Onda 5, registrar hash, evidência vermelho→verde, limites e portões na linha da Onda 5 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US3 funciona no banco e nunca se torna diretório de pessoas físicas.

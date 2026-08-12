@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as VitrineRouteImport } from './routes/vitrine'
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuscaRoute = BuscaRouteImport.update({
+  id: '/busca',
+  path: '/busca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -269,6 +275,7 @@ const AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/busca': typeof BuscaRoute
   '/cadastro': typeof CadastroRouteWithChildren
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/busca': typeof BuscaRoute
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
   '/feels': typeof AuthenticatedFeelsRoute
@@ -343,6 +351,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/busca': typeof BuscaRoute
   '/cadastro': typeof CadastroRouteWithChildren
   '/login': typeof LoginRoute
   '/vitrine': typeof VitrineRoute
@@ -385,6 +394,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/busca'
     | '/cadastro'
     | '/login'
     | '/vitrine'
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/busca'
     | '/login'
     | '/vitrine'
     | '/feels'
@@ -458,6 +469,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/busca'
     | '/cadastro'
     | '/login'
     | '/vitrine'
@@ -500,6 +512,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  BuscaRoute: typeof BuscaRoute
   CadastroRoute: typeof CadastroRouteWithChildren
   LoginRoute: typeof LoginRoute
   VitrineRoute: typeof VitrineRoute
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/busca': {
+      id: '/busca'
+      path: '/busca'
+      fullPath: '/busca'
+      preLoaderRoute: typeof BuscaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -971,6 +991,7 @@ const CadastroRouteWithChildren = CadastroRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  BuscaRoute: BuscaRoute,
   CadastroRoute: CadastroRouteWithChildren,
   LoginRoute: LoginRoute,
   VitrineRoute: VitrineRoute,

@@ -145,6 +145,10 @@ Inspect vitrine, detail, favorites and Feels:
 4. No adopter or foster can appear, even with matching names.
 5. Empty state points to the animal showcase.
 
+Onda 5 homologada com os dados existentes usando `ORGANIZACAO`, estado vazio e navegação ao
+perfil. A prova integrada específica de nome acentuado continua reservada à Onda 7, depois do
+seed acentuado previsto; nenhum seed foi executado nesta onda.
+
 ### Adopter profile access matrix
 
 Use the same target adopter for all rows and inspect the network response, not only rendered UI.

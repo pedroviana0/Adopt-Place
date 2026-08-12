@@ -1,5 +1,6 @@
 import { Porte, Sexo } from "@prisma/client";
 import { z } from "zod";
+import { normalizarNomeMunicipio } from "@/lib/municipios";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -17,6 +18,12 @@ const optionalCuid = z.preprocess(
 );
 
 export const publicProfileIdSchema = z.string().cuid();
+
+export const organizationSearchSchema = z
+  .string()
+  .max(120, "A busca deve ter no máximo 120 caracteres.")
+  .transform(normalizarNomeMunicipio)
+  .pipe(z.string().min(2, "Informe ao menos 2 caracteres."));
 
 export type PublicAdopterProfileDTO = {
   access: "PUBLIC";

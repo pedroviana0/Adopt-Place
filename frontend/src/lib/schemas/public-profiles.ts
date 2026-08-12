@@ -19,3 +19,11 @@ export type ProfileCatalogFilters = z.infer<
 export const EMPTY_PROFILE_CATALOG_FILTERS: ProfileCatalogFilters = {
   page: 1,
 };
+
+export const organizationSearchTermSchema = z
+  .string()
+  .trim()
+  .max(120, "Use no máximo 120 caracteres")
+  .refine((value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").length >= 2, {
+    message: "Digite ao menos 2 caracteres",
+  });
