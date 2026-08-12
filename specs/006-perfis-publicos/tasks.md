@@ -55,8 +55,8 @@ schema/migration passam sem reset ou perda de dados.
 - [X] T007 Ampliar schemas Zod de organização/acolhedor com descrição opcional/nullable de até 500 caracteres e rejeição de campos derivados em `lib/schemas/perfil.ts` (US4, FR-006, CR-005).
 - [X] T008 Atualizar `app/api/perfil/route.ts` para selecionar `descricao`/`fotoUrl` no perfil próprio e sincronizar a coluna normalizada na mesma escrita que altera `razaoSocial` (US4, FR-006, FR-012).
 - [X] T009 Executar o portão completo da Onda 0, `npm run prisma:validate` e a verificação read-only de `scripts/verify-razao-social-normalizada.ts`; exigir zero divergências e confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado em `prisma/schema.prisma`, `prisma/migrations/<timestamp>_perfis_publicos/migration.sql`, `lib/municipios.ts`, `lib/actions/auth-register.ts`, `lib/schemas/perfil.ts` e `app/api/perfil/route.ts`.
-- [ ] T010 Criar commit verificável da Onda 0 contendo schema, migration, normalização, verificador, schemas e testes em `prisma/`, `scripts/verify-razao-social-normalizada.ts`, `lib/`, `app/api/perfil/route.ts` e `__tests__/` após o portão verde.
-- [ ] T011 Após existir o commit da Onda 0, registrar hash, comandos, resultados e decisões factuais na linha da Onda 0 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T010 Criar commit verificável da Onda 0 contendo schema, migration, normalização, verificador, schemas e testes em `prisma/`, `scripts/verify-razao-social-normalizada.ts`, `lib/`, `app/api/perfil/route.ts` e `__tests__/` após o portão verde.
+- [X] T011 Após existir o commit da Onda 0, registrar hash, comandos, resultados e decisões factuais na linha da Onda 0 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: a fundação de dados está versionada e nenhuma onda seguinte inicia sem T011.
 
