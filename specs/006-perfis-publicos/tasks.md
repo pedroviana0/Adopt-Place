@@ -152,7 +152,7 @@ endereço, nunca telefone.
 - [X] T054 [US5] Ligar nomes de adotante existentes no fluxo de análise à nova rota em `frontend/src/routes/_authenticated.dashboard.solicitacoes.$solicitacaoId.tsx`, sem transportar autorização no link (US5, CR-003).
 - [X] T055 [US5] Executar o portão completo da Onda 4; revisar/versionar `frontend/src/routeTree.gen.ts`; demonstrar vermelho→verde das proteções T045–T047.
 - [X] T056 [US5] Criar commit verificável da Onda 4 contendo projeções, rota API/UI, testes de todos os status e exclusão explícita de telefone.
-- [ ] T057 [US5] Após existir o commit da Onda 4, registrar hash, matriz de autorização, resultado vermelho→verde e portões na linha da Onda 4 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T057 [US5] Após existir o commit da Onda 4, registrar hash, matriz de autorização, resultado vermelho→verde e portões na linha da Onda 4 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: o núcleo de CR-007 está verde e a API não seleciona dado sensível sem autorização.
 

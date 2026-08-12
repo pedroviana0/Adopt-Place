@@ -24,7 +24,7 @@ de solicitação.
 | US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☑ |
 | US3 | Encontrar organizações pelo nome | P2 | 5 | ☐ |
 | US4 | Manter o próprio perfil | P1 | 3 | ☑ |
-| US5 | Avaliar um adotante com a triagem | P1 | 4 | ☐ |
+| US5 | Avaliar um adotante com a triagem | P1 | 4 | ☑ |
 | US6 | Perfil de acolhedor independente | P3 | 6 | ☐ |
 
 ## 2. Ondas de execução
@@ -37,7 +37,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | 1 | Perfil público de organização + catálogo (US1) | `7031605` | ☑ |
 | 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | `3b8b935` | ☑ |
 | 3 | Manter o próprio perfil: descrição + imagem (US4) | `aa6e44f` | ☑ |
-| 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | — | ☐ |
+| 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | `0a1b7dd` | ☑ |
 | 5 | Busca por nome sobre coluna normalizada (US3) | — | ☐ |
 | 6 | Perfil do acolhedor (US6) | — | ☐ |
 | 7 | Dados de teste com acento + homologação na tela | — | ☐ |
@@ -165,3 +165,23 @@ da organização e upload real de PNG sintético com renderização confirmada. 
 temporários de `descricao` e `fotoUrl` foram restaurados no banco local; o arquivo
 sintético enviado permanece no Uploadthing. `routeTree.gen.ts` e `legacy/` permaneceram
 inalterados.
+
+### Onda 4 — triagem e endereço restritos (commit `0a1b7dd`)
+
+- `GET /api/perfis/adotante/[id]` escolhe entre projeções discriminadas `PUBLIC` e
+  `RESTRICTED`. A sessão é revalidada e o vínculo histórico é autorizado antes de
+  qualquer select que contenha triagem ou endereço.
+- Próprio adotante, ADMIN e responsável com solicitação em qualquer status recebem a
+  projeção restrita. Visitante, outro adotante e responsáveis sem vínculo recebem apenas
+  nome, município/UF e estado de conclusão da triagem.
+- As queries de autorização não filtram status. Telefone, CPF, e-mail, Instagram,
+  coordenadas e IDs internos ficam ausentes das duas projeções.
+- A nova página explica a privacidade, reutiliza a triagem somente leitura e é ligada ao
+  nome do adotante no detalhe da solicitação sem transportar autorização no link.
+
+**Validação factual:** a suíte começou vermelha porque endpoint e consulta protegida não
+existiam e terminou com 11 testes cobrindo anônimo, negativos, próprio, ADMIN e os quatro
+status. Backend `npx tsc --noEmit` e `npm test` (326 testes), frontend `npx tsc --noEmit`
+e `npm run build` passaram com servidores encerrados. A interface confirmou projeções
+pública e restrita sem telefone. `routeTree.gen.ts` foi versionado exclusivamente pela
+nova rota; `legacy/` permaneceu inalterado e seed não foi executado.
