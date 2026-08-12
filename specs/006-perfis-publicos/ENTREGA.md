@@ -23,7 +23,7 @@ de solicitação.
 | US1 | Conhecer uma organização e seus animais | P1 | 1 | ☑ |
 | US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☑ |
 | US3 | Encontrar organizações pelo nome | P2 | 5 | ☐ |
-| US4 | Manter o próprio perfil | P1 | 3 | ☐ |
+| US4 | Manter o próprio perfil | P1 | 3 | ☑ |
 | US5 | Avaliar um adotante com a triagem | P1 | 4 | ☐ |
 | US6 | Perfil de acolhedor independente | P3 | 6 | ☐ |
 
@@ -36,7 +36,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | 0 | Fundação de dados: `descricao`, `fotoUrl`, `razaoSocialNormalizada` + migration | `6f4ebf6` | ☑ |
 | 1 | Perfil público de organização + catálogo (US1) | `7031605` | ☑ |
 | 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | `3b8b935` | ☑ |
-| 3 | Manter o próprio perfil: descrição + imagem (US4) | — | ☐ |
+| 3 | Manter o próprio perfil: descrição + imagem (US4) | `aa6e44f` | ☑ |
 | 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | — | ☐ |
 | 5 | Busca por nome sobre coluna normalizada (US3) | — | ☐ |
 | 6 | Perfil do acolhedor (US6) | — | ☐ |
@@ -144,3 +144,24 @@ dos novos campos e depois passaram nos quatro fluxos. Backend `npx tsc --noEmit`
 interface confirmou o perfil público da organização, catálogo próprio e links nos
 cards/detalhe. `routeTree.gen.ts` permaneceu inalterado porque a onda não criou rota;
 `legacy/` permaneceu inalterado e seed não foi executado.
+
+### Onda 3 — manutenção do próprio perfil (commit `aa6e44f`)
+
+- Organização e acolhedor podem manter descrição pública de até 500 caracteres; valor
+  vazio ou composto apenas por espaços é persistido como `null`.
+- O endpoint Uploadthing `profileImage` aceita exatamente uma imagem de até 4 MB e
+  input vazio estrito. Identidade, papel e perfil são derivados da sessão ativa e
+  revalidados imediatamente antes da persistência, sem aceitar ID-alvo do navegador.
+- O formulário próprio apresenta fallback, contador, validação Zod, estados de envio e
+  só informa sucesso após receber a URL persistida pelo servidor. Cidade e UF permanecem
+  derivadas e não são reenviadas no PATCH.
+- Os testes críticos do upload foram executados antes da implementação: 5 de 5 falharam
+  pela ausência das funções protegidas e passaram após a implementação.
+
+**Validação factual:** backend `npx tsc --noEmit` e `npm test` (315 testes), frontend
+`npx tsc --noEmit` e `npm run build` passaram. A interface foi homologada sem seed nas
+contas de organização e acolhedor: descrição salva e limpa, reflexo no perfil público
+da organização e upload real de PNG sintético com renderização confirmada. Os valores
+temporários de `descricao` e `fotoUrl` foram restaurados no banco local; o arquivo
+sintético enviado permanece no Uploadthing. `routeTree.gen.ts` e `legacy/` permaneceram
+inalterados.

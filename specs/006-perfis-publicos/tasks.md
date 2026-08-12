@@ -126,7 +126,7 @@ atualiza somente a própria conta; arquivo/tipo/tamanho/papel inválido é recus
 - [X] T041 [US4] Executar o portão completo da Onda 3; confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado e que T034/T035 passaram após a implementação.
 - [X] T042 [US4] Criar commit verificável da Onda 3 contendo PATCH, upload router, adaptadores/UI e testes em `app/api/perfil/route.ts`, `lib/upload-router.ts`, `frontend/src/` e `__tests__/`.
 - [X] T043 [US4] Homologar edição própria sem seed em organização e acolhedor e registrar evidência transitória conforme `specs/006-perfis-publicos/quickstart.md` sem alterar dados de produção.
-- [ ] T044 [US4] Após existir o commit da Onda 3, registrar hash, limites Uploadthing, portões e evidência na linha da Onda 3 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T044 [US4] Após existir o commit da Onda 3, registrar hash, limites Uploadthing, portões e evidência na linha da Onda 3 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US4 entrega conteúdo real para os perfis sem permitir edição cruzada.
 
