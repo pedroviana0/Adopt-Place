@@ -116,16 +116,16 @@ a organização/acolhedor correto em um acionamento, sem ampliar dados privados.
 **Independent Test**: salvar/apagar descrição reflete no perfil público; upload de imagem válido
 atualiza somente a própria conta; arquivo/tipo/tamanho/papel inválido é recusado.
 
-- [ ] T034 [P] [US4] [TEST-FIRST] Completar testes vermelhos de PATCH para descrição ≤500, 501, `null`, whitespace e tentativa de editar campos derivados/alheios em `__tests__/api/profile-screening.test.ts` (FR-006, CR-003, CR-005).
-- [ ] T035 [P] [US4] [TEST-FIRST] Criar testes vermelhos de autorização Uploadthing para anônimo, adotante, inativo, tipo/tamanho/quantidade inválidos e persistência somente no perfil da sessão em `__tests__/actions/profile-image-upload.test.ts` (FR-006, FR-022).
-- [ ] T036 [US4] Implementar autorização/persistência `profileImage` sem aceitar profile ID no input, com rechecagem no completion, em `lib/upload-router.ts` (FR-006, FR-022, CR-003).
-- [ ] T037 [US4] Garantir que `app/api/perfil/route.ts` devolva e atualize `descricao`/`fotoUrl` apenas para organização/acolhedor autenticado e mantenha `razaoSocialNormalizada` sincronizada (FR-006, FR-012).
-- [ ] T038 [US4] Criar adaptador frontend de upload de perfil em `frontend/src/lib/data/profile-image-upload.ts`, reportando sucesso somente após resposta persistida (FR-022).
-- [ ] T039 [US4] Atualizar cliente/tipos próprios do perfil para descrição e imagem em `frontend/src/lib/data/usuarios.ts` (FR-006, CR-004).
-- [ ] T040 [US4] Ampliar os schemas Zod cliente já usados com `zodResolver` para descrição ≤500 e arquivo de imagem/tamanho em `frontend/src/routes/_authenticated.dashboard.perfil.tsx`, adicionando campos, fallback e estados de upload (FR-006, FR-007, FR-022, CR-005, Constituição V).
-- [ ] T041 [US4] Executar o portão completo da Onda 3; confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado e que T034/T035 passaram após a implementação.
-- [ ] T042 [US4] Criar commit verificável da Onda 3 contendo PATCH, upload router, adaptadores/UI e testes em `app/api/perfil/route.ts`, `lib/upload-router.ts`, `frontend/src/` e `__tests__/`.
-- [ ] T043 [US4] Homologar edição própria sem seed em organização e acolhedor e registrar evidência transitória conforme `specs/006-perfis-publicos/quickstart.md` sem alterar dados de produção.
+- [X] T034 [P] [US4] [TEST-FIRST] Completar testes vermelhos de PATCH para descrição ≤500, 501, `null`, whitespace e tentativa de editar campos derivados/alheios em `__tests__/api/profile-screening.test.ts` (FR-006, CR-003, CR-005).
+- [X] T035 [P] [US4] [TEST-FIRST] Criar testes vermelhos de autorização Uploadthing para anônimo, adotante, inativo, tipo/tamanho/quantidade inválidos e persistência somente no perfil da sessão em `__tests__/actions/profile-image-upload.test.ts` (FR-006, FR-022).
+- [X] T036 [US4] Implementar autorização/persistência `profileImage` sem aceitar profile ID no input, com rechecagem no completion, em `lib/upload-router.ts` (FR-006, FR-022, CR-003).
+- [X] T037 [US4] Garantir que `app/api/perfil/route.ts` devolva e atualize `descricao`/`fotoUrl` apenas para organização/acolhedor autenticado e mantenha `razaoSocialNormalizada` sincronizada (FR-006, FR-012).
+- [X] T038 [US4] Criar adaptador frontend de upload de perfil em `frontend/src/lib/data/profile-image-upload.ts`, reportando sucesso somente após resposta persistida (FR-022).
+- [X] T039 [US4] Atualizar cliente/tipos próprios do perfil para descrição e imagem em `frontend/src/lib/data/usuarios.ts` (FR-006, CR-004).
+- [X] T040 [US4] Ampliar os schemas Zod cliente já usados com `zodResolver` para descrição ≤500 e arquivo de imagem/tamanho em `frontend/src/routes/_authenticated.dashboard.perfil.tsx`, adicionando campos, fallback e estados de upload (FR-006, FR-007, FR-022, CR-005, Constituição V).
+- [X] T041 [US4] Executar o portão completo da Onda 3; confirmar que `frontend/src/routeTree.gen.ts` não permanece alterado e que T034/T035 passaram após a implementação.
+- [X] T042 [US4] Criar commit verificável da Onda 3 contendo PATCH, upload router, adaptadores/UI e testes em `app/api/perfil/route.ts`, `lib/upload-router.ts`, `frontend/src/` e `__tests__/`.
+- [X] T043 [US4] Homologar edição própria sem seed em organização e acolhedor e registrar evidência transitória conforme `specs/006-perfis-publicos/quickstart.md` sem alterar dados de produção.
 - [ ] T044 [US4] Após existir o commit da Onda 3, registrar hash, limites Uploadthing, portões e evidência na linha da Onda 3 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US4 entrega conteúdo real para os perfis sem permitir edição cruzada.

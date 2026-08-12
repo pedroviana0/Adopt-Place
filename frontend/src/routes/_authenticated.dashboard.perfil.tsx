@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +11,9 @@ import { fetchPerfil, atualizarPerfil, type PerfilDTO } from "@/lib/data/usuario
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { uploadProfileImage, validateProfileImage } from "@/lib/data/profile-image-upload";
 
 export const Route = createFileRoute("/_authenticated/dashboard/perfil")({
   head: () => ({
@@ -22,9 +25,10 @@ export const Route = createFileRoute("/_authenticated/dashboard/perfil")({
   component: Page,
 });
 
-// Fields mirror the backend PATCH /api/perfil allowlist (.strict()). Photo
-// upload is intentionally absent: organization/foster profile photo is a pending
-// product decision (no Prisma field, no contract) — recorded, not invented.
+// Fields mirror the backend PATCH /api/perfil allowlist (.strict()). Images use
+// the separate Uploadthing contract and are never accepted by this form PATCH.
+const descriptionField = z.string().trim().max(500, "Use no máximo 500 caracteres");
+
 const orgSchema = z.object({
   razaoSocial: z.string().trim().min(2, "Informe a razão social").max(120),
   responsavelNome: z.string().trim().min(2, "Informe o responsável").max(120),
@@ -34,6 +38,7 @@ const orgSchema = z.object({
   cidade: z.string().trim().min(2, "Informe a cidade").max(80),
   estado: z.string().trim().length(2, "UF com 2 letras"),
   capacidadeMaxima: z.number().int().nonnegative().nullable().optional(),
+  descricao: descriptionField,
 });
 type OrgForm = z.infer<typeof orgSchema>;
 
@@ -45,6 +50,7 @@ const acoSchema = z.object({
   cidade: z.string().trim().min(2, "Informe a cidade").max(80),
   estado: z.string().trim().length(2, "UF com 2 letras"),
   capacidadeAtual: z.coerce.number().int().nonnegative(),
+  descricao: descriptionField,
 });
 type AcoForm = z.infer<typeof acoSchema>;
 
@@ -95,6 +101,58 @@ function Field({
   );
 }
 
+function ProfileImageEditor({ perfil }: { perfil: PerfilDTO }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const label = perfil.razaoSocial ?? perfil.nomeCompleto ?? "Perfil";
+
+  async function onFile(file?: File) {
+    if (!file) return;
+    const validationError = validateProfileImage(file);
+    if (validationError) return toast.error(validationError);
+    setUploading(true);
+    try {
+      await uploadProfileImage(file);
+      await queryClient.invalidateQueries({ queryKey: ["perfil"] });
+      toast.success("Imagem de perfil atualizada");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao enviar imagem");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  return (
+    <section className="mt-6 flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center">
+      <Avatar className="h-20 w-20 border">
+        {perfil.fotoUrl ? <AvatarImage src={perfil.fotoUrl} alt={`Imagem de ${label}`} /> : null}
+        <AvatarFallback className="text-xl font-semibold">{label.slice(0, 1).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="space-y-2">
+        <h2 className="font-medium">Imagem pública do perfil</h2>
+        <p className="text-sm text-muted-foreground">JPG, PNG ou WebP, com no máximo 4 MB.</p>
+        <input
+          ref={inputRef}
+          className="sr-only"
+          type="file"
+          accept="image/*"
+          onChange={(event) => void onFile(event.target.files?.[0])}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          {uploading ? "Enviando..." : perfil.fotoUrl ? "Trocar imagem" : "Adicionar imagem"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
   const queryClient = useQueryClient();
   const form = useForm<OrgForm>({
@@ -108,12 +166,14 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
       cidade: perfil.cidade ?? "",
       estado: perfil.estado ?? "",
       capacidadeMaxima: perfil.capacidadeMaxima ?? null,
+      descricao: perfil.descricao ?? "",
     },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await atualizarPerfil(values);
+      const { cidade: _cidade, estado: _estado, ...patch } = values;
+      await atualizarPerfil(patch);
       await queryClient.invalidateQueries({ queryKey: ["perfil"] });
       toast.success("Perfil atualizado");
       form.reset(values);
@@ -127,6 +187,7 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
       <h1 className="font-serif text-3xl font-semibold">Meu perfil</h1>
       <p className="mt-1 text-sm text-muted-foreground">Atualize seus dados de organização.</p>
 
+      <ProfileImageEditor perfil={perfil} />
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
         <section className="grid gap-4 rounded-xl border bg-card p-4 sm:grid-cols-2">
           <Field
@@ -170,10 +231,20 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
             <Input id="endereco" {...form.register("endereco")} />
           </Field>
           <Field id="cidade" label="Cidade" error={form.formState.errors.cidade?.message}>
-            <Input id="cidade" {...form.register("cidade")} />
+            <Input id="cidade" readOnly disabled {...form.register("cidade")} />
           </Field>
           <Field id="estado" label="Estado (UF)" error={form.formState.errors.estado?.message}>
-            <Input id="estado" maxLength={2} {...form.register("estado")} />
+            <Input id="estado" maxLength={2} readOnly disabled {...form.register("estado")} />
+          </Field>
+          <Field
+            id="descricao"
+            label="Descrição pública"
+            error={form.formState.errors.descricao?.message}
+          >
+            <Textarea id="descricao" rows={5} maxLength={500} {...form.register("descricao")} />
+            <p className="text-xs text-muted-foreground">
+              {form.watch("descricao").length}/500 caracteres
+            </p>
           </Field>
         </section>
 
@@ -202,12 +273,14 @@ function AcoProfile({ perfil }: { perfil: PerfilDTO }) {
       cidade: perfil.cidade ?? "",
       estado: perfil.estado ?? "",
       capacidadeAtual: perfil.capacidadeAtual ?? 0,
+      descricao: perfil.descricao ?? "",
     },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await atualizarPerfil(values);
+      const { cidade: _cidade, estado: _estado, ...patch } = values;
+      await atualizarPerfil(patch);
       await queryClient.invalidateQueries({ queryKey: ["perfil"] });
       toast.success("Perfil atualizado");
       form.reset(values);
@@ -221,6 +294,7 @@ function AcoProfile({ perfil }: { perfil: PerfilDTO }) {
       <h1 className="font-serif text-3xl font-semibold">Meu perfil</h1>
       <p className="mt-1 text-sm text-muted-foreground">Atualize seus dados de acolhedor.</p>
 
+      <ProfileImageEditor perfil={perfil} />
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
         <section className="grid gap-4 rounded-xl border bg-card p-4 sm:grid-cols-2">
           <Field
@@ -255,10 +329,20 @@ function AcoProfile({ perfil }: { perfil: PerfilDTO }) {
             <Input id="endereco" {...form.register("endereco")} />
           </Field>
           <Field id="cidade" label="Cidade" error={form.formState.errors.cidade?.message}>
-            <Input id="cidade" {...form.register("cidade")} />
+            <Input id="cidade" readOnly disabled {...form.register("cidade")} />
           </Field>
           <Field id="estado" label="Estado (UF)" error={form.formState.errors.estado?.message}>
-            <Input id="estado" maxLength={2} {...form.register("estado")} />
+            <Input id="estado" maxLength={2} readOnly disabled {...form.register("estado")} />
+          </Field>
+          <Field
+            id="descricao"
+            label="Descrição pública"
+            error={form.formState.errors.descricao?.message}
+          >
+            <Textarea id="descricao" rows={5} maxLength={500} {...form.register("descricao")} />
+            <p className="text-xs text-muted-foreground">
+              {form.watch("descricao").length}/500 caracteres
+            </p>
           </Field>
         </section>
 

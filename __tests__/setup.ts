@@ -127,11 +127,13 @@ vi.mock("@/lib/prisma", () => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
+      update: vi.fn(),
     },
     acolhedorIndependente: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
+      update: vi.fn(),
     },
     // Support both the array form `$transaction([p1, p2])` (public queries) and
     // the callback form `$transaction(async (tx) => ...)` used elsewhere.

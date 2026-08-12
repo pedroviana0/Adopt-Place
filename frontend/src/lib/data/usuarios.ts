@@ -103,6 +103,8 @@ export interface PerfilDTO {
   responsavelNome?: string;
   capacidadeMaxima?: number | null;
   capacidadeAtual?: number;
+  descricao?: string | null;
+  fotoUrl?: string | null;
 }
 
 export async function fetchPerfil(): Promise<PerfilDTO> {
