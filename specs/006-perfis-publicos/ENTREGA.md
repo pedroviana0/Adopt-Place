@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | iniciada em 2026-08-09 |
 | **Branch** | `006-perfis-publicos` (empilhada sobre `fix/guarda-de-porta-no-dev`, PR #121) |
-| **Status** | **EM ANDAMENTO** — Onda 0 concluída; Ondas 1–7 abertas |
+| **Status** | **EM ANDAMENTO** — Ondas 0–1 concluídas; Ondas 2–7 abertas |
 | **Spec** | [`spec.md`](spec.md) · **plano e mapa de fontes**: [`HANDOFF.md`](HANDOFF.md) |
 
 > **Este documento é preenchido enquanto a spec avança, não no fim.** Ao concluir cada onda,
@@ -20,7 +20,7 @@ de solicitação.
 
 | | História | Prioridade | Onda | Estado |
 |---|---|---|---|---|
-| US1 | Conhecer uma organização e seus animais | P1 | 1 | ☐ |
+| US1 | Conhecer uma organização e seus animais | P1 | 1 | ☑ |
 | US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☐ |
 | US3 | Encontrar organizações pelo nome | P2 | 5 | ☐ |
 | US4 | Manter o próprio perfil | P1 | 3 | ☐ |
@@ -34,7 +34,7 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | Onda | Escopo | Commits | Estado |
 |---|---|---|---|
 | 0 | Fundação de dados: `descricao`, `fotoUrl`, `razaoSocialNormalizada` + migration | `6f4ebf6` | ☑ |
-| 1 | Perfil público de organização + catálogo (US1) | — | ☐ |
+| 1 | Perfil público de organização + catálogo (US1) | `7031605` | ☑ |
 | 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | — | ☐ |
 | 3 | Manter o próprio perfil: descrição + imagem (US4) | — | ☐ |
 | 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | — | ☐ |
@@ -106,3 +106,23 @@ migrations pendentes de notificações, localização e Onda 0. O verificador en
 1 organização e 0 divergências. `npm run prisma:validate`, `npx tsc --noEmit`,
 `npm test` (299 testes), frontend `npx tsc --noEmit` e `npm run build` passaram.
 `routeTree.gen.ts` e `legacy/` permaneceram inalterados; seed não foi executado.
+
+### Onda 1 — perfil público de organização e catálogo (commit `7031605`)
+
+- `GET /api/perfis/organizacao/[id]`: perfil institucional estreito para organização
+  ativa, com 400 seguro e 404 indistinguível para ausente ou desativada.
+- `lib/queries/public-profiles.ts`: catálogo limitado aos animais `DISPONIVEL` da
+  própria organização, com filtros de espécie, raça, porte e sexo e paginação de 30.
+- `frontend/src/routes/organizacoes.$organizacaoId.tsx` e `ProfileCatalog.tsx`: jornada
+  pública responsiva, filtros reversíveis, raça condicional e estados de carregamento,
+  vazio e erro.
+- Testes contract-first provaram allowlist sem CPF, CNPJ, e-mail, telefone,
+  coordenadas ou identificadores internos. A remoção temporária do predicado de conta
+  ativa fez o teste de autorização falhar e foi revertida antes do commit.
+
+**Validação factual:** backend `npx tsc --noEmit` e `npm test` (307 testes), frontend
+`npx tsc --noEmit` e `npm run build` passaram. A interface foi homologada anonimamente
+em 375, 1024 e 1440 px, sem overflow horizontal, incluindo filtro/reversão, raça
+condicional, catálogo próprio e estado de perfil inexistente. `routeTree.gen.ts` foi
+versionado porque a onda criou rota; `legacy/` permaneceu inalterado e seed não foi
+executado.

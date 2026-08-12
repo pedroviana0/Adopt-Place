@@ -80,7 +80,7 @@ proibido.
 - [X] T019 [US1] Criar rota pública responsiva em `frontend/src/routes/organizacoes.$organizacaoId.tsx` com `page-canvas`, endereço institucional, descrição/imagem com fallback e links aos animais (FR-002, FR-007, NFR-001).
 - [X] T020 [US1] Executar o portão completo da Onda 1; revisar e versionar a nova rota em `frontend/src/routeTree.gen.ts`; confirmar testes vermelhos de T012/T013 agora verdes.
 - [X] T021 [US1] Criar commit verificável da Onda 1 contendo `lib/schemas/public-profiles.ts`, `lib/queries/public-profiles.ts`, `app/api/perfis/organizacao/[id]/route.ts`, testes e arquivos frontend da organização.
-- [ ] T022 [US1] Após existir o commit da Onda 1, registrar hash, contrato entregue, portões e evidências na linha da Onda 1 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
+- [X] T022 [US1] Após existir o commit da Onda 1, registrar hash, contrato entregue, portões e evidências na linha da Onda 1 em `specs/006-perfis-publicos/ENTREGA.md` e criar commit documental subsequente desse registro.
 
 **Checkpoint**: US1 funciona anonimamente e isoladamente antes da navegação dos anúncios.
 
