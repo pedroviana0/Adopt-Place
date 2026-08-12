@@ -39,6 +39,8 @@ const organizationProfile = {
   organizacao: {
     id: "org-1",
     razaoSocial: "Cia Animal",
+    descricao: "Resgate e cuidado animal.",
+    fotoUrl: "https://cdn.example.com/org.jpg",
     cnpj: "12345678000199",
     telefone: "24999999999",
     endereco: "Rua A",
@@ -120,6 +122,8 @@ describe("profile API", () => {
         email: "org@example.com",
         id: "org-1",
         razaoSocial: "Cia Animal",
+        descricao: "Resgate e cuidado animal.",
+        fotoUrl: "https://cdn.example.com/org.jpg",
         cnpj: "12345678000199",
         telefone: "24999999999",
         endereco: "Rua A",
@@ -135,7 +139,6 @@ describe("profile API", () => {
       "senhaHash",
       "motivoAdocao",
       "triagemConcluida",
-      "fotoUrl",
       "usuarioId",
     ]) {
       expect(serialized).not.toContain(forbidden);
@@ -206,10 +209,108 @@ describe("profile API", () => {
       expect.objectContaining({
         where: { id: "user-1" },
         data: {
-          organizacao: { update: { razaoSocial: "Novo nome" } },
+          organizacao: {
+            update: {
+              razaoSocial: "Novo nome",
+              razaoSocialNormalizada: "novo nome",
+            },
+          },
         },
       }),
     );
+  });
+
+  it("normaliza a razao social na mesma escrita do PATCH", async () => {
+    mockedGetServerSession.mockResolvedValue(session());
+    findUser.mockResolvedValue(organizationProfile as never);
+    updateUser.mockResolvedValue({
+      ...organizationProfile,
+      organizacao: {
+        ...organizationProfile.organizacao,
+        razaoSocial: "Proteção à Vida",
+      },
+    } as never);
+
+    const response = await patchProfile(
+      new Request("http://localhost/api/perfil", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ razaoSocial: "Proteção à Vida" }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          organizacao: {
+            update: expect.objectContaining({
+              razaoSocial: "Proteção à Vida",
+              razaoSocialNormalizada: "protecao a vida",
+            }),
+          },
+        },
+      }),
+    );
+  });
+
+  it("aceita descricao com ate 500 caracteres e transforma vazio em null", async () => {
+    mockedGetServerSession.mockResolvedValue(session());
+    findUser.mockResolvedValue(organizationProfile as never);
+    updateUser.mockResolvedValue(organizationProfile as never);
+
+    const limite = "a".repeat(500);
+    const accepted = await patchProfile(
+      new Request("http://localhost/api/perfil", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ descricao: limite }),
+      }),
+    );
+
+    expect(accepted.status).toBe(200);
+    expect(updateUser).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: { organizacao: { update: { descricao: limite } } },
+      }),
+    );
+
+    const cleared = await patchProfile(
+      new Request("http://localhost/api/perfil", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ descricao: "   " }),
+      }),
+    );
+
+    expect(cleared.status).toBe(200);
+    expect(updateUser).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: { organizacao: { update: { descricao: null } } },
+      }),
+    );
+  });
+
+  it("rejeita descricao acima de 500 e a coluna derivada enviada pelo cliente", async () => {
+    mockedGetServerSession.mockResolvedValue(session());
+    findUser.mockResolvedValue(organizationProfile as never);
+
+    for (const body of [
+      { descricao: "a".repeat(501) },
+      { razaoSocialNormalizada: "valor-forjado" },
+    ]) {
+      const response = await patchProfile(
+        new Request("http://localhost/api/perfil", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+      );
+
+      expect(response.status).toBe(400);
+    }
+
+    expect(updateUser).not.toHaveBeenCalled();
   });
 
   it("returns 401 without an authenticated session", async () => {

@@ -36,6 +36,12 @@ describe("normalizarNomeMunicipio", () => {
     const uma = normalizarNomeMunicipio("São Gonçalo do Amarante");
     expect(normalizarNomeMunicipio(uma)).toBe(uma);
   });
+
+  it("normaliza razao social com a mesma regra compartilhada", () => {
+    expect(normalizarNomeMunicipio("  PROTEÇÃO   À VIDA  ")).toBe(
+      "protecao a vida",
+    );
+  });
 });
 
 describe("normalizarCep", () => {

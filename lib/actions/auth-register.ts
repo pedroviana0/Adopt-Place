@@ -8,6 +8,7 @@ import {
   camposDeLocalizacao,
   resolverLocalizacaoOuFalhar,
 } from "@/lib/localizacao";
+import { normalizarNomeMunicipio } from "@/lib/municipios";
 import { prisma } from "@/lib/prisma";
 import {
   adopterRegistrationSchema,
@@ -181,6 +182,7 @@ export async function createOrganizationAccount(
         organizacao: {
           create: {
             razaoSocial: input.razaoSocial,
+            razaoSocialNormalizada: normalizarNomeMunicipio(input.razaoSocial),
             cnpj: input.cnpj,
             telefone: input.telefone,
             endereco: input.endereco,
