@@ -289,6 +289,20 @@ describe("profile API", () => {
         data: { organizacao: { update: { descricao: null } } },
       }),
     );
+
+    const explicitlyCleared = await patchProfile(
+      new Request("http://localhost/api/perfil", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ descricao: null }),
+      }),
+    );
+    expect(explicitlyCleared.status).toBe(200);
+    expect(updateUser).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: { organizacao: { update: { descricao: null } } },
+      }),
+    );
   });
 
   it("rejeita descricao acima de 500 e a coluna derivada enviada pelo cliente", async () => {
@@ -298,6 +312,8 @@ describe("profile API", () => {
     for (const body of [
       { descricao: "a".repeat(501) },
       { razaoSocialNormalizada: "valor-forjado" },
+      { fotoUrl: "https://example.com/forjada.jpg" },
+      { profileId: "org-alheia" },
     ]) {
       const response = await patchProfile(
         new Request("http://localhost/api/perfil", {

@@ -34,14 +34,14 @@ export function PublicAnimalCard({ animal }: { animal: PublicAnimalSummary }) {
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <Link
-      to="/animais/$animalId"
-      params={{ animalId: animal.id }}
-      className="group block h-full rounded-xl"
-      aria-label={`Conhecer ${animal.nome}`}
-    >
+    <div className="group h-full rounded-xl">
       <Card className="h-full overflow-hidden py-0 transition-colors group-hover:border-primary group-focus-visible:border-primary">
-        <div className="aspect-square w-full overflow-hidden bg-muted">
+        <Link
+          to="/animais/$animalId"
+          params={{ animalId: animal.id }}
+          className="block aspect-square w-full overflow-hidden bg-muted"
+          aria-label={`Conhecer ${animal.nome}`}
+        >
           {animal.fotoPrincipal && !imageFailed ? (
             <img
               src={animal.fotoPrincipal}
@@ -53,17 +53,32 @@ export function PublicAnimalCard({ animal }: { animal: PublicAnimalSummary }) {
           ) : (
             <AnimalImagePlaceholder animalName={animal.nome} failed={imageFailed} />
           )}
-        </div>
+        </Link>
         <CardContent className="space-y-2 p-4">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="min-w-0 break-words font-serif text-lg font-semibold">{animal.nome}</h3>
+            <h3 className="min-w-0 break-words font-serif text-lg font-semibold">
+              <Link to="/animais/$animalId" params={{ animalId: animal.id }}>
+                {animal.nome}
+              </Link>
+            </h3>
             {animal.idadeEstimada && (
               <span className="shrink-0 text-xs text-muted-foreground">{animal.idadeEstimada}</span>
             )}
           </div>
-          {animal.responsavel && (
+          {animal.responsavel && animal.responsavelId && animal.responsavelTipo ? (
+            <a
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+              href={
+                animal.responsavelTipo === "ORGANIZACAO"
+                  ? `/organizacoes/${animal.responsavelId}`
+                  : `/acolhedores/${animal.responsavelId}`
+              }
+            >
+              {animal.responsavel}
+            </a>
+          ) : animal.responsavel ? (
             <p className="text-xs text-muted-foreground">{animal.responsavel}</p>
-          )}
+          ) : null}
           {animal.cidade && <p className="text-xs text-muted-foreground">{animal.cidade}</p>}
           <div className="flex flex-wrap gap-1 pt-1">
             {animal.tags.slice(0, 5).map((tag) => (
@@ -77,6 +92,6 @@ export function PublicAnimalCard({ animal }: { animal: PublicAnimalSummary }) {
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </div>
   );
 }

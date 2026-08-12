@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Home, ImageOff, MapPin } from "lucide-react";
 
 import { descreverAnimal } from "@/lib/animal-descricao";
@@ -21,6 +20,8 @@ export interface AnimalDoCartao {
   cidade: string | null;
   fotos?: string[];
   responsavel?: { tipo: "ORGANIZACAO" | "ACOLHEDOR"; nome: string | null };
+  responsavelId?: string;
+  responsavelTipo?: "ORGANIZACAO" | "ACOLHEDOR";
 }
 
 /** Iniciais para o círculo, no mesmo padrão do menu de usuário. */
@@ -223,10 +224,13 @@ export function AnimalSwipeCard({
             )}
           </p>
 
-          {animal.responsavel && animal.id && (
-            <Link
-              to="/animais/$animalId"
-              params={{ animalId: animal.id }}
+          {animal.responsavel && animal.responsavelId && animal.responsavelTipo && (
+            <a
+              href={
+                animal.responsavelTipo === "ORGANIZACAO"
+                  ? `/organizacoes/${animal.responsavelId}`
+                  : `/acolhedores/${animal.responsavelId}`
+              }
               // A área do texto ignora ponteiro para não atrapalhar o arraste;
               // este link precisa reativá-lo e não deixar o toque virar swipe.
               onPointerDown={semArrastar}
@@ -245,7 +249,7 @@ export function AnimalSwipeCard({
               <span className="max-w-[13rem] truncate">
                 {animal.responsavel.nome ?? "Acolhedor independente"}
               </span>
-            </Link>
+            </a>
           )}
         </div>
       </div>

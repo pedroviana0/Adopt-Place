@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getShowcaseAnimals } from "@/lib/queries/animal-showcase";
 import { parseShowcaseFilters, type ShowcaseSearchParams } from "@/lib/schemas/showcase";
 import { getAnimalTags } from "@/lib/tags";
+import { formatPublicFosterName } from "@/lib/public-profile-name";
 
 // Public showcase list contract (SHOWCASE-01 / Issue #26): GET /api/animais.
 // Public, no auth. Returns only allowlisted summary fields; private
@@ -30,7 +31,11 @@ export async function GET(request: Request) {
     especie: animal.especie?.nome ?? null,
     raca: animal.raca?.nome ?? null,
     cidade: animal.organizacao?.cidade ?? animal.acolhedor?.cidade ?? null,
-    responsavel: animal.organizacao?.razaoSocial ?? animal.acolhedor?.nomeCompleto ?? null,
+    responsavel:
+      animal.organizacao?.razaoSocial ??
+      (animal.acolhedor ? formatPublicFosterName(animal.acolhedor.nomeCompleto) : null),
+    responsavelId: animal.organizacao?.id ?? animal.acolhedor?.id ?? null,
+    responsavelTipo: animal.organizacao ? "ORGANIZACAO" : animal.acolhedor ? "ACOLHEDOR" : null,
     tags: getAnimalTags(animal),
   }));
 

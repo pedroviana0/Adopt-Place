@@ -100,10 +100,11 @@ async function createDemoUsers(): Promise<void> {
       ativo: true,
       organizacao: {
         create: {
-          razaoSocial: "Organizacao de Teste AdoptPlace",
+          razaoSocial: "Organização de Teste AdoptPlace",
           razaoSocialNormalizada: normalizarNomeMunicipio(
-            "Organizacao de Teste AdoptPlace",
+            "Organização de Teste AdoptPlace",
           ),
+          descricao: "Proteção responsável e adoção consciente em Volta Redonda.",
           cnpj: "10000000000100",
           telefone: "(24) 90000-0001",
           endereco: "Rua Cem, 100",
@@ -130,6 +131,7 @@ async function createDemoUsers(): Promise<void> {
           telefone: "(24) 90000-0005",
           endereco: "Avenida Albino Rodrigues Neves, 300",
           responsavelNome: "Coordenacao do Abrigo",
+          descricao: "Abrigo regional dedicado ao cuidado e à adoção responsável.",
           ...(await localizacaoDe("resende")),
         },
       },
@@ -148,6 +150,7 @@ async function createDemoUsers(): Promise<void> {
           cpf: "10000000000",
           telefone: "(24) 90000-0002",
           endereco: "Rua Vinte e Um, 45",
+          descricao: "Acolhimento familiar temporário para cães e gatos.",
           ...(await localizacaoDe("barraMansa")),
         },
       },
@@ -166,6 +169,7 @@ async function createDemoUsers(): Promise<void> {
           cpf: "40000000000",
           telefone: "(24) 90000-0006",
           endereco: "Estrada do Contorno, 88",
+          descricao: "Lar temporário independente na Costa Verde.",
           ...(await localizacaoDe("angraDosReis")),
         },
       },

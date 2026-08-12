@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getPublicAnimalById } from "@/lib/queries/public-animal";
 import { getAnimalTags } from "@/lib/tags";
+import { formatPublicFosterName } from "@/lib/public-profile-name";
 
 // Public animal detail contract (SHOWCASE-01 / Issue #26): GET /api/animais/[id].
 // Public, no auth. Excludes responsible/adopter private data, contacts, and
@@ -20,8 +21,14 @@ export async function GET(
     );
   }
 
-  const responsavel =
-    animal.organizacao?.razaoSocial ?? animal.acolhedor?.nomeCompleto ?? null;
+  const responsavel = animal.organizacao?.razaoSocial ??
+    (animal.acolhedor ? formatPublicFosterName(animal.acolhedor.nomeCompleto) : null);
+  const responsavelId = animal.organizacao?.id ?? animal.acolhedor?.id ?? null;
+  const responsavelTipo = animal.organizacao
+    ? "ORGANIZACAO"
+    : animal.acolhedor
+      ? "ACOLHEDOR"
+      : null;
   const cidade = animal.organizacao?.cidade ?? animal.acolhedor?.cidade ?? null;
 
   return NextResponse.json({
@@ -48,6 +55,8 @@ export async function GET(
       dataRegistro: registro.dataRegistro,
     })),
     responsavel,
+    responsavelId,
+    responsavelTipo,
     cidade,
     tags: getAnimalTags(animal),
     relacionados: animal.relacionadosA.map(({ animalRelacionado }) => ({
@@ -65,6 +74,18 @@ export async function GET(
         animalRelacionado.organizacao?.cidade ??
         animalRelacionado.acolhedor?.cidade ??
         null,
+      responsavel:
+        animalRelacionado.organizacao?.razaoSocial ??
+        (animalRelacionado.acolhedor
+          ? formatPublicFosterName(animalRelacionado.acolhedor.nomeCompleto)
+          : null),
+      responsavelId:
+        animalRelacionado.organizacao?.id ?? animalRelacionado.acolhedor?.id ?? null,
+      responsavelTipo: animalRelacionado.organizacao
+        ? "ORGANIZACAO"
+        : animalRelacionado.acolhedor
+          ? "ACOLHEDOR"
+          : null,
       tags: getAnimalTags(animalRelacionado),
     })),
   });

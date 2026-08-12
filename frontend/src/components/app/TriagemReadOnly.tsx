@@ -2,7 +2,7 @@ import type { OwnerRequestAdotante } from "@/lib/data/solicitacoes";
 import { tipoMoradiaLabel } from "@/lib/domain/enums";
 
 interface Props {
-  adotante: OwnerRequestAdotante;
+  adotante: Omit<OwnerRequestAdotante, "telefone"> & { telefone?: string };
 }
 
 const yn = (v: boolean | null | undefined) => (v === true ? "Sim" : v === false ? "Não" : "—");
@@ -21,7 +21,7 @@ export function TriagemReadOnly({ adotante }: Props) {
       <Section title="Identificação">
         <Row label="Nome" value={adotante.nomeCompleto} />
         <Row label="Cidade" value={`${adotante.cidade}/${adotante.estado}`} />
-        <Row label="Telefone" value={adotante.telefone} />
+        {adotante.telefone && <Row label="Telefone" value={adotante.telefone} />}
       </Section>
       <Section title="Motivação e perfil buscado">
         <Row label="Motivo da adoção" value={tx(adotante.motivoAdocao)} />

@@ -18,7 +18,7 @@ const showcaseAnimal = {
   especie: { nome: "Cachorro" },
   raca: { nome: "SRD" },
   registrosSaude: [{ tipo: "VACINA" }],
-  organizacao: { razaoSocial: "Cia Animal VR", cidade: "Volta Redonda" },
+  organizacao: { id: "org-profile-1", razaoSocial: "Cia Animal VR", cidade: "Volta Redonda" },
   acolhedor: null,
 };
 
@@ -39,7 +39,7 @@ const detailAnimal = {
   registrosSaude: [
     { id: "s1", tipo: "VACINA", dataRegistro: new Date("2026-01-02T00:00:00.000Z") },
   ],
-  organizacao: { razaoSocial: "Cia Animal VR", cidade: "Volta Redonda" },
+  organizacao: { id: "org-profile-1", razaoSocial: "Cia Animal VR", cidade: "Volta Redonda" },
   acolhedor: null,
   relacionadosA: [],
 };
@@ -92,6 +92,8 @@ describe("public showcase API", () => {
     expect(body.animals[0]).toMatchObject({
       id: "a1",
       responsavel: "Cia Animal VR",
+      responsavelId: "org-profile-1",
+      responsavelTipo: "ORGANIZACAO",
       cidade: "Volta Redonda",
       fotoPrincipal: "/luna.jpg",
     });
@@ -111,6 +113,11 @@ describe("public showcase API", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
+    expect(body).toMatchObject({
+      responsavel: "Cia Animal VR",
+      responsavelId: "org-profile-1",
+      responsavelTipo: "ORGANIZACAO",
+    });
     expect(body.resumoSaude).toEqual([
       { id: "s1", tipo: "VACINA", dataRegistro: "2026-01-02T00:00:00.000Z" },
     ]);

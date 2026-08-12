@@ -26,7 +26,7 @@ function animal(
     especie: { nome: "Gato" },
     raca: null,
     registrosSaude: [],
-    organizacao: { cidade, estado: "RJ", ...coord },
+    organizacao: { id: `org-${id}`, cidade, estado: "RJ", razaoSocial: "Organização segura", ...coord },
     acolhedor: null,
     ...extras,
   };
@@ -144,6 +144,7 @@ describe("getFeelsCards", () => {
           estado: "RJ",
           ...voltaRedonda,
           razaoSocial: "Abrigo Serra da Bocaina",
+          id: "org-profile-1",
         },
       }),
     ] as never);
@@ -154,6 +155,10 @@ describe("getFeelsCards", () => {
       tipo: "ORGANIZACAO",
       nome: "Abrigo Serra da Bocaina",
     });
+    expect(cartoes[0]).toMatchObject({
+      responsavelId: "org-profile-1",
+      responsavelTipo: "ORGANIZACAO",
+    });
   });
 
   it("nunca revela o nome do acolhedor, que e pessoa fisica", async () => {
@@ -161,6 +166,7 @@ describe("getFeelsCards", () => {
       animal("acolhido", "Do acolhedor", "Barra Mansa", { latitude: -22.5481, longitude: -44.1752 }, {
         organizacao: null,
         acolhedor: {
+          id: "foster-profile-1",
           cidade: "Barra Mansa",
           estado: "RJ",
           latitude: -22.5481,
@@ -172,6 +178,10 @@ describe("getFeelsCards", () => {
     const { cartoes } = await getFeelsCards(voltaRedonda, filtros(), { animalIds: [] });
 
     expect(cartoes[0].responsavel).toEqual({ tipo: "ACOLHEDOR", nome: null });
+    expect(cartoes[0]).toMatchObject({
+      responsavelId: "foster-profile-1",
+      responsavelTipo: "ACOLHEDOR",
+    });
   });
 
   it("nao pede o nome do acolhedor ao banco: o que nao e lido nao vaza", async () => {

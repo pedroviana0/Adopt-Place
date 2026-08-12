@@ -29,6 +29,7 @@ const selecaoAnimal = {
   registrosSaude: { select: { tipo: true } },
   organizacao: {
     select: {
+      id: true,
       cidade: true,
       estado: true,
       latitude: true,
@@ -36,9 +37,7 @@ const selecaoAnimal = {
       razaoSocial: true,
     },
   },
-  // Nome do acolhedor NAO entra na selecao: e pessoa fisica, e o produto
-  // decidiu identifica-lo so pelo papel. O que nao e lido nao vaza.
-  acolhedor: { select: { cidade: true, estado: true, latitude: true, longitude: true } },
+  acolhedor: { select: { id: true, cidade: true, estado: true, latitude: true, longitude: true } },
 };
 
 function filtroDeEspecie(especie: FeelsFilters["especie"]): Prisma.AnimalWhereInput {
@@ -87,6 +86,8 @@ export type CartaoDoFeels = {
    * social; acolhedor e pessoa fisica e aparece so pelo papel, sem nome.
    */
   responsavel: { tipo: "ORGANIZACAO" | "ACOLHEDOR"; nome: string | null };
+  responsavelId: string;
+  responsavelTipo: "ORGANIZACAO" | "ACOLHEDOR";
 };
 
 export type ResultadoDoFeels = {
@@ -168,6 +169,8 @@ export async function getFeelsCards(
       responsavel: animal.organizacao
         ? { tipo: "ORGANIZACAO" as const, nome: animal.organizacao.razaoSocial }
         : { tipo: "ACOLHEDOR" as const, nome: null },
+      responsavelId: (animal.organizacao ?? animal.acolhedor)!.id,
+      responsavelTipo: animal.organizacao ? "ORGANIZACAO" as const : "ACOLHEDOR" as const,
     })),
     cidades: [...porCidade.values()].sort((a, b) => a.distanciaKm - b.distanciaKm),
   };

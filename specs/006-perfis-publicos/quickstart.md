@@ -145,6 +145,10 @@ Inspect vitrine, detail, favorites and Feels:
 4. No adopter or foster can appear, even with matching names.
 5. Empty state points to the animal showcase.
 
+Onda 5 homologada com os dados existentes usando `ORGANIZACAO`, estado vazio e navegação ao
+perfil. A prova integrada específica de nome acentuado continua reservada à Onda 7, depois do
+seed acentuado previsto; nenhum seed foi executado nesta onda.
+
 ### Adopter profile access matrix
 
 Use the same target adopter for all rows and inspect the network response, not only rendered UI.
@@ -163,6 +167,17 @@ Use the same target adopter for all rows and inspect the network response, not o
 | ADMIN | N/A | `RESTRICTED` | present | absent |
 
 The adopter UI must explain who else can view the restricted data.
+
+### Evidência integrada da Onda 6 (2026-08-12)
+
+- Perfil público do acolhedor homologado sem autenticação em
+  `/acolhedores/cmsfg2tmc00047gy5lm4q3isg`.
+- Estado real sem descrição, imagem e animais confirmou fallbacks, município/UF e nome
+  derivado `Acolhedor T.`, sem nome completo ou endereço.
+- Fixture local temporária confirmou descrição, imagem, animal owner-scoped e link do card de
+  volta ao mesmo acolhedor; todos os valores do acolhedor e do animal foram restaurados após o
+  teste.
+- O catálogo reutilizado identifica corretamente o perfil de acolhedor nos textos acessíveis.
 
 ### Own profile maintenance and image
 

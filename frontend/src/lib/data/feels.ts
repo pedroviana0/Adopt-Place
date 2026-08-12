@@ -15,6 +15,8 @@ export interface CartaoDoFeels {
   fotos: string[];
   tags: PublicAnimalTag[];
   responsavel: { tipo: "ORGANIZACAO" | "ACOLHEDOR"; nome: string | null };
+  responsavelId: string;
+  responsavelTipo: "ORGANIZACAO" | "ACOLHEDOR";
 }
 
 export interface CidadeNoAlcance {

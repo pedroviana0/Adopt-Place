@@ -6,6 +6,7 @@ import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 
 import { persistAnimalPhotoUpload } from "@/lib/actions/fotos";
+import { getServerSession } from "@/lib/auth";
 import {
   getResponsibleContext,
   ownsAnimal,
@@ -36,6 +37,103 @@ type AnimalPhotoFileDescriptor = {
   size: number;
   type: string;
 };
+
+const profileImageInputSchema = z.object({}).strict();
+export const MAX_PROFILE_IMAGE_BYTES = 4 * 1024 * 1024;
+
+type ProfileImageMetadata = {
+  userId: string;
+  responsavelId: string;
+  tipoPerfil: ResponsibleRole;
+};
+
+export async function authorizeProfileImageUpload(
+  input: unknown,
+  files: readonly AnimalPhotoFileDescriptor[],
+): Promise<ProfileImageMetadata> {
+  if (!profileImageInputSchema.safeParse(input).success || files.length !== 1) {
+    throw new UploadThingError("Bad Request");
+  }
+  if (!files[0].type.startsWith("image/")) {
+    throw new UploadThingError("Apenas imagens sao permitidas");
+  }
+  if (files[0].size > MAX_PROFILE_IMAGE_BYTES) {
+    throw new UploadThingError("A imagem deve ter no maximo 4 MB");
+  }
+
+  const session = await getServerSession();
+  if (!session?.user?.id) throw new UploadThingError("Unauthorized");
+  if (!session.user.ativo) throw new UploadThingError("Forbidden");
+  if (
+    session.user.tipoPerfil !== TipoPerfil.ORGANIZACAO &&
+    session.user.tipoPerfil !== TipoPerfil.ACOLHEDOR
+  ) {
+    throw new UploadThingError("Forbidden");
+  }
+
+  const user = await prisma.usuario.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      ativo: true,
+      tipoPerfil: true,
+      organizacao: { select: { id: true } },
+      acolhedor: { select: { id: true } },
+    },
+  });
+  const responsavelId =
+    user?.tipoPerfil === TipoPerfil.ORGANIZACAO
+      ? user.organizacao?.id
+      : user?.tipoPerfil === TipoPerfil.ACOLHEDOR
+        ? user.acolhedor?.id
+        : null;
+  if (!user?.ativo || !responsavelId || user.tipoPerfil !== session.user.tipoPerfil) {
+    throw new UploadThingError("Forbidden");
+  }
+
+  return { userId: user.id, tipoPerfil: user.tipoPerfil, responsavelId };
+}
+
+export async function persistProfileImageUpload(
+  metadata: ProfileImageMetadata,
+  file: { ufsUrl: string },
+) {
+  const user = await prisma.usuario.findUnique({
+    where: { id: metadata.userId },
+    select: {
+      id: true,
+      ativo: true,
+      tipoPerfil: true,
+      organizacao: { select: { id: true } },
+      acolhedor: { select: { id: true } },
+    },
+  });
+  const currentProfileId =
+    user?.tipoPerfil === TipoPerfil.ORGANIZACAO
+      ? user.organizacao?.id
+      : user?.tipoPerfil === TipoPerfil.ACOLHEDOR
+        ? user.acolhedor?.id
+        : null;
+  if (
+    !user?.ativo ||
+    user.tipoPerfil !== metadata.tipoPerfil ||
+    currentProfileId !== metadata.responsavelId
+  ) {
+    throw new UploadThingError("Forbidden");
+  }
+
+  return metadata.tipoPerfil === TipoPerfil.ORGANIZACAO
+    ? prisma.organizacao.update({
+        where: { id: metadata.responsavelId },
+        data: { fotoUrl: file.ufsUrl },
+        select: { fotoUrl: true },
+      })
+    : prisma.acolhedorIndependente.update({
+        where: { id: metadata.responsavelId },
+        data: { fotoUrl: file.ufsUrl },
+        select: { fotoUrl: true },
+      });
+}
 
 export async function authorizeAnimalPhotoUpload(
   input: unknown,
@@ -210,6 +308,12 @@ export async function persistHealthDocumentUpload(
 }
 
 export const uploadRouter = {
+  profileImage: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .input(profileImageInputSchema)
+    .middleware(async ({ files, input }) => authorizeProfileImageUpload(input, files))
+    .onUploadComplete(async ({ metadata, file }) => ({
+      profileImage: await persistProfileImageUpload(metadata, { ufsUrl: file.ufsUrl }),
+    })),
   animalPhoto: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
     .input(animalPhotoInputSchema)
     .middleware(async ({ files, input }) => {

@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | iniciada em 2026-08-09 |
 | **Branch** | `006-perfis-publicos` (empilhada sobre `fix/guarda-de-porta-no-dev`, PR #121) |
-| **Status** | **EM ANDAMENTO** — Onda 0 concluída; Ondas 1–7 abertas |
+| **Status** | **CONCLUÍDA** — Ondas 0–7 entregues e portão final verde |
 | **Spec** | [`spec.md`](spec.md) · **plano e mapa de fontes**: [`HANDOFF.md`](HANDOFF.md) |
 
 > **Este documento é preenchido enquanto a spec avança, não no fim.** Ao concluir cada onda,
@@ -20,12 +20,12 @@ de solicitação.
 
 | | História | Prioridade | Onda | Estado |
 |---|---|---|---|---|
-| US1 | Conhecer uma organização e seus animais | P1 | 1 | ☐ |
-| US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☐ |
-| US3 | Encontrar organizações pelo nome | P2 | 5 | ☐ |
-| US4 | Manter o próprio perfil | P1 | 3 | ☐ |
-| US5 | Avaliar um adotante com a triagem | P1 | 4 | ☐ |
-| US6 | Perfil de acolhedor independente | P3 | 6 | ☐ |
+| US1 | Conhecer uma organização e seus animais | P1 | 1 | ☑ |
+| US2 | Chegar ao perfil a partir do anúncio | P1 | 2 | ☑ |
+| US3 | Encontrar organizações pelo nome | P2 | 5 | ☑ |
+| US4 | Manter o próprio perfil | P1 | 3 | ☑ |
+| US5 | Avaliar um adotante com a triagem | P1 | 4 | ☑ |
+| US6 | Perfil de acolhedor independente | P3 | 6 | ☑ |
 
 ## 2. Ondas de execução
 
@@ -34,13 +34,13 @@ O plano completo, com justificativa de cada onda, está em [`HANDOFF.md`](HANDOF
 | Onda | Escopo | Commits | Estado |
 |---|---|---|---|
 | 0 | Fundação de dados: `descricao`, `fotoUrl`, `razaoSocialNormalizada` + migration | `6f4ebf6` | ☑ |
-| 1 | Perfil público de organização + catálogo (US1) | — | ☐ |
-| 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | — | ☐ |
-| 3 | Manter o próprio perfil: descrição + imagem (US4) | — | ☐ |
-| 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | — | ☐ |
-| 5 | Busca por nome sobre coluna normalizada (US3) | — | ☐ |
-| 6 | Perfil do acolhedor (US6) | — | ☐ |
-| 7 | Dados de teste com acento + homologação na tela | — | ☐ |
+| 1 | Perfil público de organização + catálogo (US1) | `7031605` | ☑ |
+| 2 | Chegar pelo anúncio: `responsavelId`/`responsavelTipo` nos DTOs (US2) | `3b8b935` | ☑ |
+| 3 | Manter o próprio perfil: descrição + imagem (US4) | `aa6e44f` | ☑ |
+| 4 | Triagem e endereço no público restrito (US5) — núcleo de CR-007 | `0a1b7dd` | ☑ |
+| 5 | Busca por nome sobre coluna normalizada (US3) | `f0e36b3` | ☑ |
+| 6 | Perfil do acolhedor (US6) | `3d8486c` | ☑ |
+| 7 | Dados de teste com acento + homologação na tela | `b1fc15b` | ☑ |
 
 ## 3. Decisões que não se reabrem
 
@@ -73,7 +73,8 @@ Feitas em 2026-08-09, contra o banco real. Detalhe em [`HANDOFF.md`](HANDOFF.md)
 
 ## 5. O que a spec previa e não foi entregue
 
-*(preencher ao fechar a branch)*
+Nenhum requisito funcional da spec ficou aberto. A validação visual detalhada e os comandos
+executados estão registrados em `evidencias/onda-7.md`.
 
 ## 6. Armadilhas descobertas nesta spec
 
@@ -106,3 +107,135 @@ migrations pendentes de notificações, localização e Onda 0. O verificador en
 1 organização e 0 divergências. `npm run prisma:validate`, `npx tsc --noEmit`,
 `npm test` (299 testes), frontend `npx tsc --noEmit` e `npm run build` passaram.
 `routeTree.gen.ts` e `legacy/` permaneceram inalterados; seed não foi executado.
+
+### Onda 1 — perfil público de organização e catálogo (commit `7031605`)
+
+- `GET /api/perfis/organizacao/[id]`: perfil institucional estreito para organização
+  ativa, com 400 seguro e 404 indistinguível para ausente ou desativada.
+- `lib/queries/public-profiles.ts`: catálogo limitado aos animais `DISPONIVEL` da
+  própria organização, com filtros de espécie, raça, porte e sexo e paginação de 30.
+- `frontend/src/routes/organizacoes.$organizacaoId.tsx` e `ProfileCatalog.tsx`: jornada
+  pública responsiva, filtros reversíveis, raça condicional e estados de carregamento,
+  vazio e erro.
+- Testes contract-first provaram allowlist sem CPF, CNPJ, e-mail, telefone,
+  coordenadas ou identificadores internos. A remoção temporária do predicado de conta
+  ativa fez o teste de autorização falhar e foi revertida antes do commit.
+
+**Validação factual:** backend `npx tsc --noEmit` e `npm test` (307 testes), frontend
+`npx tsc --noEmit` e `npm run build` passaram. A interface foi homologada anonimamente
+em 375, 1024 e 1440 px, sem overflow horizontal, incluindo filtro/reversão, raça
+condicional, catálogo próprio e estado de perfil inexistente. `routeTree.gen.ts` foi
+versionado porque a onda criou rota; `legacy/` permaneceu inalterado e seed não foi
+executado.
+
+### Onda 2 — navegação pelo responsável nos anúncios (commit `3b8b935`)
+
+- Vitrine, detalhe, favoritos e Feels agora incluem `responsavelId` e
+  `responsavelTipo`, usando o ID opaco da organização ou acolhedor e nunca `Usuario.id`.
+- Os selects Prisma permanecem estreitos; o Feels continua sem nome completo de
+  acolhedor, endereço, contatos ou coordenadas na resposta.
+- Cards, detalhe e cartão do Feels apontam para `/organizacoes/[id]` ou
+  `/acolhedores/[id]` conforme o tipo do responsável.
+- A regra herdada do Feels foi preservada: favoritos e animais já solicitados são
+  excluídos somente para o adotante da sessão, sem ocultação global.
+
+**Validação factual:** os testes contract-first falharam inicialmente pela ausência
+dos novos campos e depois passaram nos quatro fluxos. Backend `npx tsc --noEmit` e
+`npm test` (308 testes), frontend `npx tsc --noEmit` e `npm run build` passaram. A
+interface confirmou o perfil público da organização, catálogo próprio e links nos
+cards/detalhe. `routeTree.gen.ts` permaneceu inalterado porque a onda não criou rota;
+`legacy/` permaneceu inalterado e seed não foi executado.
+
+### Onda 3 — manutenção do próprio perfil (commit `aa6e44f`)
+
+- Organização e acolhedor podem manter descrição pública de até 500 caracteres; valor
+  vazio ou composto apenas por espaços é persistido como `null`.
+- O endpoint Uploadthing `profileImage` aceita exatamente uma imagem de até 4 MB e
+  input vazio estrito. Identidade, papel e perfil são derivados da sessão ativa e
+  revalidados imediatamente antes da persistência, sem aceitar ID-alvo do navegador.
+- O formulário próprio apresenta fallback, contador, validação Zod, estados de envio e
+  só informa sucesso após receber a URL persistida pelo servidor. Cidade e UF permanecem
+  derivadas e não são reenviadas no PATCH.
+- Os testes críticos do upload foram executados antes da implementação: 5 de 5 falharam
+  pela ausência das funções protegidas e passaram após a implementação.
+
+**Validação factual:** backend `npx tsc --noEmit` e `npm test` (315 testes), frontend
+`npx tsc --noEmit` e `npm run build` passaram. A interface foi homologada sem seed nas
+contas de organização e acolhedor: descrição salva e limpa, reflexo no perfil público
+da organização e upload real de PNG sintético com renderização confirmada. Os valores
+temporários de `descricao` e `fotoUrl` foram restaurados no banco local; o arquivo
+sintético enviado permanece no Uploadthing. `routeTree.gen.ts` e `legacy/` permaneceram
+inalterados.
+
+### Onda 4 — triagem e endereço restritos (commit `0a1b7dd`)
+
+- `GET /api/perfis/adotante/[id]` escolhe entre projeções discriminadas `PUBLIC` e
+  `RESTRICTED`. A sessão é revalidada e o vínculo histórico é autorizado antes de
+  qualquer select que contenha triagem ou endereço.
+- Próprio adotante, ADMIN e responsável com solicitação em qualquer status recebem a
+  projeção restrita. Visitante, outro adotante e responsáveis sem vínculo recebem apenas
+  nome, município/UF e estado de conclusão da triagem.
+- As queries de autorização não filtram status. Telefone, CPF, e-mail, Instagram,
+  coordenadas e IDs internos ficam ausentes das duas projeções.
+- A nova página explica a privacidade, reutiliza a triagem somente leitura e é ligada ao
+  nome do adotante no detalhe da solicitação sem transportar autorização no link.
+
+**Validação factual:** a suíte começou vermelha porque endpoint e consulta protegida não
+existiam e terminou com 11 testes cobrindo anônimo, negativos, próprio, ADMIN e os quatro
+status. Backend `npx tsc --noEmit` e `npm test` (326 testes), frontend `npx tsc --noEmit`
+e `npm run build` passaram com servidores encerrados. A interface confirmou projeções
+pública e restrita sem telefone. `routeTree.gen.ts` foi versionado exclusivamente pela
+nova rota; `legacy/` permaneceu inalterado e seed não foi executado.
+
+### Onda 5 — busca por nome (commit `f0e36b3`)
+
+- `GET /api/busca/organizacoes` valida e normaliza o termo com a função compartilhada
+  `normalizarNomeMunicipio()` antes de consultar exclusivamente organizações ativas.
+- A query usa `razaoSocialNormalizada`, ordena por razão social, limita a 10 no Prisma e
+  seleciona somente ID, nome e município/UF; pessoas físicas e dados privados não entram
+  na consulta nem na serialização.
+- A rota `/busca` oferece validação acessível, resultados navegáveis, estado vazio e
+  entrada pública na navbar, sem alterar destinos condicionados por papel.
+
+**Validação factual:** as suítes começaram vermelhas por função e endpoint ausentes e
+terminaram com 9 testes focados. Backend `npx tsc --noEmit` e `npm test` (335 testes),
+frontend `npx tsc --noEmit` e `npm run build` passaram com servidores encerrados. A
+interface confirmou caixa/espaços, estado vazio e navegação ao perfil. O teste integrado
+com nome acentuado permanece no roteiro da Onda 7; nenhum seed foi executado.
+`routeTree.gen.ts` foi versionado exclusivamente por `/busca`; `legacy/` permaneceu
+inalterado.
+
+### Onda 6 — perfil do acolhedor (commit `3d8486c`)
+
+- `GET /api/perfis/acolhedor/[id]` consulta somente acolhedor com conta ativa e responde
+  com primeiro nome e inicial do último sobrenome, município/UF, descrição e imagem.
+- Nome completo, endereço, CPF, CNPJ, e-mail, telefone, coordenadas e IDs internos não são
+  serializados. Perfil ausente e conta desativada compartilham o mesmo 404.
+- O catálogo reutiliza filtros e paginação da organização, mas isola animais `DISPONIVEL`
+  por `acolhedorId`; cards e detalhe já navegam ao perfil pelo identificador opaco.
+- A rota `/acolhedores/$acolhedorId` possui fallbacks de imagem, descrição e catálogo vazio,
+  além de textos acessíveis específicos para acolhedor.
+
+**Validação factual:** os testes T070/T071 começaram vermelhos por query e endpoint ausentes
+e terminaram com 5 testes focados. Backend `npx tsc --noEmit` e `npm test` (340 testes),
+frontend `npx tsc --noEmit` e `npm run build` passaram com servidores encerrados. A interface
+foi homologada sem autenticação nos estados sem e com descrição, imagem e animal; a fixture
+temporária foi integralmente restaurada. `routeTree.gen.ts` foi versionado exclusivamente pela
+nova rota; `legacy/` permaneceu inalterado e seed não foi executado.
+
+### Onda 7 — seed acentuado e homologação final (commit `b1fc15b`)
+
+- O seed agora contém `Organização de Teste AdoptPlace`, descrições públicas de organizações
+  e acolhedores e continua calculando `razaoSocialNormalizada` exclusivamente com
+  `normalizarNomeMunicipio()`.
+- O seed preserva quatro responsáveis distribuídos por municípios, 36 animais disponíveis e
+  72 fotos. Sua execução foi avisada previamente e invalidou as sessões existentes.
+- O teste integrado falhou com a razão social sem acento e passou após o seed, provando que
+  `ORGANIZACAO` encontra `Organização` pela coluna normalizada.
+- A evidência integrada de perfis, busca, links, privacidade, acessibilidade e regressão está em
+  [`evidencias/onda-7.md`](evidencias/onda-7.md).
+
+**Validação factual:** backend `npx tsc --noEmit` e `npm test` (341 testes), frontend
+`npx tsc --noEmit` e `npm run build` passaram com os servidores encerrados. A árvore de rotas
+permaneceu idêntica à Onda 6 e `legacy/` não foi alterado. Não há dívida funcional conhecida
+da feature 006; os avisos de tamanho de chunk do build são preexistentes e não bloqueantes.

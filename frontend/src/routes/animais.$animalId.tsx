@@ -233,7 +233,20 @@ function AnimalDetail() {
           {animal.responsavel && (
             <div className="mt-4 rounded-xl border bg-card p-4 text-sm">
               <p className="text-xs text-muted-foreground">Responsável</p>
-              <p className="font-medium">{animal.responsavel}</p>
+              {animal.responsavelId && animal.responsavelTipo ? (
+                <a
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  href={
+                    animal.responsavelTipo === "ORGANIZACAO"
+                      ? `/organizacoes/${animal.responsavelId}`
+                      : `/acolhedores/${animal.responsavelId}`
+                  }
+                >
+                  {animal.responsavel}
+                </a>
+              ) : (
+                <p className="font-medium">{animal.responsavel}</p>
+              )}
               {animal.cidade && <p className="text-xs text-muted-foreground">{animal.cidade}</p>}
             </div>
           )}
