@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { AsyncState } from "@/components/app/AsyncState";
 import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton";
 import { useState } from "react";
+import { HeartOff, LoaderCircle } from "lucide-react";
+import { removerPulado } from "@/lib/data/feels";
 
 export const Route = createFileRoute("/_authenticated/meus-favoritos")({
   head: () => ({
@@ -27,6 +29,8 @@ function Page() {
     setPendingAnimalId(animalId);
     try {
       await setFavorito(animalId, false);
+      removerPulado(animalId);
+      await queryClient.invalidateQueries({ queryKey: ["feels"] });
       await queryClient.invalidateQueries({ queryKey: ["favoritos"] });
       toast.success("Removido dos favoritos");
     } catch (e) {
@@ -58,16 +62,25 @@ function Page() {
       >
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((f) => (
-            <div key={f.animalId} className="space-y-2">
+            <div key={f.animalId} className="relative h-full rounded-xl">
               <PublicAnimalCard animal={f.animal} />
               <Button
-                variant="outline"
+                type="button"
+                variant="secondary"
                 size="sm"
-                className="w-full"
+                className="absolute right-3 top-3 z-10 gap-1.5 rounded-full border border-border bg-card/95 px-3 shadow-floating backdrop-blur hover:bg-card"
                 disabled={pendingAnimalId === f.animalId}
                 onClick={() => remover(f.animalId)}
+                aria-label={`Remover ${f.animal.nome} dos favoritos`}
               >
-                {pendingAnimalId === f.animalId ? "Removendo…" : "Remover dos favoritos"}
+                {pendingAnimalId === f.animalId ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <HeartOff className="h-4 w-4 text-destructive" aria-hidden="true" />
+                )}
+                <span className="hidden sm:inline">
+                  {pendingAnimalId === f.animalId ? "Removendo…" : "Remover"}
+                </span>
               </Button>
             </div>
           ))}

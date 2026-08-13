@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/ui/pagination";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
 import { AsyncState } from "@/components/app/AsyncState";
@@ -88,32 +88,12 @@ function VitrinePage() {
               <PublicAnimalCard key={a.id} animal={a} />
             ))}
           </div>
-          {totalPages > 1 && (
-            <nav
-              aria-label="Paginação da vitrine"
-              className="mt-8 flex items-center justify-center gap-2"
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Anterior
-              </Button>
-              <span className="text-sm text-muted-foreground" aria-live="polite">
-                Página {page} de {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Próxima
-              </Button>
-            </nav>
-          )}
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            label="Paginação da vitrine"
+          />
         </>
       </AsyncState>
     </div>

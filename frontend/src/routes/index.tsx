@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, PawPrint } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/ui/pagination";
 import { PublicAnimalCard } from "@/components/app/PublicAnimalCard";
 import { AnimalFilters, emptyFilters, type FilterState } from "@/components/app/AnimalFilters";
 import { AsyncState } from "@/components/app/AsyncState";
@@ -198,29 +199,12 @@ function Home() {
                 <PublicAnimalCard key={a.id} animal={a} />
               ))}
             </div>
-            {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Anterior
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Página {page} de {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  Próxima
-                </Button>
-              </div>
-            )}
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              label="Paginação dos animais em destaque"
+            />
           </>
         </AsyncState>
       </section>

@@ -154,7 +154,7 @@ function RootComponent() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   return (
     <QueryClientProvider client={queryClient}>
-      <MotionConfig reducedMotion="user" transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}>
+      <MotionConfig reducedMotion="user">
         <div className="flex min-h-screen flex-col bg-background">
           <a
             href="#main-content"
@@ -171,6 +171,7 @@ function RootComponent() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
               >
                 <Outlet />
               </motion.div>
