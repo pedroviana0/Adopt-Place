@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | 2026-08-14 |
 | **Branch** | `007-validacao-formularios` |
-| **PRs** | não aberto |
+| **PRs** | #132 |
 | **Status** | **ENTREGUE PARCIALMENTE** — código e gates concluídos; homologação manual exaustiva pendente |
 | **Spec** | [`spec.md`](spec.md) |
 
