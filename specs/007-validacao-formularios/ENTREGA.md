@@ -46,8 +46,8 @@
   integração com dados controlados.
 
 Validação final em 2026-08-14: 65 arquivos e 364 testes verdes, Prisma válido, typecheck de backend
-e frontend verdes e build de produção do frontend verde. O hash da implementação será registrado
-nesta entrega no commit documental imediatamente posterior.
+e frontend verdes e build de produção do frontend verde. Implementação consolidada no commit
+`af292db`.
 
 ## 3. Decisões que não se reabrem
 
