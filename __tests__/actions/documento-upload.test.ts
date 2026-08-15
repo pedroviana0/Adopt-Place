@@ -89,6 +89,15 @@ describe("health document upload completion", () => {
     ).rejects.toThrow("extensão");
   });
 
+  it("classifica arquivo incompatível como 400 em vez de erro interno", async () => {
+    await expect(
+      authorizeHealthDocumentUpload(
+        { animalId, tipoDocumento: "EXAME" },
+        [{ name: "hemograma.exe", size: 2048, type: "application/pdf" }],
+      ),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   it("persists validated metadata after rechecking animal ownership", async () => {
     vi.mocked(prisma.animal.findUnique).mockResolvedValue({
       organizacaoId: "org-1",

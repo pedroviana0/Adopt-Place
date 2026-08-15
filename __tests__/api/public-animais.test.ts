@@ -179,7 +179,7 @@ describe("public showcase API", () => {
     vi.mocked(prisma.organizacao.findMany).mockResolvedValue([{ cidade: "Volta Redonda" }] as never);
     vi.mocked(prisma.acolhedorIndependente.findMany).mockResolvedValue([{ cidade: "Barra Mansa" }] as never);
 
-    const res = await getCatalogos();
+    const res = await getCatalogos(new Request("http://localhost/api/catalogos"));
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -202,5 +202,43 @@ describe("public showcase API", () => {
     );
     expect(body.cidades).toContain("Volta Redonda");
     expect(body.cidades).toContain("Barra Mansa");
+  });
+
+  it("GET /api/catalogos?context=management mantém raças ainda sem animal disponível", async () => {
+    vi.mocked(prisma.especie.findMany)
+      .mockResolvedValueOnce([
+        { id: "e1", nome: "Cachorro" },
+        { id: "e2", nome: "Gato" },
+      ] as never)
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          nome: "Cachorro",
+          racas: [
+            { id: "r1", nome: "Sem raça definida (SRD)", especieId: "e1" },
+            { id: "r2", nome: "Akita", especieId: "e1" },
+          ],
+        },
+        { id: "e2", nome: "Gato", racas: [] },
+      ] as never);
+
+    const res = await getCatalogos(
+      new Request("http://localhost/api/catalogos?context=management"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.especies[0].racas.map((raca: { nome: string }) => raca.nome)).toEqual([
+      "Akita",
+      "Sem raça definida (SRD)",
+    ]);
+    expect(body.cidades).toEqual([]);
+    expect(prisma.especie.findMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          racas: expect.not.objectContaining({ where: expect.anything() }),
+        }),
+      }),
+    );
   });
 });

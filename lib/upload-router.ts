@@ -20,6 +20,11 @@ import {
 
 const f = createUploadthing();
 
+const uploadError = (
+  code: "BAD_REQUEST" | "FORBIDDEN" | "TOO_LARGE" | "UPLOAD_FAILED",
+  message: string,
+) => new UploadThingError({ code, message });
+
 const animalPhotoInputSchema = z
   .object({
     animalId: z.string().cuid(),
@@ -56,23 +61,23 @@ export async function authorizeProfileImageUpload(
   files: readonly AnimalPhotoFileDescriptor[],
 ): Promise<ProfileImageMetadata> {
   if (!profileImageInputSchema.safeParse(input).success || files.length !== 1) {
-    throw new UploadThingError("Bad Request");
+    throw uploadError("BAD_REQUEST", "Requisição de upload inválida");
   }
   if (!files[0].type.startsWith("image/") || !hasImageExtension(files[0].name)) {
-    throw new UploadThingError("Apenas imagens sao permitidas");
+    throw uploadError("BAD_REQUEST", "Apenas imagens são permitidas");
   }
   if (files[0].size > MAX_PROFILE_IMAGE_BYTES) {
-    throw new UploadThingError("A imagem deve ter no maximo 4 MB");
+    throw uploadError("TOO_LARGE", "A imagem deve ter no máximo 4 MB");
   }
 
   const session = await getServerSession();
-  if (!session?.user?.id) throw new UploadThingError("Unauthorized");
-  if (!session.user.ativo) throw new UploadThingError("Forbidden");
+  if (!session?.user?.id) throw uploadError("FORBIDDEN", "Autenticação necessária");
+  if (!session.user.ativo) throw uploadError("FORBIDDEN", "Conta sem permissão para enviar arquivos");
   if (
     session.user.tipoPerfil !== TipoPerfil.ORGANIZACAO &&
     session.user.tipoPerfil !== TipoPerfil.ACOLHEDOR
   ) {
-    throw new UploadThingError("Forbidden");
+    throw uploadError("FORBIDDEN", "Perfil sem permissão para enviar imagens");
   }
 
   const user = await prisma.usuario.findUnique({
@@ -92,7 +97,7 @@ export async function authorizeProfileImageUpload(
         ? user.acolhedor?.id
         : null;
   if (!user?.ativo || !responsavelId || user.tipoPerfil !== session.user.tipoPerfil) {
-    throw new UploadThingError("Forbidden");
+    throw uploadError("FORBIDDEN", "Perfil sem permissão para enviar imagens");
   }
 
   return { userId: user.id, tipoPerfil: user.tipoPerfil, responsavelId };
@@ -123,7 +128,7 @@ export async function persistProfileImageUpload(
     user.tipoPerfil !== metadata.tipoPerfil ||
     currentProfileId !== metadata.responsavelId
   ) {
-    throw new UploadThingError("Forbidden");
+    throw uploadError("FORBIDDEN", "Perfil sem permissão para atualizar esta imagem");
   }
 
   return metadata.tipoPerfil === TipoPerfil.ORGANIZACAO
@@ -145,19 +150,20 @@ export async function authorizeAnimalPhotoUpload(
 ) {
   const parsed = animalPhotoInputSchema.safeParse(input);
   if (!parsed.success || files.length === 0 || files.length > 10) {
-    throw new UploadThingError("Bad Request");
+    throw uploadError("BAD_REQUEST", "Requisição de upload inválida");
   }
   if (files.some((file) => !file.type.startsWith("image/") || !hasImageExtension(file.name))) {
-    throw new UploadThingError("Apenas imagens sao permitidas");
+    throw uploadError("BAD_REQUEST", "Apenas imagens são permitidas");
   }
   if (files.some((file) => file.size > MAX_ANIMAL_PHOTO_BYTES)) {
-    throw new UploadThingError("Cada imagem deve ter no maximo 4 MB");
+    throw uploadError("TOO_LARGE", "Cada imagem deve ter no máximo 4 MB");
   }
 
   const current = await getResponsibleContext();
   if ("error" in current) {
-    throw new UploadThingError(
-      current.error.status === 401 ? "Unauthorized" : "Forbidden",
+    throw uploadError(
+      "FORBIDDEN",
+      current.error.message,
     );
   }
 
@@ -166,7 +172,7 @@ export async function authorizeAnimalPhotoUpload(
     select: { organizacaoId: true, acolhedorId: true },
   });
   if (!ownsAnimal(current.context, animal)) {
-    throw new UploadThingError("Forbidden");
+    throw uploadError("FORBIDDEN", "O animal não pertence ao perfil autenticado");
   }
 
   return {
@@ -214,26 +220,27 @@ export async function authorizeHealthDocumentUpload(
 ): Promise<HealthUploadMetadata> {
   const parsed = healthDocumentInputSchema.safeParse(input);
   if (!parsed.success || files.length !== 1) {
-    throw new UploadThingError("Bad Request");
+    throw uploadError("BAD_REQUEST", "Requisição de upload inválida");
   }
   if (files[0].size > MAX_HEALTH_DOCUMENT_BYTES) {
-    throw new UploadThingError("Arquivo deve ter no maximo 10 MB");
+    throw uploadError("TOO_LARGE", "O arquivo deve ter no máximo 10 MB");
   }
   if (!healthDocumentMimeSchema.safeParse(files[0].type).success) {
-    throw new UploadThingError("Envie uma imagem ou arquivo PDF");
+    throw uploadError("BAD_REQUEST", "Envie uma imagem ou arquivo PDF");
   }
   const extension = extensionOf(files[0].name);
   const extensionMatchesMime = files[0].type === "application/pdf"
     ? extension === "pdf"
     : hasImageExtension(files[0].name);
   if (!extensionMatchesMime) {
-    throw new UploadThingError("A extensão do arquivo não corresponde ao tipo enviado");
+    throw uploadError("BAD_REQUEST", "A extensão do arquivo não corresponde ao tipo enviado");
   }
 
   const current = await getResponsibleContext();
   if ("error" in current) {
-    throw new UploadThingError(
-      current.error.status === 401 ? "Unauthorized" : "Forbidden",
+    throw uploadError(
+      "FORBIDDEN",
+      current.error.message,
     );
   }
 
@@ -242,7 +249,7 @@ export async function authorizeHealthDocumentUpload(
     select: { organizacaoId: true, acolhedorId: true },
   });
   if (!ownsAnimal(current.context, animal)) {
-    throw new UploadThingError("Forbidden");
+    throw uploadError("FORBIDDEN", "O animal não pertence ao perfil autenticado");
   }
 
   if (parsed.data.registroSaudeId) {
@@ -251,7 +258,7 @@ export async function authorizeHealthDocumentUpload(
       select: { animalId: true },
     });
     if (!record || record.animalId !== parsed.data.animalId) {
-      throw new UploadThingError("Bad Request");
+      throw uploadError("BAD_REQUEST", "Registro de saúde incompatível com o animal");
     }
   }
 
@@ -279,7 +286,7 @@ export async function persistHealthDocumentUpload(
   });
 
   if (!parsed.success) {
-    throw new UploadThingError(parsed.error.issues[0]?.message ?? "Bad Request");
+    throw uploadError("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Arquivo inválido");
   }
 
   const animal = await prisma.animal.findUnique({
@@ -291,7 +298,7 @@ export async function persistHealthDocumentUpload(
       ? animal?.organizacaoId === metadata.responsavelId
       : animal?.acolhedorId === metadata.responsavelId;
 
-  if (!stillOwned) throw new UploadThingError("Forbidden");
+  if (!stillOwned) throw uploadError("FORBIDDEN", "O animal não pertence ao perfil autenticado");
 
   if (parsed.data.registroSaudeId) {
     const record = await prisma.registroSaude.findUnique({
@@ -299,7 +306,7 @@ export async function persistHealthDocumentUpload(
       select: { animalId: true },
     });
     if (!record || record.animalId !== parsed.data.animalId) {
-      throw new UploadThingError("Bad Request");
+      throw uploadError("BAD_REQUEST", "Registro de saúde incompatível com o animal");
     }
   }
 
@@ -350,8 +357,9 @@ export const uploadRouter = {
           },
         };
       } catch (error) {
-        throw new UploadThingError(
-          error instanceof Error ? error.message : "Upload failed",
+        throw uploadError(
+          "UPLOAD_FAILED",
+          error instanceof Error ? error.message : "Não foi possível persistir a foto",
         );
       }
     }),
