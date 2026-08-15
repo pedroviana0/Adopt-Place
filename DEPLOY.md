@@ -30,7 +30,7 @@ Preparado no repo:
    - `DATABASE_URL` = a connection string do Neon (a mesma do `.env`).
    - `NEXTAUTH_SECRET` = a mesma do `.env` (ou gere outra com `openssl rand -base64 32`).
    - `NEXTAUTH_URL` = **a URL pública do FRONTEND** (você preenche no passo 3, depois do front existir).
-   - `UPLOADTHING_TOKEN` = do painel do uploadthing (opcional; sem ele, upload de foto falha).
+   - `UPLOADTHING_TOKEN` = token **V7** completo do painel UploadThing (obrigatório para qualquer upload; não use apenas a chave `sk_...`).
 4. **Deploy.** Anote a URL gerada, ex.: `https://adoptplace-api.vercel.app`.
 
 ## Passo 2 — Frontend (TanStack/Vite) 👤
@@ -70,7 +70,7 @@ apontando a `DATABASE_URL` nova.
 | `DATABASE_URL` | a connection string do Neon (a MESMA do seu `.env` local) |
 | `NEXTAUTH_SECRET` | a MESMA do `.env` (ou gere outra: `openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | a URL pública do **frontend** (ex.: `https://adoptplace.vercel.app`) |
-| `UPLOADTHING_TOKEN` | painel do uploadthing.com (opcional; sem ele o upload de foto falha) |
+| `UPLOADTHING_TOKEN` | token **V7** completo do painel UploadThing (obrigatório; uma chave antiga `sk_...` é inválida) |
 
 **Projeto frontend** (Settings → Environment Variables):
 

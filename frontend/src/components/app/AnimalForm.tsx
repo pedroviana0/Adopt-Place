@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { animalSchema, type AnimalInput } from "@/lib/schemas/animal";
-import { fetchCatalogos } from "@/lib/data/catalogos";
+import { fetchCatalogosGerenciamento } from "@/lib/data/catalogos";
 import {
   Porte,
   Sexo,
@@ -51,7 +51,10 @@ interface Props {
 export function AnimalForm({ animal, mode }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const catalogos = useQuery({ queryKey: ["catalogos"], queryFn: fetchCatalogos });
+  const catalogos = useQuery({
+    queryKey: ["catalogos", "management"],
+    queryFn: fetchCatalogosGerenciamento,
+  });
   const [saving, setSaving] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
   const [createdAnimalId, setCreatedAnimalId] = useState<string | null>(null);

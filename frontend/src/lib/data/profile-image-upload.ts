@@ -1,5 +1,6 @@
 import { genUploader } from "uploadthing/client";
 import type { FileRoute } from "uploadthing/types";
+import { uploadThingFetch } from "./animal-photo-upload";
 
 export const MAX_PROFILE_IMAGE_BYTES = 4 * 1024 * 1024;
 
@@ -14,6 +15,7 @@ type FrontendUploadRouter = {
 const uploader = genUploader<FrontendUploadRouter>({
   url: "/api/uploadthing",
   package: "uploadthing/client",
+  fetch: uploadThingFetch,
 });
 
 type ProfileImageUploadFiles = (

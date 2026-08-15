@@ -76,7 +76,7 @@ describe("animal photo actions", () => {
         { animalId },
         [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
       ),
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Nao autenticado");
     expect(prisma.animal.findUnique).not.toHaveBeenCalled();
   });
 
@@ -94,7 +94,7 @@ describe("animal photo actions", () => {
         { animalId },
         [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
       ),
-    ).rejects.toThrow("Forbidden");
+    ).rejects.toThrow("Conta desativada");
 
     vi.mocked(prisma.usuario.findUnique).mockResolvedValueOnce({
       ativo: true,
@@ -107,7 +107,7 @@ describe("animal photo actions", () => {
         { animalId },
         [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
       ),
-    ).rejects.toThrow("Forbidden");
+    ).rejects.toThrow("Apenas organizacoes ou acolhedores");
     expect(prisma.animal.findUnique).not.toHaveBeenCalled();
   });
 
@@ -140,7 +140,7 @@ describe("animal photo actions", () => {
         { animalId },
         [{ name: "luna.jpg", type: "image/jpeg", size: 1024 }],
       ),
-    ).rejects.toThrow("Forbidden");
+    ).rejects.toThrow("O animal não pertence ao perfil autenticado");
   });
 
   it("returns server-derived metadata for a valid owned upload", async () => {

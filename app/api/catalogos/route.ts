@@ -1,11 +1,22 @@
 import { NextResponse } from "next/server";
 
-import { getShowcaseFilterOptions } from "@/lib/queries/animal-showcase";
+import {
+  getAnimalManagementCatalog,
+  getShowcaseFilterOptions,
+} from "@/lib/queries/animal-showcase";
 
 // Public catalog contract (SHOWCASE-01 / Issue #26): GET /api/catalogos.
 // Public, no auth. Canonical species/breeds plus cities that currently have
 // available animals, for forms and showcase filters. No private contact data.
-export async function GET() {
+export async function GET(request: Request) {
+  const context = new URL(request.url).searchParams.get("context");
+  if (context === "management") {
+    return NextResponse.json({
+      especies: await getAnimalManagementCatalog(),
+      cidades: [],
+    });
+  }
+
   const { especies, cities } = await getShowcaseFilterOptions();
   return NextResponse.json({
     especies: especies.map((especie) => ({

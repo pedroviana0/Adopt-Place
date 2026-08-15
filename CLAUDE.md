@@ -80,7 +80,7 @@ frontend/            App de UI (Vite + TanStack Start)
   src/lib/data/      Camada que fala com /api (sessao, animais, favoritos…)
   src/styles.css     Tokens de tema (Teal & Amber) + @font-face
   public/fonts/      Fontes self-hospedadas (Inter, Poppins)
-specs/               Uma pasta por feature (001–007)
+specs/               Uma pasta por feature (001–008)
   README.md          ÍNDICE das specs + regra de continuidade + modelo de ENTREGA
   00N-*/spec.md      O que se quer e por quê (promessa)
   00N-*/ENTREGA.md   O que foi entregue, o que não foi, decisões e armadilhas (fato)
@@ -255,13 +255,14 @@ commit: **sem hash não é registro, é lembrança.**
 
 ## 10. Estado atual (handoff) — atualizado 2026-08-14
 
-**`main` = `c2394b2`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
-**294 testes** passando — reconferido em 2026-08-09).
+**`main` = `5074b4b`.** A spec 007 e a 006 já estão mergeadas. A correção abaixo foi validada com
+**367 testes**, Prisma, typecheck dos dois aplicativos e build do frontend.
 
-> **Entrega atual:** branch **`007-validacao-formularios`**. A implementação de validações,
-> contratos de erro, uploads e raças disponíveis está concluída e passa em **364 testes**, Prisma,
-> typecheck dos dois aplicativos e build do frontend. A homologação manual ampliada da FR-025
-> permanece registrada em `specs/007-validacao-formularios/ENTREGA.md`.
+> **Entrega atual:** branch **`008-correcoes-upload-triagem`**. Catálogo de gestão completo,
+> contratos de erro de upload e confirmação de veracidade da triagem estão concluídos. Para os
+> uploads funcionarem no deploy, ainda é necessário substituir `UPLOADTHING_TOKEN` no backend da
+> Vercel pelo token V7 completo e redeployar; o diagnóstico está em
+> `specs/008-correcoes-upload-triagem/ENTREGA.md`.
 
 ### O que existe e funciona
 - **Jornada de adoção completa:** vitrine pública (filtros + paginação), cadastro (3 tipos),

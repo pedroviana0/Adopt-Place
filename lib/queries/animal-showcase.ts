@@ -133,3 +133,37 @@ export async function getShowcaseFilterOptions() {
 
   return { especies: canonicalSpecies, cities };
 }
+
+/**
+ * Cadastro e edição precisam da taxonomia completa. Diferente da vitrine,
+ * uma raça ainda sem anúncio disponível continua sendo uma opção válida para
+ * o responsável criar o primeiro animal daquela raça.
+ */
+export async function getAnimalManagementCatalog() {
+  await ensureAnimalCatalog();
+
+  const especies = await prisma.especie.findMany({
+    where: { nome: { in: [...CANONICAL_SPECIES_NAMES] } },
+    orderBy: { nome: "asc" },
+    select: {
+      id: true,
+      nome: true,
+      racas: {
+        orderBy: { nome: "asc" },
+        select: { id: true, nome: true, especieId: true },
+      },
+    },
+  });
+
+  const speciesByName = new Map(especies.map((species) => [species.nome, species]));
+  return CANONICAL_SPECIES_NAMES.flatMap((speciesName) => {
+    const species = speciesByName.get(speciesName);
+    if (!species) return [];
+    const breedsByName = new Map(species.racas.map((breed) => [breed.nome, breed]));
+    const racas = canonicalBreedsForSpecies(speciesName).flatMap((breedName) => {
+      const breed = breedsByName.get(breedName);
+      return breed ? [breed] : [];
+    });
+    return [{ ...species, racas }];
+  });
+}

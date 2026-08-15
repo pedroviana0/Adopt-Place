@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -22,6 +22,15 @@ import { toast } from "sonner";
 import { TipoMoradia } from "@/lib/domain/enums";
 import { AsyncState } from "@/components/app/AsyncState";
 import { CheckCircle2, ClipboardCheck, HeartHandshake, Home, ShieldCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/triagem")({
   head: () => ({
@@ -42,6 +51,9 @@ function TriagemPage() {
   const triagem = useQuery({ queryKey: ["triagem"], queryFn: fetchTriagem, enabled: isAdopter });
 
   const form = useForm<TriagemInput>({ resolver: zodResolver(triagemSchema), mode: "onBlur", reValidateMode: "onChange", shouldFocusError: true });
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [pendingTriagem, setPendingTriagem] = useState<TriagemInput | null>(null);
+  const [saving, setSaving] = useState(false);
   const { reset } = form;
 
   useEffect(() => {
@@ -90,12 +102,23 @@ function TriagemPage() {
     );
   }
 
-  const onSubmit = async (d: TriagemInput) => {
+  const onSubmit = (data: TriagemInput) => {
+    setPendingTriagem(data);
+    setConfirmationOpen(true);
+  };
+
+  const confirmSubmit = async () => {
+    if (!pendingTriagem || saving) return;
+    setSaving(true);
     try {
-      await salvarTriagem(d);
+      await salvarTriagem(pendingTriagem);
+      setConfirmationOpen(false);
+      setPendingTriagem(null);
       toast.success("Triagem concluída! Você já pode solicitar adoções.");
       navigate({ to: "/minhas-solicitacoes" });
     } catch (e) {
+      setConfirmationOpen(false);
+      setPendingTriagem(null);
       const fieldErrors = (e as ApiError).fieldErrors;
       if (fieldErrors) {
         for (const [field, messages] of Object.entries(fieldErrors)) {
@@ -105,6 +128,8 @@ function TriagemPage() {
         }
       }
       toast.error(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -425,12 +450,46 @@ function TriagemPage() {
               type="submit"
               size="lg"
               className="w-full sm:w-auto sm:min-w-48"
-              disabled={form.formState.isSubmitting}
+              disabled={form.formState.isSubmitting || saving}
             >
-              {form.formState.isSubmitting ? "Salvando…" : "Salvar triagem"}
+              {saving ? "Salvando…" : "Revisar e salvar triagem"}
             </Button>
           </div>
         </form>
+
+        <AlertDialog
+          open={confirmationOpen}
+          onOpenChange={(open) => {
+            if (saving) return;
+            setConfirmationOpen(open);
+            if (!open) setPendingTriagem(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="mb-1 flex items-center gap-2 text-primary">
+                <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                <span className="text-sm font-semibold">Declaração de veracidade</span>
+              </div>
+              <AlertDialogTitle>Confirma que suas respostas são verdadeiras?</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-2">
+                <span className="block">
+                  Ao confirmar, você declara que prestou informações verdadeiras, completas e
+                  atualizadas, de boa-fé, para apoiar uma adoção responsável e segura.
+                </span>
+                <span className="block font-medium text-foreground">
+                  Informações falsas ou omitidas podem interromper o processo de adoção.
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={saving}>Voltar e revisar</AlertDialogCancel>
+              <Button type="button" disabled={saving} onClick={confirmSubmit}>
+                {saving ? "Salvando…" : "Confirmo e desejo enviar"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </main>
   );

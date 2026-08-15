@@ -44,6 +44,14 @@ describe("profileImage Uploadthing authorization", () => {
     }
   });
 
+  it("classifica falta de sessão como recusa esperada em vez de erro interno", async () => {
+    mockedSession.mockResolvedValue(null);
+
+    await expect(authorizeProfileImageUpload({}, [validFile])).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
   it("rejeita input com alvo, quantidade, tipo e tamanho invalidos", async () => {
     mockedSession.mockResolvedValue(session(TipoPerfil.ORGANIZACAO));
 

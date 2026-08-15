@@ -14,3 +14,11 @@ export async function fetchCatalogos(): Promise<PublicCatalog> {
   if (!res.ok) throw new Error("Falha ao carregar os catálogos");
   return (await res.json()) as PublicCatalog;
 }
+
+export async function fetchCatalogosGerenciamento(): Promise<PublicCatalog> {
+  const res = await fetch("/api/catalogos?context=management", {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error("Falha ao carregar as espécies e raças");
+  return (await res.json()) as PublicCatalog;
+}
