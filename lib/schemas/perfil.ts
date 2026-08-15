@@ -1,15 +1,18 @@
 import { z } from "zod";
 
 import {
+  addressSchema,
+  cnpjSchema,
   cpfSchema,
   emailSchema,
   passwordSchema,
+  personNameSchema,
+  phoneSchema,
   requiredTextSchema,
 } from "@/lib/schemas/common";
 import { cepSchema, municipioIdSchema } from "@/lib/schemas/localizacao";
 
-const phoneSchema = requiredTextSchema.min(8, "Informe um telefone valido.");
-const capacitySchema = z.number().int().nonnegative();
+const capacitySchema = z.number().finite().int("Informe um número inteiro.").min(0).max(10000, "Informe no máximo 10.000.");
 const descriptionSchema = z
   .string()
   .trim()
@@ -31,25 +34,22 @@ const localizacaoDeEntrada = {
 export const organizationRegistrationSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  razaoSocial: requiredTextSchema.min(3, "Informe a razao social."),
-  cnpj: z
-    .string()
-    .trim()
-    .regex(/^\d{14}$/, "Informe um CNPJ valido."),
+  razaoSocial: requiredTextSchema.min(3, "Informe a razão social.").max(160, "A razão social deve ter no máximo 160 caracteres."),
+  cnpj: cnpjSchema,
   telefone: phoneSchema,
-  endereco: requiredTextSchema,
+  endereco: addressSchema,
   ...localizacaoDeEntrada,
-  responsavelNome: requiredTextSchema.min(3, "Informe o responsavel."),
+  responsavelNome: personNameSchema,
   capacidadeMaxima: capacitySchema.optional(),
 }).strict();
 
 export const fosterRegistrationSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  nomeCompleto: requiredTextSchema.min(3, "Informe o nome completo."),
-  cpf: cpfSchema.transform((value) => value.replace(/\D/g, "")),
+  nomeCompleto: personNameSchema,
+  cpf: cpfSchema,
   telefone: phoneSchema,
-  endereco: requiredTextSchema,
+  endereco: addressSchema,
   ...localizacaoDeEntrada,
 }).strict();
 
@@ -61,10 +61,10 @@ const nonEmptyPatch = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
 export const adopterProfileUpdateSchema = nonEmptyPatch(
   z.object({
     email: emailSchema.optional(),
-    nomeCompleto: requiredTextSchema.min(3).optional(),
+    nomeCompleto: personNameSchema.optional(),
     telefone: phoneSchema.optional(),
     instagram: z.string().trim().max(120).nullable().optional(),
-    endereco: requiredTextSchema.optional(),
+    endereco: addressSchema.optional(),
     cep: cepSchema.optional(),
     municipioId: municipioIdSchema.optional(),
   }),
@@ -73,13 +73,13 @@ export const adopterProfileUpdateSchema = nonEmptyPatch(
 export const organizationProfileUpdateSchema = nonEmptyPatch(
   z.object({
     email: emailSchema.optional(),
-    razaoSocial: requiredTextSchema.min(3).optional(),
+    razaoSocial: requiredTextSchema.min(3).max(160).optional(),
     descricao: descriptionSchema,
     telefone: phoneSchema.optional(),
-    endereco: requiredTextSchema.optional(),
+    endereco: addressSchema.optional(),
     cep: cepSchema.optional(),
     municipioId: municipioIdSchema.optional(),
-    responsavelNome: requiredTextSchema.min(3).optional(),
+    responsavelNome: personNameSchema.optional(),
     capacidadeMaxima: capacitySchema.nullable().optional(),
   }),
 );
@@ -87,10 +87,10 @@ export const organizationProfileUpdateSchema = nonEmptyPatch(
 export const fosterProfileUpdateSchema = nonEmptyPatch(
   z.object({
     email: emailSchema.optional(),
-    nomeCompleto: requiredTextSchema.min(3).optional(),
+    nomeCompleto: personNameSchema.optional(),
     descricao: descriptionSchema,
     telefone: phoneSchema.optional(),
-    endereco: requiredTextSchema.optional(),
+    endereco: addressSchema.optional(),
     cep: cepSchema.optional(),
     municipioId: municipioIdSchema.optional(),
     capacidadeAtual: capacitySchema.optional(),

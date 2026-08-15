@@ -295,6 +295,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
           </Label>
           <Input
             id="c-titulo"
+            maxLength={160}
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             placeholder="Ex.: Retorno cardiologista"
@@ -307,6 +308,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
           <Input
             id="c-data"
             type="datetime-local"
+            min={new Date().toISOString().slice(0, 16)}
             value={data}
             onChange={(e) => setData(e.target.value)}
           />
@@ -315,7 +317,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
           <Label htmlFor="c-local" className="mb-1 block text-xs">
             Local / profissional (opcional)
           </Label>
-          <Input id="c-local" value={local} onChange={(e) => setLocal(e.target.value)} />
+          <Input id="c-local" maxLength={200} value={local} onChange={(e) => setLocal(e.target.value)} />
         </div>
       </div>
       <div className="mt-3 flex gap-2">
@@ -483,6 +485,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Input
           id={`r-${item.id}`}
           type="datetime-local"
+          min={new Date().toISOString().slice(0, 16)}
           value={data}
           onChange={(e) => setData(e.target.value)}
         />
@@ -569,7 +572,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Label htmlFor={`c-nome-${item.id}`} className="mb-1 block text-xs">
           {nomeLabel}
         </Label>
-        <Input id={`c-nome-${item.id}`} value={nome} onChange={(e) => setNome(e.target.value)} />
+        <Input id={`c-nome-${item.id}`} maxLength={160} value={nome} onChange={(e) => setNome(e.target.value)} />
       </div>
       {item.tipo === "CONTROLE_PARASITAS" && (
         <div>
@@ -577,7 +580,8 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
             Frequência
           </Label>
           <Input
-            id={`c-freq-${item.id}`}
+          id={`c-freq-${item.id}`}
+          maxLength={160}
             value={freq}
             onChange={(e) => setFreq(e.target.value)}
             placeholder="Ex.: A cada 3 meses"
@@ -610,6 +614,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Input
           id={`c-data-${item.id}`}
           type="date"
+          max={new Date().toISOString().slice(0, 10)}
           value={dataAplicacao}
           onChange={(e) => setDataAplicacao(e.target.value)}
         />

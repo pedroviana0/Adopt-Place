@@ -210,6 +210,7 @@ function VacinaForm({ animalId, onSaved }: { animalId: string; onSaved: () => vo
           </Label>
           <Input
             id="v-nome"
+            maxLength={160}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="Ex.: V10"
@@ -274,6 +275,7 @@ function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => 
           </Label>
           <Input
             id="p-med"
+            maxLength={160}
             value={medicamento}
             onChange={(e) => setMedicamento(e.target.value)}
             placeholder="Ex.: Bravecto"
@@ -285,6 +287,7 @@ function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => 
           </Label>
           <Input
             id="p-freq"
+            maxLength={160}
             value={frequencia}
             onChange={(e) => setFrequencia(e.target.value)}
             placeholder="Ex.: A cada 3 meses"
@@ -349,6 +352,7 @@ function TesteForm({ animalId, onSaved }: { animalId: string; onSaved: () => voi
           </Label>
           <Input
             id="t-nome"
+            maxLength={160}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="Ex.: FIV/FeLV"
@@ -401,6 +405,7 @@ function DateFields({
         <Input
           id={`${prefix}-data`}
           type="date"
+          max={new Date().toISOString().slice(0, 10)}
           value={base.dataAplicacao}
           onChange={(e) => base.setDataAplicacao(e.target.value)}
         />
@@ -412,6 +417,7 @@ function DateFields({
         <Input
           id={`${prefix}-prox`}
           type="date"
+          min={base.dataAplicacao || undefined}
           value={base.dataProxima}
           onChange={(e) => base.setDataProxima(e.target.value)}
         />

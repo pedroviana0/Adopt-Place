@@ -6,16 +6,18 @@ import {
   pastOrTodayDateSchema,
 } from "./common";
 
+const shortHealthText = requiredTextSchema.max(160, "Use no máximo 160 caracteres.");
+
 const optionalHealthDetails = {
-  titulo: optionalTextSchema,
+  titulo: optionalTextSchema.pipe(z.string().max(160, "O título deve ter no máximo 160 caracteres.").optional()),
   observacoes: optionalTextSchema,
-  profissionalClinica: optionalTextSchema,
+  profissionalClinica: optionalTextSchema.pipe(z.string().max(200, "O profissional ou clínica deve ter no máximo 200 caracteres.").optional()),
 };
 
 export const vacinaRegistroSchema = z.object({
   tipoRegistro: z.literal("VACINA"),
   vacinaId: idSchema.optional(),
-  nomeCustom: requiredTextSchema.optional(),
+  nomeCustom: shortHealthText.optional(),
   dataAplicacao: pastOrTodayDateSchema,
   dataProximaDose: z.date().optional(),
   ...optionalHealthDetails,
@@ -25,8 +27,8 @@ export type VacinaRegistroInput = z.infer<typeof vacinaRegistroSchema>;
 
 export const parasitaRegistroSchema = z.object({
   tipoRegistro: z.literal("CONTROLE_PARASITAS"),
-  tipoMedicacao: requiredTextSchema,
-  frequencia: requiredTextSchema,
+  tipoMedicacao: shortHealthText,
+  frequencia: shortHealthText,
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,
@@ -37,7 +39,7 @@ export type ParasitaRegistroInput = z.infer<typeof parasitaRegistroSchema>;
 export const testeDoencaSchema = z.object({
   tipoRegistro: z.literal("TESTE_DOENCA"),
   doencaId: idSchema.optional(),
-  nomeCustom: requiredTextSchema.optional(),
+  nomeCustom: shortHealthText.optional(),
   resultado: z.enum(["POSITIVO", "NEGATIVO"]),
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
@@ -48,7 +50,7 @@ export type TesteDoencaInput = z.infer<typeof testeDoencaSchema>;
 
 export const medicamentoTratamentoSchema = z.object({
   tipoRegistro: z.literal("MEDICAMENTO_TRATAMENTO"),
-  medicamentoTratamento: requiredTextSchema,
+  medicamentoTratamento: shortHealthText,
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,
@@ -60,7 +62,7 @@ export type MedicamentoTratamentoInput = z.infer<
 
 export const procedimentoRegistroSchema = z.object({
   tipoRegistro: z.literal("PROCEDIMENTO"),
-  procedimento: requiredTextSchema,
+  procedimento: shortHealthText,
   dataAplicacao: pastOrTodayDateSchema,
   dataProxima: z.date().optional(),
   ...optionalHealthDetails,

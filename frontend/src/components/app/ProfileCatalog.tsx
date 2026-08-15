@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { X } from "lucide-react";
 
 import { AnimalShowcaseSkeleton } from "@/components/app/AnimalShowcaseSkeleton";
@@ -56,6 +56,12 @@ export function ProfileCatalog({
     filters.especieId || filters.racaId || filters.porte || filters.sexo,
   );
 
+  useEffect(() => {
+    if (filters.racaId && !racas.some((raca) => raca.id === filters.racaId)) {
+      onFiltersChange(profileCatalogFilterSchema.parse({ ...filters, racaId: undefined, page: 1 }));
+    }
+  }, [filters, onFiltersChange, racas]);
+
   const updateFilters = (patch: Partial<ProfileCatalogFilters>) => {
     onFiltersChange(
       profileCatalogFilterSchema.parse({ ...filters, ...patch, page: 1 }),
@@ -112,7 +118,6 @@ export function ProfileCatalog({
           </Select>
         </div>
 
-        {racas.length > 0 && (
           <div>
             <Label htmlFor="profile-breed">Raça</Label>
             <Select
@@ -120,9 +125,10 @@ export function ProfileCatalog({
               onValueChange={(value) =>
                 updateFilters({ racaId: value === "__all" ? undefined : value })
               }
+              disabled={!filters.especieId || racas.length === 0 || isLoading || isError}
             >
               <SelectTrigger id="profile-breed" className="mt-1 w-full">
-                <SelectValue placeholder="Todas" />
+                <SelectValue placeholder={!filters.especieId ? "Selecione uma espécie" : racas.length === 0 ? "Nenhuma raça disponível" : "Todas"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todas</SelectItem>
@@ -134,7 +140,6 @@ export function ProfileCatalog({
               </SelectContent>
             </Select>
           </div>
-        )}
 
         <div>
           <Label htmlFor="profile-size">Porte</Label>

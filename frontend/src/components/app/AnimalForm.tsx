@@ -204,6 +204,7 @@ export function AnimalForm({ animal, mode }: Props) {
           <Input
             id="animal-name"
             required
+            maxLength={80}
             value={form.nome}
             onChange={(e) => set("nome", e.target.value)}
           />
@@ -212,6 +213,7 @@ export function AnimalForm({ animal, mode }: Props) {
           <Input
             id="animal-color"
             required
+            maxLength={80}
             value={form.cor}
             onChange={(e) => set("cor", e.target.value)}
           />
@@ -298,6 +300,7 @@ export function AnimalForm({ animal, mode }: Props) {
         <Field label="Idade estimada" htmlFor="animal-age">
           <Input
             id="animal-age"
+            maxLength={50}
             value={form.idadeEstimada ?? ""}
             onChange={(e) => set("idadeEstimada", e.target.value)}
             placeholder="Ex.: 2 anos"
@@ -329,9 +332,11 @@ export function AnimalForm({ animal, mode }: Props) {
           <Textarea
             id="animal-description"
             rows={4}
+            maxLength={2000}
             value={form.descricao ?? ""}
             onChange={(e) => set("descricao", e.target.value)}
           />
+          <p className="mt-1 text-right text-xs text-muted-foreground">{form.descricao?.length ?? 0}/2000</p>
         </Field>
         {mode === "create" && (
           <Field

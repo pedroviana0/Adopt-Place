@@ -256,6 +256,7 @@ export async function PATCH(request: Request) {
         409,
         "EMAIL_ALREADY_EXISTS",
         "E-mail ja cadastrado.",
+        { email: ["Este e-mail já está cadastrado."] },
       );
     }
     throw error;

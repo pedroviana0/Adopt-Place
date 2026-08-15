@@ -52,6 +52,7 @@ function Page() {
               </label>
               <Input
                 id="organization-search"
+                maxLength={120}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ex.: Organização de Teste"

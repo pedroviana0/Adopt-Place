@@ -55,6 +55,9 @@ describe("official frontend animal photo upload", () => {
     const oversized = new File(["x"], "large.jpg", { type: "image/jpeg" });
     Object.defineProperty(oversized, "size", { value: 4 * 1024 * 1024 + 1 });
     expect(() => validateAnimalPhotoFile(oversized)).toThrow("4 MB");
+    expect(() =>
+      validateAnimalPhotoFile(new File(["image"], "fake.txt", { type: "image/jpeg" })),
+    ).toThrow("Apenas imagens");
     expect(uploadFiles).not.toHaveBeenCalled();
   });
 

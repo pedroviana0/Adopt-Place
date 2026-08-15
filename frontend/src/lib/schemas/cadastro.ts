@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addressSchema, cnpjSchema, cpfSchema, emailSchema, passwordSchema, personNameSchema, phoneSchema } from "./common";
 
 const cepSchema = z
   .string()
@@ -6,49 +7,47 @@ const cepSchema = z
   .pipe(z.string().regex(/^\d{8}$/, "Informe um CEP com 8 dígitos"));
 
 export const cadastroAdotanteSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  senha: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  nomeCompleto: z.string().min(3, "Nome muito curto"),
-  cpf: z
-    .string()
-    .regex(/^\d{11}$/, "CPF deve ter 11 dígitos (apenas números)"),
-  telefone: z.string().min(8, "Telefone inválido"),
-  endereco: z.string().min(3, "Endereço inválido"),
+  email: emailSchema,
+  senha: passwordSchema,
+  nomeCompleto: personNameSchema,
+  cpf: cpfSchema,
+  telefone: phoneSchema,
+  endereco: addressSchema,
   // Cidade e UF vêm do CEP, resolvidas pelo servidor.
   cep: cepSchema,
   municipioId: z.string().optional(),
-  instagram: z.string().optional().or(z.literal("")),
+  instagram: z.string().trim().max(120, "O Instagram deve ter no máximo 120 caracteres.").optional().or(z.literal("")),
 });
 export type CadastroAdotanteInput = z.infer<typeof cadastroAdotanteSchema>;
 
 export const cadastroOrganizacaoSchema = z.object({
-  email: z.string().email(),
-  senha: z.string().min(6),
-  razaoSocial: z.string().min(3),
-  cnpj: z.string().regex(/^\d{14}$/, "CNPJ deve ter 14 dígitos"),
-  telefone: z.string().min(8),
-  endereco: z.string().min(3),
+  email: emailSchema,
+  senha: passwordSchema,
+  razaoSocial: z.string().trim().min(3, "Informe a razão social.").max(160, "A razão social deve ter no máximo 160 caracteres."),
+  cnpj: cnpjSchema,
+  telefone: phoneSchema,
+  endereco: addressSchema,
   cep: cepSchema,
   municipioId: z.string().optional(),
-  responsavelNome: z.string().min(3),
-  capacidadeMaxima: z.number().int().positive().optional(),
+  responsavelNome: personNameSchema,
+  capacidadeMaxima: z.number().finite().int("Informe um número inteiro.").min(0).max(10000, "Informe no máximo 10.000.").optional(),
 });
 export type CadastroOrganizacaoInput = z.infer<typeof cadastroOrganizacaoSchema>;
 
 export const cadastroAcolhedorSchema = z.object({
-  email: z.string().email(),
-  senha: z.string().min(6),
-  nomeCompleto: z.string().min(3),
-  cpf: z.string().regex(/^\d{11}$/),
-  telefone: z.string().min(8),
-  endereco: z.string().min(3),
+  email: emailSchema,
+  senha: passwordSchema,
+  nomeCompleto: personNameSchema,
+  cpf: cpfSchema,
+  telefone: phoneSchema,
+  endereco: addressSchema,
   cep: cepSchema,
   municipioId: z.string().optional(),
 });
 export type CadastroAcolhedorInput = z.infer<typeof cadastroAcolhedorSchema>;
 
 export const loginSchema = z.object({
-  email: z.string().email(),
-  senha: z.string().min(1),
+  email: emailSchema,
+  senha: z.string().min(1, "Informe a senha.").max(128, "A senha deve ter no máximo 128 caracteres."),
 });
 export type LoginInput = z.infer<typeof loginSchema>;

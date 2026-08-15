@@ -14,7 +14,7 @@ export const documentoSaudeMetadataSchema = z.object({
   animalId: idSchema,
   registroSaudeId: idSchema.optional(),
   tipo: z.nativeEnum(TipoDocumentoSaude),
-});
+}).strict();
 
 export const documentoSaudeUploadSchema = documentoSaudeMetadataSchema.extend({
   nomeArquivo: requiredTextSchema.max(

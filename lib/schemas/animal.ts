@@ -13,15 +13,15 @@ export const animalStatusSchema = z.nativeEnum(StatusAnimal, {
 
 export const animalInputSchema = z
   .object({
-    nome: requiredTextSchema,
+    nome: requiredTextSchema.max(80, "O nome deve ter no máximo 80 caracteres."),
     especieId: idSchema,
     racaId: idSchema.optional().nullable(),
     porte: z.nativeEnum(Porte, { required_error: "Campo obrigatorio." }),
     sexo: z.nativeEnum(Sexo, { required_error: "Campo obrigatorio." }),
-    cor: requiredTextSchema,
-    idadeEstimada: optionalTextSchema,
+    cor: requiredTextSchema.max(80, "A cor deve ter no máximo 80 caracteres."),
+    idadeEstimada: optionalTextSchema.pipe(z.string().max(50, "A idade estimada deve ter no máximo 50 caracteres.").optional()),
     castrado: z.boolean().default(false),
-    descricao: optionalTextSchema,
+    descricao: optionalTextSchema.pipe(z.string().max(2000, "A descrição deve ter no máximo 2.000 caracteres.").optional()),
     status: animalStatusSchema,
   })
   .strict("Revise os campos informados");

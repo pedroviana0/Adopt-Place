@@ -52,6 +52,7 @@ describe("profileImage Uploadthing authorization", () => {
       [{}, []],
       [{}, [validFile, validFile]],
       [{}, [{ ...validFile, type: "application/pdf" }]],
+      [{}, [{ ...validFile, name: "perfil.txt" }]],
       [{}, [{ ...validFile, size: MAX_PROFILE_IMAGE_BYTES + 1 }]],
     ] as const) {
       await expect(authorizeProfileImageUpload(input, files)).rejects.toThrow();

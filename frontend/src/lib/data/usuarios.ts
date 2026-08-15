@@ -12,7 +12,7 @@ import { login } from "./sessao";
 // localStorage/mock/session-forgery for these flows.
 // ============================================================================
 
-interface ApiError extends Error {
+export interface ApiError extends Error {
   code?: string;
   fieldErrors?: Record<string, string[] | undefined>;
 }

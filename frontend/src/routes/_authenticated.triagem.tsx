@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { triagemSchema, type TriagemInput } from "@/lib/schemas/triagem";
 import { useSessao } from "@/lib/data/hooks";
-import { fetchTriagem, salvarTriagem } from "@/lib/data/usuarios";
+import { fetchTriagem, salvarTriagem, type ApiError } from "@/lib/data/usuarios";
 import { toast } from "sonner";
 import { TipoMoradia } from "@/lib/domain/enums";
 import { AsyncState } from "@/components/app/AsyncState";
@@ -41,7 +41,7 @@ function TriagemPage() {
   // Prefill from the real screening (GET /api/triagem); adopter-only endpoint.
   const triagem = useQuery({ queryKey: ["triagem"], queryFn: fetchTriagem, enabled: isAdopter });
 
-  const form = useForm<TriagemInput>({ resolver: zodResolver(triagemSchema) });
+  const form = useForm<TriagemInput>({ resolver: zodResolver(triagemSchema), mode: "onBlur", reValidateMode: "onChange", shouldFocusError: true });
   const { reset } = form;
 
   useEffect(() => {
@@ -52,10 +52,12 @@ function TriagemPage() {
       tipoAnimalDesejado: (t.tipoAnimalDesejado as string) ?? "",
       podeArcarCustosVet: (t.podeArcarCustosVet as boolean) ?? false,
       adocaoParaPresente: (t.adocaoParaPresente as boolean) ?? false,
+      adocaoParaPresenteDetalhe: (t.adocaoParaPresenteDetalhe as string) ?? "",
       tipoMoradia: (t.tipoMoradia as TipoMoradia) ?? TipoMoradia.APARTAMENTO,
       moradiaPropria: (t.moradiaPropria as boolean) ?? false,
       numAdultosCasa: (t.numAdultosCasa as number) ?? 1,
       temCriancas: (t.temCriancas as boolean) ?? false,
+      criancasFaixaEtaria: (t.criancasFaixaEtaria as string) ?? "",
       // backend column carries a historical typo (todosConordamAdocao)
       todosConcordamAdocao: (t.todosConordamAdocao as boolean) ?? false,
       janelasTeladas: (t.janelasTeladas as boolean) ?? false,
@@ -65,6 +67,7 @@ function TriagemPage() {
       responsavelViagem: (t.responsavelViagem as string) ?? "",
       planoEmGravidez: (t.planoEmGravidez as string) ?? "",
       alergicosNaCasa: (t.alergicosNaCasa as boolean) ?? false,
+      alergicosNaCasaDetalhe: (t.alergicosNaCasaDetalhe as string) ?? "",
       planoMudanca: (t.planoMudanca as string) ?? "",
       historicoDevolucao: (t.historicoDevolucao as string) ?? "",
       historicoPercaDescuido: (t.historicoPercaDescuido as string) ?? "",
@@ -73,7 +76,9 @@ function TriagemPage() {
       // backend column carries a historical typo (ciendeNaoRepassar)
       cienteNaoRepassar: (t.ciendeNaoRepassar as boolean) ?? false,
       teveAnimaisAntes: (t.teveAnimaisAntes as boolean) ?? false,
+      animaisAnterioresDescricao: (t.animaisAnterioresDescricao as string) ?? "",
       temOutrosAnimais: (t.temOutrosAnimais as boolean) ?? false,
+      outrosAnimaisDescricao: (t.outrosAnimaisDescricao as string) ?? "",
     });
   }, [triagem.data, reset]);
 
@@ -91,6 +96,14 @@ function TriagemPage() {
       toast.success("Triagem concluída! Você já pode solicitar adoções.");
       navigate({ to: "/minhas-solicitacoes" });
     } catch (e) {
+      const fieldErrors = (e as ApiError).fieldErrors;
+      if (fieldErrors) {
+        for (const [field, messages] of Object.entries(fieldErrors)) {
+          if (messages?.[0]) {
+            form.setError(field as keyof TriagemInput, { type: "server", message: messages[0] }, { shouldFocus: true });
+          }
+        }
+      }
       toast.error(e instanceof Error ? e.message : "Erro ao salvar");
     }
   };
@@ -184,12 +197,14 @@ function TriagemPage() {
               <Textarea
                 id="motivoAdocao"
                 rows={3}
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.motivoAdocao)}
                 aria-describedby={
                   form.formState.errors.motivoAdocao ? "motivoAdocao-error" : undefined
                 }
                 {...form.register("motivoAdocao")}
               />
+              <p className="text-right text-xs text-muted-foreground">{form.watch("motivoAdocao")?.length ?? 0}/500</p>
               <FieldError
                 id="motivoAdocao-error"
                 message={form.formState.errors.motivoAdocao?.message}
@@ -199,6 +214,7 @@ function TriagemPage() {
               <Label htmlFor="tipoAnimalDesejado">Tipo de animal desejado</Label>
               <Input
                 id="tipoAnimalDesejado"
+                maxLength={120}
                 aria-invalid={Boolean(form.formState.errors.tipoAnimalDesejado)}
                 aria-describedby={
                   form.formState.errors.tipoAnimalDesejado ? "tipoAnimalDesejado-error" : undefined
@@ -257,12 +273,15 @@ function TriagemPage() {
             </div>
             {bool("podeArcarCustosVet", "Pode arcar com custos veterinários?")}
             {bool("adocaoParaPresente", "É adoção para presentear alguém?")}
+            {form.watch("adocaoParaPresente") && <ConditionalField form={form} name="adocaoParaPresenteDetalhe" label="Para quem será o presente?" />}
             {bool("moradiaPropria", "Moradia própria?")}
             {bool("temCriancas", "Há crianças na casa?")}
+            {form.watch("temCriancas") && <ConditionalField form={form} name="criancasFaixaEtaria" label="Faixa etária das crianças" />}
             {bool("todosConcordamAdocao", "Todos concordam com a adoção?")}
             {bool("janelasTeladas", "Janelas teladas / com proteção?")}
             {bool("murosSeguros", "Muros e portões seguros?")}
             {bool("alergicosNaCasa", "Alguém alérgico na casa?")}
+            {form.watch("alergicosNaCasa") && <ConditionalField form={form} name="alergicosNaCasaDetalhe" label="Detalhes sobre a alergia e os cuidados" />}
           </FormSection>
 
           <FormSection
@@ -274,11 +293,14 @@ function TriagemPage() {
             {bool("permiteVisitaProtetor", "Permite visita do protetor?")}
             {bool("cienteNaoRepassar", "Ciente de que não pode repassar o animal?")}
             {bool("teveAnimaisAntes", "Já teve animais antes?")}
+            {form.watch("teveAnimaisAntes") && <ConditionalField form={form} name="animaisAnterioresDescricao" label="Conte sobre os animais anteriores" textarea />}
             {bool("temOutrosAnimais", "Tem outros animais atualmente?")}
+            {form.watch("temOutrosAnimais") && <ConditionalField form={form} name="outrosAnimaisDescricao" label="Descreva os outros animais" textarea />}
             <div>
               <Label htmlFor="acessoRua">Como será o acesso à rua?</Label>
               <Input
                 id="acessoRua"
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.acessoRua)}
                 aria-describedby={form.formState.errors.acessoRua ? "acessoRua-error" : undefined}
                 {...form.register("acessoRua")}
@@ -289,6 +311,7 @@ function TriagemPage() {
               <Label htmlFor="horasSozinho">Horas sozinho por dia</Label>
               <Input
                 id="horasSozinho"
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.horasSozinho)}
                 aria-describedby={
                   form.formState.errors.horasSozinho ? "horasSozinho-error" : undefined
@@ -311,6 +334,7 @@ function TriagemPage() {
               <Label htmlFor="responsavelViagem">Responsável em caso de viagem</Label>
               <Input
                 id="responsavelViagem"
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.responsavelViagem)}
                 aria-describedby={
                   form.formState.errors.responsavelViagem ? "responsavelViagem-error" : undefined
@@ -326,6 +350,7 @@ function TriagemPage() {
               <Label htmlFor="planoEmGravidez">Plano em caso de gravidez na família</Label>
               <Input
                 id="planoEmGravidez"
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.planoEmGravidez)}
                 aria-describedby={
                   form.formState.errors.planoEmGravidez ? "planoEmGravidez-error" : undefined
@@ -341,6 +366,7 @@ function TriagemPage() {
               <Label htmlFor="planoMudanca">Plano em caso de mudança</Label>
               <Input
                 id="planoMudanca"
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.planoMudanca)}
                 aria-describedby={
                   form.formState.errors.planoMudanca ? "planoMudanca-error" : undefined
@@ -357,6 +383,7 @@ function TriagemPage() {
               <Textarea
                 id="historicoDevolucao"
                 rows={2}
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.historicoDevolucao)}
                 aria-describedby={
                   form.formState.errors.historicoDevolucao ? "historicoDevolucao-error" : undefined
@@ -373,6 +400,7 @@ function TriagemPage() {
               <Textarea
                 id="historicoPercaDescuido"
                 rows={2}
+                maxLength={500}
                 aria-invalid={Boolean(form.formState.errors.historicoPercaDescuido)}
                 aria-describedby={
                   form.formState.errors.historicoPercaDescuido
@@ -442,4 +470,25 @@ function FieldError({ id, message }: { id: string; message?: string }) {
       {message}
     </p>
   );
+}
+
+function ConditionalField({ form, name, label, textarea = false }: {
+  form: ReturnType<typeof useForm<TriagemInput>>;
+  name: "adocaoParaPresenteDetalhe" | "criancasFaixaEtaria" | "alergicosNaCasaDetalhe" | "animaisAnterioresDescricao" | "outrosAnimaisDescricao";
+  label: string;
+  textarea?: boolean;
+}) {
+  const error = form.formState.errors[name]?.message;
+  const props = {
+    id: name,
+    maxLength: 500,
+    "aria-invalid": Boolean(error),
+    "aria-describedby": error ? `${name}-error` : undefined,
+    ...form.register(name),
+  };
+  return <div>
+    <Label htmlFor={name}>{label}</Label>
+    {textarea ? <Textarea rows={2} {...props} /> : <Input {...props} />}
+    <FieldError id={`${name}-error`} message={error} />
+  </div>;
 }

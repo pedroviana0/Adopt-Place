@@ -80,7 +80,7 @@ frontend/            App de UI (Vite + TanStack Start)
   src/lib/data/      Camada que fala com /api (sessao, animais, favoritos…)
   src/styles.css     Tokens de tema (Teal & Amber) + @font-face
   public/fonts/      Fontes self-hospedadas (Inter, Poppins)
-specs/               Uma pasta por feature (001–006)
+specs/               Uma pasta por feature (001–007)
   README.md          ÍNDICE das specs + regra de continuidade + modelo de ENTREGA
   00N-*/spec.md      O que se quer e por quê (promessa)
   00N-*/ENTREGA.md   O que foi entregue, o que não foi, decisões e armadilhas (fato)
@@ -253,16 +253,15 @@ commit: **sem hash não é registro, é lembrança.**
 
 ---
 
-## 10. Estado atual (handoff) — atualizado 2026-08-09
+## 10. Estado atual (handoff) — atualizado 2026-08-14
 
 **`main` = `c2394b2`.** Tudo abaixo já está mergeado e validado (`tsc` + `build`; backend com
 **294 testes** passando — reconferido em 2026-08-09).
 
-> **Em execução agora:** branch **`006-perfis-publicos`** (a partir de `c2394b2`), com a spec 006
-> aprovada, o levantamento feito e o plano em 8 ondas. Ponto de entrada obrigatório:
-> **`specs/006-perfis-publicos/HANDOFF.md`**. Ele registra três achados medidos que mudam o
-> desenho — entre eles, que o `mode: "insensitive"` do Prisma **não** ignora acento, o que obriga
-> uma coluna normalizada em `Organizacao` para cumprir FR-012.
+> **Entrega atual:** branch **`007-validacao-formularios`**. A implementação de validações,
+> contratos de erro, uploads e raças disponíveis está concluída e passa em **364 testes**, Prisma,
+> typecheck dos dois aplicativos e build do frontend. A homologação manual ampliada da FR-025
+> permanece registrada em `specs/007-validacao-formularios/ENTREGA.md`.
 
 ### O que existe e funciona
 - **Jornada de adoção completa:** vitrine pública (filtros + paginação), cadastro (3 tipos),

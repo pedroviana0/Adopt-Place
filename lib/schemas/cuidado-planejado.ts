@@ -28,18 +28,18 @@ export const consultaPlanejadaSchema = z.object({
   dataHoraPlanejada: futureDateSchema,
   titulo: requiredTextSchema.max(160, "O titulo deve ter no maximo 160 caracteres."),
   observacoes: optionalTextSchema,
-  localProfissional: optionalTextSchema,
-});
+  localProfissional: optionalTextSchema.pipe(z.string().max(200, "O local ou profissional deve ter no máximo 200 caracteres.").optional()),
+}).strict();
 
 export const reagendarCuidadoSchema = z.object({
   dataHoraPlanejada: futureDateSchema,
-});
+}).strict();
 
 export const cancelarCuidadoSchema = z.object({
   confirmado: z.literal(true, {
     errorMap: () => ({ message: "Confirme o cancelamento." }),
   }),
-});
+}).strict();
 
 export const concluirCuidadoSchema = registroSaudeSchema;
 

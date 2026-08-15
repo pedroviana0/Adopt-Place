@@ -131,7 +131,8 @@ function Page() {
           <Label htmlFor="obs" className="mb-1 block text-sm">
             Observações (opcional)
           </Label>
-          <Textarea id="obs" rows={3} value={obs} onChange={(e) => setObs(e.target.value)} />
+          <Textarea id="obs" rows={3} maxLength={1000} value={obs} onChange={(e) => setObs(e.target.value)} aria-describedby="obs-limit" />
+          <p id="obs-limit" className="mt-1 text-right text-xs text-muted-foreground">{obs.length}/1000</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button disabled={saving !== null} onClick={() => decidir("APROVADA")}>
               {saving === "apr" ? "Aprovando..." : "Aprovar"}

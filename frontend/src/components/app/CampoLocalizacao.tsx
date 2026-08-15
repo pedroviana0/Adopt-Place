@@ -172,6 +172,7 @@ export function CampoLocalizacao({
           <Input
             id={`${id}-municipio`}
             placeholder="Digite o nome da cidade"
+            maxLength={120}
             disabled={disabled}
             value={buscaMunicipio}
             onChange={(e) => setBuscaMunicipio(e.target.value)}

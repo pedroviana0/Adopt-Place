@@ -80,6 +80,15 @@ describe("health document upload completion", () => {
     expect(prisma.animal.findUnique).not.toHaveBeenCalled();
   });
 
+  it("rejects an apparent extension incompatible with the declared MIME", async () => {
+    await expect(
+      authorizeHealthDocumentUpload(
+        { animalId, tipoDocumento: "EXAME" },
+        [{ name: "hemograma.exe", size: 2048, type: "application/pdf" }],
+      ),
+    ).rejects.toThrow("extensão");
+  });
+
   it("persists validated metadata after rechecking animal ownership", async () => {
     vi.mocked(prisma.animal.findUnique).mockResolvedValue({
       organizacaoId: "org-1",

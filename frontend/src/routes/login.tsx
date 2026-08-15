@@ -105,6 +105,7 @@ function LoginPage() {
                 <Input
                   id="email"
                   type="email"
+                  maxLength={254}
                   placeholder="m@exemplo.com"
                   autoComplete="email"
                   className={glassField}
@@ -125,6 +126,7 @@ function LoginPage() {
                   autoComplete="current-password"
                   className={glassField}
                   // Sobre o vidro escuro, o cinza padrão some.
+                  maxLength={128}
                   toggleClassName="text-white/70 hover:text-white focus-visible:ring-white"
                   {...form.register("senha")}
                 />

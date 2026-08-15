@@ -94,7 +94,7 @@ describe("setUserActive", () => {
 
     const result = await setUserActive({ userId: "invalid-id", ativo: true });
 
-    expect(result.error).toBe("Identificador invalido.");
+    expect(result.error).toBe("Identificador inválido.");
     expect(prisma.usuario.update).not.toHaveBeenCalled();
   });
 });

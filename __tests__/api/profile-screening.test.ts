@@ -100,6 +100,7 @@ const screeningInput = {
   permiteVisitaProtetor: true,
   ciendeNaoRepassar: true,
   teveAnimaisAntes: true,
+  animaisAnterioresDescricao: "Já cuidei de cães durante muitos anos.",
   temOutrosAnimais: false,
 };
 

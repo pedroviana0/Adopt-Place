@@ -1,4 +1,4 @@
-import { useId, useMemo } from "react";
+import { useEffect, useId, useMemo } from "react";
 import { AlertCircle, LoaderCircle, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +56,12 @@ export function AnimalFilters({
   const racas = useMemo(() => {
     return especies.find((e) => e.id === value.especieId)?.racas ?? [];
   }, [especies, value.especieId]);
+
+  useEffect(() => {
+    if (value.racaId && !racas.some((raca) => raca.id === value.racaId)) {
+      onChange({ ...value, racaId: undefined });
+    }
+  }, [onChange, racas, value]);
 
   const toggleTag = (t: string) => {
     onChange({
@@ -152,10 +158,10 @@ export function AnimalFilters({
           <Select
             value={value.racaId ?? "__all"}
             onValueChange={(v) => onChange({ ...value, racaId: v === "__all" ? undefined : v })}
-            disabled={!value.especieId || isCatalogLoading || isCatalogError}
+            disabled={!value.especieId || racas.length === 0 || isCatalogLoading || isCatalogError}
           >
             <SelectTrigger id={`${id}-raca`}>
-              <SelectValue placeholder={value.especieId ? "Todas" : "Selecione uma espécie"} />
+              <SelectValue placeholder={!value.especieId ? "Selecione uma espécie" : racas.length === 0 ? "Nenhuma raça disponível" : "Todas"} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todas</SelectItem>
@@ -211,6 +217,7 @@ export function AnimalFilters({
           <Input
             id={`${id}-cidade`}
             placeholder="Ex.: Volta Redonda"
+            maxLength={120}
             value={value.cidade ?? ""}
             onChange={(e) => onChange({ ...value, cidade: e.target.value || undefined })}
           />

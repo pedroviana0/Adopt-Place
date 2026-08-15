@@ -7,7 +7,7 @@ import { CadastroField, CadastroSection, CadastroShell, CadastroSubmit } from "@
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { cadastroOrganizacaoSchema, type CadastroOrganizacaoInput } from "@/lib/schemas/cadastro";
-import { cadastrarOrganizacao } from "@/lib/data/usuarios";
+import { cadastrarOrganizacao, type ApiError } from "@/lib/data/usuarios";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cadastro/organizacao")({
@@ -17,13 +17,16 @@ export const Route = createFileRoute("/cadastro/organizacao")({
 
 function Page() {
   const navigate = useNavigate();
-  const f = useForm<CadastroOrganizacaoInput>({ resolver: zodResolver(cadastroOrganizacaoSchema) });
+  const f = useForm<CadastroOrganizacaoInput>({ resolver: zodResolver(cadastroOrganizacaoSchema), mode: "onBlur", reValidateMode: "onChange" });
   const onSubmit = async (data: CadastroOrganizacaoInput) => {
     try {
       await cadastrarOrganizacao(data);
       toast.success("Organização cadastrada!");
       navigate({ to: "/dashboard" });
     } catch (error) {
+      for (const [field, messages] of Object.entries((error as ApiError).fieldErrors ?? {})) {
+        if (messages?.[0]) f.setError(field as keyof CadastroOrganizacaoInput, { type: "server", message: messages[0] }, { shouldFocus: true });
+      }
       toast.error(error instanceof Error ? error.message : "Erro no cadastro");
     }
   };
@@ -33,22 +36,22 @@ function Page() {
       <form noValidate onSubmit={f.handleSubmit(onSubmit)} className="mt-8 space-y-6">
         <CadastroSection icon={Building2} title="Dados da organização" description="Identificação institucional e credenciais de acesso.">
           <CadastroField label="Razão social" htmlFor="razaoSocial" error={f.formState.errors.razaoSocial?.message}>
-            <Input id="razaoSocial" autoComplete="organization" aria-invalid={Boolean(f.formState.errors.razaoSocial)} {...f.register("razaoSocial")} />
+            <Input id="razaoSocial" maxLength={160} autoComplete="organization" aria-invalid={Boolean(f.formState.errors.razaoSocial)} {...f.register("razaoSocial")} />
           </CadastroField>
           <div className="grid gap-4 sm:grid-cols-2">
             <CadastroField label="E-mail" htmlFor="email" error={f.formState.errors.email?.message}>
-              <Input id="email" type="email" autoComplete="email" aria-invalid={Boolean(f.formState.errors.email)} {...f.register("email")} />
+              <Input id="email" type="email" maxLength={254} autoComplete="email" aria-invalid={Boolean(f.formState.errors.email)} {...f.register("email")} />
             </CadastroField>
             <CadastroField label="Senha" htmlFor="senha" error={f.formState.errors.senha?.message} hint="Use uma senha segura para proteger a equipe.">
-              <PasswordInput id="senha" autoComplete="new-password" aria-invalid={Boolean(f.formState.errors.senha)} {...f.register("senha")} />
+              <PasswordInput id="senha" maxLength={128} autoComplete="new-password" aria-invalid={Boolean(f.formState.errors.senha)} {...f.register("senha")} />
             </CadastroField>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <CadastroField label="CNPJ (14 dígitos)" htmlFor="cnpj" error={f.formState.errors.cnpj?.message}>
-              <Input id="cnpj" inputMode="numeric" aria-invalid={Boolean(f.formState.errors.cnpj)} {...f.register("cnpj")} />
+              <Input id="cnpj" inputMode="numeric" maxLength={18} aria-invalid={Boolean(f.formState.errors.cnpj)} {...f.register("cnpj")} />
             </CadastroField>
             <CadastroField label="Telefone" htmlFor="telefone" error={f.formState.errors.telefone?.message}>
-              <Input id="telefone" type="tel" autoComplete="tel" aria-invalid={Boolean(f.formState.errors.telefone)} {...f.register("telefone")} />
+              <Input id="telefone" type="tel" maxLength={16} autoComplete="tel" aria-invalid={Boolean(f.formState.errors.telefone)} {...f.register("telefone")} />
             </CadastroField>
           </div>
         </CadastroSection>
@@ -56,10 +59,10 @@ function Page() {
         <CadastroSection icon={UsersRound} title="Responsável e capacidade" description="Quem responde pela organização e quantos animais ela consegue acolher.">
           <div className="grid gap-4 sm:grid-cols-2">
             <CadastroField label="Nome do responsável" htmlFor="responsavelNome" error={f.formState.errors.responsavelNome?.message}>
-              <Input id="responsavelNome" autoComplete="name" aria-invalid={Boolean(f.formState.errors.responsavelNome)} {...f.register("responsavelNome")} />
+              <Input id="responsavelNome" maxLength={120} autoComplete="name" aria-invalid={Boolean(f.formState.errors.responsavelNome)} {...f.register("responsavelNome")} />
             </CadastroField>
             <CadastroField label="Capacidade máxima" htmlFor="capacidadeMaxima" error={f.formState.errors.capacidadeMaxima?.message} hint="Quantidade máxima de animais sob cuidado simultâneo.">
-              <Input id="capacidadeMaxima" type="number" min={1} aria-invalid={Boolean(f.formState.errors.capacidadeMaxima)} {...f.register("capacidadeMaxima", { valueAsNumber: true })} />
+              <Input id="capacidadeMaxima" type="number" min={0} max={10000} step={1} aria-invalid={Boolean(f.formState.errors.capacidadeMaxima)} {...f.register("capacidadeMaxima", { valueAsNumber: true })} />
             </CadastroField>
           </div>
         </CadastroSection>
@@ -67,7 +70,7 @@ function Page() {
         <CadastroSection icon={MapPin} title="Localização" description="Endereço público utilizado para aproximar adotantes da organização.">
           <CampoLocalizacao valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }} onChange={(value) => { f.setValue("cep", value.cep, { shouldValidate: value.cep.length === 8 }); f.setValue("municipioId", value.municipioId); }} onLogradouro={(logradouro) => { if (!f.getValues("endereco")) f.setValue("endereco", logradouro); }} erro={f.formState.errors.cep?.message} />
           <CadastroField label="Endereço" htmlFor="endereco" error={f.formState.errors.endereco?.message}>
-            <Input id="endereco" autoComplete="street-address" placeholder="Rua, número e complemento" aria-invalid={Boolean(f.formState.errors.endereco)} {...f.register("endereco")} />
+            <Input id="endereco" maxLength={200} autoComplete="street-address" placeholder="Rua, número e complemento" aria-invalid={Boolean(f.formState.errors.endereco)} {...f.register("endereco")} />
           </CadastroField>
         </CadastroSection>
 

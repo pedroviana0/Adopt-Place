@@ -7,7 +7,7 @@ import { CadastroField, CadastroSection, CadastroShell, CadastroSubmit } from "@
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { cadastroAcolhedorSchema, type CadastroAcolhedorInput } from "@/lib/schemas/cadastro";
-import { cadastrarAcolhedor } from "@/lib/data/usuarios";
+import { cadastrarAcolhedor, type ApiError } from "@/lib/data/usuarios";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cadastro/acolhedor")({
@@ -17,13 +17,16 @@ export const Route = createFileRoute("/cadastro/acolhedor")({
 
 function Page() {
   const navigate = useNavigate();
-  const f = useForm<CadastroAcolhedorInput>({ resolver: zodResolver(cadastroAcolhedorSchema) });
+  const f = useForm<CadastroAcolhedorInput>({ resolver: zodResolver(cadastroAcolhedorSchema), mode: "onBlur", reValidateMode: "onChange" });
   const onSubmit = async (data: CadastroAcolhedorInput) => {
     try {
       await cadastrarAcolhedor(data);
       toast.success("Acolhedor cadastrado!");
       navigate({ to: "/dashboard" });
     } catch (error) {
+      for (const [field, messages] of Object.entries((error as ApiError).fieldErrors ?? {})) {
+        if (messages?.[0]) f.setError(field as keyof CadastroAcolhedorInput, { type: "server", message: messages[0] }, { shouldFocus: true });
+      }
       toast.error(error instanceof Error ? error.message : "Erro no cadastro");
     }
   };
@@ -33,22 +36,22 @@ function Page() {
       <form noValidate onSubmit={f.handleSubmit(onSubmit)} className="mt-8 space-y-6">
         <CadastroSection icon={UserRound} title="Dados pessoais" description="Informações de identificação, contato e acesso.">
           <CadastroField label="Nome completo" htmlFor="nomeCompleto" error={f.formState.errors.nomeCompleto?.message}>
-            <Input id="nomeCompleto" autoComplete="name" aria-invalid={Boolean(f.formState.errors.nomeCompleto)} {...f.register("nomeCompleto")} />
+            <Input id="nomeCompleto" maxLength={120} autoComplete="name" aria-invalid={Boolean(f.formState.errors.nomeCompleto)} {...f.register("nomeCompleto")} />
           </CadastroField>
           <div className="grid gap-4 sm:grid-cols-2">
             <CadastroField label="E-mail" htmlFor="email" error={f.formState.errors.email?.message}>
-              <Input id="email" type="email" autoComplete="email" aria-invalid={Boolean(f.formState.errors.email)} {...f.register("email")} />
+              <Input id="email" type="email" maxLength={254} autoComplete="email" aria-invalid={Boolean(f.formState.errors.email)} {...f.register("email")} />
             </CadastroField>
             <CadastroField label="Senha" htmlFor="senha" error={f.formState.errors.senha?.message} hint="Use uma senha segura e fácil de lembrar.">
-              <PasswordInput id="senha" autoComplete="new-password" aria-invalid={Boolean(f.formState.errors.senha)} {...f.register("senha")} />
+              <PasswordInput id="senha" maxLength={128} autoComplete="new-password" aria-invalid={Boolean(f.formState.errors.senha)} {...f.register("senha")} />
             </CadastroField>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <CadastroField label="CPF (11 dígitos)" htmlFor="cpf" error={f.formState.errors.cpf?.message}>
-              <Input id="cpf" inputMode="numeric" aria-invalid={Boolean(f.formState.errors.cpf)} {...f.register("cpf")} />
+              <Input id="cpf" inputMode="numeric" maxLength={14} aria-invalid={Boolean(f.formState.errors.cpf)} {...f.register("cpf")} />
             </CadastroField>
             <CadastroField label="Telefone" htmlFor="telefone" error={f.formState.errors.telefone?.message}>
-              <Input id="telefone" type="tel" autoComplete="tel" aria-invalid={Boolean(f.formState.errors.telefone)} {...f.register("telefone")} />
+              <Input id="telefone" type="tel" maxLength={16} autoComplete="tel" aria-invalid={Boolean(f.formState.errors.telefone)} {...f.register("telefone")} />
             </CadastroField>
           </div>
         </CadastroSection>
@@ -56,7 +59,7 @@ function Page() {
         <CadastroSection icon={MapPin} title="Localização do acolhimento" description="Apenas o município aparece publicamente; seu endereço completo permanece privado.">
           <CampoLocalizacao valor={{ cep: f.watch("cep") ?? "", municipioId: f.watch("municipioId") }} onChange={(value) => { f.setValue("cep", value.cep, { shouldValidate: value.cep.length === 8 }); f.setValue("municipioId", value.municipioId); }} onLogradouro={(logradouro) => { if (!f.getValues("endereco")) f.setValue("endereco", logradouro); }} erro={f.formState.errors.cep?.message} />
           <CadastroField label="Endereço" htmlFor="endereco" error={f.formState.errors.endereco?.message}>
-            <Input id="endereco" autoComplete="street-address" placeholder="Rua, número e complemento" aria-invalid={Boolean(f.formState.errors.endereco)} {...f.register("endereco")} />
+            <Input id="endereco" maxLength={200} autoComplete="street-address" placeholder="Rua, número e complemento" aria-invalid={Boolean(f.formState.errors.endereco)} {...f.register("endereco")} />
           </CadastroField>
         </CadastroSection>
 

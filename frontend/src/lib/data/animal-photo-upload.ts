@@ -67,7 +67,8 @@ type AnimalPhotoUploadFiles = (
 ) => Promise<Array<{ serverData: { photo: UploadedAnimalPhoto } | null }>>;
 
 export function validateAnimalPhotoFile(file: File): void {
-  if (!file.type.startsWith("image/")) {
+  const extension = file.name.toLowerCase().split(".").pop() ?? "";
+  if (!file.type.startsWith("image/") || !["jpg", "jpeg", "png", "webp", "gif", "avif", "heic", "heif"].includes(extension)) {
     throw new Error("Apenas imagens são permitidas.");
   }
   if (file.size > MAX_ANIMAL_PHOTO_BYTES) {
@@ -114,4 +115,3 @@ export async function uploadAnimalPhoto(
     throw new Error(animalPhotoUploadErrorMessage(error), { cause: error });
   }
 }
-
