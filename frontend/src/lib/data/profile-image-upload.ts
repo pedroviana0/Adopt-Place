@@ -22,7 +22,10 @@ type ProfileImageUploadFiles = (
 ) => Promise<Array<{ serverData: { profileImage: { fotoUrl: string } } | null }>>;
 
 export function validateProfileImage(file: File): string | null {
-  if (!file.type.startsWith("image/")) return "Selecione um arquivo de imagem.";
+  const extension = file.name.toLowerCase().split(".").pop() ?? "";
+  if (!file.type.startsWith("image/") || !["jpg", "jpeg", "png", "webp", "gif", "avif", "heic", "heif"].includes(extension)) {
+    return "Selecione uma imagem com extensão válida.";
+  }
   if (file.size > MAX_PROFILE_IMAGE_BYTES) return "A imagem deve ter no máximo 4 MB.";
   return null;
 }

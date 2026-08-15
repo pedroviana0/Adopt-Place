@@ -190,6 +190,16 @@ describe("public showcase API", () => {
     expect(body.especies[0].racas.map((raca: { nome: string }) => raca.nome)).toEqual([
       "Sem raça definida (SRD)",
     ]);
+    expect(prisma.especie.findMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          racas: expect.objectContaining({
+            where: { animais: { some: { status: "DISPONIVEL" } } },
+            orderBy: { nome: "asc" },
+          }),
+        }),
+      }),
+    );
     expect(body.cidades).toContain("Volta Redonda");
     expect(body.cidades).toContain("Barra Mansa");
   });

@@ -1,3 +1,4 @@
+import { cloneElement, isValidElement, type ReactElement } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -97,10 +98,15 @@ export function CadastroField({
   children: React.ReactNode;
 }) {
   const errorId = htmlFor ? `${htmlFor}-error` : undefined;
+  const describedChild = isValidElement(children) && errorId
+    ? cloneElement(children as ReactElement<{ "aria-describedby"?: string }>, {
+        "aria-describedby": error ? errorId : undefined,
+      })
+    : children;
   return (
     <div>
       <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
+      {describedChild}
       {hint && !error && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
       {error && (
         <p id={errorId} role="alert" className="mt-1 text-xs text-destructive">

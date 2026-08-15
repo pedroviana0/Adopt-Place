@@ -97,7 +97,11 @@ export async function getShowcaseFilterOptions() {
       select: {
         id: true,
         nome: true,
-        racas: { orderBy: { nome: "asc" }, select: { id: true, nome: true, especieId: true } },
+        racas: {
+          where: { animais: { some: { status: StatusAnimal.DISPONIVEL } } },
+          orderBy: { nome: "asc" },
+          select: { id: true, nome: true, especieId: true },
+        },
       },
     }),
     prisma.organizacao.findMany({

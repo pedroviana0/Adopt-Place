@@ -7,13 +7,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useSessao } from "@/lib/data/hooks";
-import { fetchPerfil, atualizarPerfil, type PerfilDTO } from "@/lib/data/usuarios";
+import { fetchPerfil, atualizarPerfil, type ApiError, type PerfilDTO } from "@/lib/data/usuarios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { uploadProfileImage, validateProfileImage } from "@/lib/data/profile-image-upload";
+import { addressSchema, emailSchema, personNameSchema, phoneSchema } from "@/lib/schemas/common";
 
 export const Route = createFileRoute("/_authenticated/dashboard/perfil")({
   head: () => ({
@@ -30,26 +31,26 @@ export const Route = createFileRoute("/_authenticated/dashboard/perfil")({
 const descriptionField = z.string().trim().max(500, "Use no máximo 500 caracteres");
 
 const orgSchema = z.object({
-  razaoSocial: z.string().trim().min(2, "Informe a razão social").max(120),
-  responsavelNome: z.string().trim().min(2, "Informe o responsável").max(120),
-  email: z.string().trim().email("E-mail inválido").max(255),
-  telefone: z.string().trim().min(8, "Telefone inválido").max(20),
-  endereco: z.string().trim().min(3, "Informe o endereço").max(200),
+  razaoSocial: z.string().trim().min(3, "Informe a razão social.").max(160, "Use no máximo 160 caracteres."),
+  responsavelNome: personNameSchema,
+  email: emailSchema,
+  telefone: phoneSchema,
+  endereco: addressSchema,
   cidade: z.string().trim().min(2, "Informe a cidade").max(80),
   estado: z.string().trim().length(2, "UF com 2 letras"),
-  capacidadeMaxima: z.number().int().nonnegative().nullable().optional(),
+  capacidadeMaxima: z.number().finite().int("Informe um número inteiro.").min(0).max(10000, "Informe no máximo 10.000.").nullable().optional(),
   descricao: descriptionField,
 });
 type OrgForm = z.infer<typeof orgSchema>;
 
 const acoSchema = z.object({
-  nomeCompleto: z.string().trim().min(2, "Informe o nome").max(120),
-  email: z.string().trim().email("E-mail inválido").max(255),
-  telefone: z.string().trim().min(8, "Telefone inválido").max(20),
-  endereco: z.string().trim().min(3, "Informe o endereço").max(200),
+  nomeCompleto: personNameSchema,
+  email: emailSchema,
+  telefone: phoneSchema,
+  endereco: addressSchema,
   cidade: z.string().trim().min(2, "Informe a cidade").max(80),
   estado: z.string().trim().length(2, "UF com 2 letras"),
-  capacidadeAtual: z.coerce.number().int().nonnegative(),
+  capacidadeAtual: z.coerce.number().finite().int("Informe um número inteiro.").min(0).max(10000, "Informe no máximo 10.000."),
   descricao: descriptionField,
 });
 type AcoForm = z.infer<typeof acoSchema>;
@@ -180,6 +181,11 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
       toast.success("Perfil atualizado");
       form.reset(values);
     } catch (e) {
+      for (const [field, messages] of Object.entries((e as ApiError).fieldErrors ?? {})) {
+        if (messages?.[0] && field in form.getValues()) {
+          form.setError(field as keyof OrgForm, { type: "server", message: messages[0] }, { shouldFocus: true });
+        }
+      }
       toast.error(e instanceof Error ? e.message : "Erro ao salvar");
     }
   });
@@ -197,7 +203,7 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
             label="Razão social / nome público"
             error={form.formState.errors.razaoSocial?.message}
           >
-            <Input id="razaoSocial" {...form.register("razaoSocial")} />
+            <Input id="razaoSocial" maxLength={160} {...form.register("razaoSocial")} />
           </Field>
           <Field id="cnpj" label="CNPJ (identificador da conta)">
             <Input id="cnpj" value={perfil.cnpj ?? ""} readOnly disabled />
@@ -207,7 +213,7 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
             label="Responsável"
             error={form.formState.errors.responsavelNome?.message}
           >
-            <Input id="responsavelNome" {...form.register("responsavelNome")} />
+            <Input id="responsavelNome" maxLength={120} {...form.register("responsavelNome")} />
           </Field>
           <Field
             id="capacidadeMaxima"
@@ -218,19 +224,21 @@ function OrgProfile({ perfil }: { perfil: PerfilDTO }) {
               id="capacidadeMaxima"
               type="number"
               min={0}
+              max={10000}
+              step={1}
               {...form.register("capacidadeMaxima", {
                 setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
               })}
             />
           </Field>
           <Field id="email" label="E-mail" error={form.formState.errors.email?.message}>
-            <Input id="email" type="email" {...form.register("email")} />
+            <Input id="email" type="email" maxLength={254} {...form.register("email")} />
           </Field>
           <Field id="telefone" label="Telefone" error={form.formState.errors.telefone?.message}>
-            <Input id="telefone" {...form.register("telefone")} />
+            <Input id="telefone" type="tel" maxLength={16} {...form.register("telefone")} />
           </Field>
           <Field id="endereco" label="Endereço" error={form.formState.errors.endereco?.message}>
-            <Input id="endereco" {...form.register("endereco")} />
+            <Input id="endereco" maxLength={200} {...form.register("endereco")} />
           </Field>
           <Field id="cidade" label="Cidade" error={form.formState.errors.cidade?.message}>
             <Input id="cidade" readOnly disabled {...form.register("cidade")} />
@@ -289,6 +297,11 @@ function AcoProfile({ perfil }: { perfil: PerfilDTO }) {
       toast.success("Perfil atualizado");
       form.reset(values);
     } catch (e) {
+      for (const [field, messages] of Object.entries((e as ApiError).fieldErrors ?? {})) {
+        if (messages?.[0] && field in form.getValues()) {
+          form.setError(field as keyof AcoForm, { type: "server", message: messages[0] }, { shouldFocus: true });
+        }
+      }
       toast.error(e instanceof Error ? e.message : "Erro ao salvar");
     }
   });
@@ -306,7 +319,7 @@ function AcoProfile({ perfil }: { perfil: PerfilDTO }) {
             label="Nome completo / nome público"
             error={form.formState.errors.nomeCompleto?.message}
           >
-            <Input id="nomeCompleto" {...form.register("nomeCompleto")} />
+            <Input id="nomeCompleto" maxLength={120} {...form.register("nomeCompleto")} />
           </Field>
           <Field id="cpf" label="CPF (identificador da conta)">
             <Input id="cpf" value={perfil.cpf ?? ""} readOnly disabled />
@@ -320,17 +333,19 @@ function AcoProfile({ perfil }: { perfil: PerfilDTO }) {
               id="capacidadeAtual"
               type="number"
               min={0}
+              max={10000}
+              step={1}
               {...form.register("capacidadeAtual")}
             />
           </Field>
           <Field id="email" label="E-mail" error={form.formState.errors.email?.message}>
-            <Input id="email" type="email" {...form.register("email")} />
+            <Input id="email" type="email" maxLength={254} {...form.register("email")} />
           </Field>
           <Field id="telefone" label="Telefone" error={form.formState.errors.telefone?.message}>
-            <Input id="telefone" {...form.register("telefone")} />
+            <Input id="telefone" type="tel" maxLength={16} {...form.register("telefone")} />
           </Field>
           <Field id="endereco" label="Endereço" error={form.formState.errors.endereco?.message}>
-            <Input id="endereco" {...form.register("endereco")} />
+            <Input id="endereco" maxLength={200} {...form.register("endereco")} />
           </Field>
           <Field id="cidade" label="Cidade" error={form.formState.errors.cidade?.message}>
             <Input id="cidade" readOnly disabled {...form.register("cidade")} />

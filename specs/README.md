@@ -24,6 +24,7 @@ teal e âmbar.
 | 004 | [Reforma de UI/UX](004-ui-ux-redesign/spec.md) | Entregue (2026-08-07), acessibilidade pendente | [ENTREGA](004-ui-ux-redesign/ENTREGA.md) |
 | 005 | [Feels — swipe com proximidade](005-feels/spec.md) | Entregue (2026-08-08), menos US6 | [ENTREGA](005-feels/ENTREGA.md) |
 | 006 | [Perfis públicos e busca por nome](006-perfis-publicos/spec.md) | **Em andamento** | [ENTREGA](006-perfis-publicos/ENTREGA.md) · [HANDOFF](006-perfis-publicos/HANDOFF.md) |
+| 007 | [Validação integral de formulários](007-validacao-formularios/spec.md) | Entregue parcialmente (2026-08-14), homologação ampliada pendente | [ENTREGA](007-validacao-formularios/ENTREGA.md) · [INVENTÁRIO](007-validacao-formularios/INVENTARIO.md) |
 
 **Para retomar o projeto numa sessão de IA nova** — inclusive de outro sistema — use
 [`PROMPT-CONTINUIDADE.md`](PROMPT-CONTINUIDADE.md): traz um modelo reutilizável para qualquer spec

@@ -38,6 +38,10 @@ type AnimalPhotoFileDescriptor = {
   type: string;
 };
 
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "avif", "heic", "heif"]);
+const extensionOf = (name: string) => name.toLowerCase().split(".").pop() ?? "";
+const hasImageExtension = (name: string) => IMAGE_EXTENSIONS.has(extensionOf(name));
+
 const profileImageInputSchema = z.object({}).strict();
 export const MAX_PROFILE_IMAGE_BYTES = 4 * 1024 * 1024;
 
@@ -54,7 +58,7 @@ export async function authorizeProfileImageUpload(
   if (!profileImageInputSchema.safeParse(input).success || files.length !== 1) {
     throw new UploadThingError("Bad Request");
   }
-  if (!files[0].type.startsWith("image/")) {
+  if (!files[0].type.startsWith("image/") || !hasImageExtension(files[0].name)) {
     throw new UploadThingError("Apenas imagens sao permitidas");
   }
   if (files[0].size > MAX_PROFILE_IMAGE_BYTES) {
@@ -143,7 +147,7 @@ export async function authorizeAnimalPhotoUpload(
   if (!parsed.success || files.length === 0 || files.length > 10) {
     throw new UploadThingError("Bad Request");
   }
-  if (files.some((file) => !file.type.startsWith("image/"))) {
+  if (files.some((file) => !file.type.startsWith("image/") || !hasImageExtension(file.name))) {
     throw new UploadThingError("Apenas imagens sao permitidas");
   }
   if (files.some((file) => file.size > MAX_ANIMAL_PHOTO_BYTES)) {
@@ -217,6 +221,13 @@ export async function authorizeHealthDocumentUpload(
   }
   if (!healthDocumentMimeSchema.safeParse(files[0].type).success) {
     throw new UploadThingError("Envie uma imagem ou arquivo PDF");
+  }
+  const extension = extensionOf(files[0].name);
+  const extensionMatchesMime = files[0].type === "application/pdf"
+    ? extension === "pdf"
+    : hasImageExtension(files[0].name);
+  if (!extensionMatchesMime) {
+    throw new UploadThingError("A extensão do arquivo não corresponde ao tipo enviado");
   }
 
   const current = await getResponsibleContext();
@@ -345,6 +356,8 @@ export const uploadRouter = {
       }
     }),
   healthDocument: f({
+    // Uploadthing accepts power-of-two limits only. Middleware rejects files
+    // above the product limit of 10 MB before authorization/persistence.
     image: { maxFileSize: "16MB", maxFileCount: 1 },
     pdf: { maxFileSize: "16MB", maxFileCount: 1 },
   })

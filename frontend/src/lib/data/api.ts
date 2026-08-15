@@ -1,9 +1,7 @@
 // Shared HTTP helper for the official frontend → backend contracts.
 // Calls relative `/api/*` with cookies (same-origin/proxy boundary, T019) and
-// unwraps the standard error envelope. Two backend surfaces coexist: the
-// adopter/public helpers expose field errors under `error.fieldErrors`, while
-// the responsible-side helpers (`lib/api/responsible-http.ts`, used by
-// solicitações/saúde) expose them under `error.details`. We surface either.
+// unwraps the standard error envelope. `details` remains accepted only for
+// backward compatibility with responses emitted before the fieldErrors contract.
 
 export interface ApiError extends Error {
   code?: string;

@@ -77,6 +77,7 @@ export function RelatedAnimalsPanel({ animalId }: { animalId: string }) {
         </Label>
         <Input
           id="busca-rel"
+          maxLength={100}
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Digite o nome…"

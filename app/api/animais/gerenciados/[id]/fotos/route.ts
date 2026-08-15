@@ -39,7 +39,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       400,
       "VALIDATION_ERROR",
       "Ordenacao de fotos invalida",
-      photos.error.flatten(),
+      photos.error.flatten().fieldErrors,
     );
   }
 

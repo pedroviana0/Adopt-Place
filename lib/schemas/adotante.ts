@@ -3,9 +3,12 @@ import { z } from "zod";
 
 import {
   cpfSchema,
+  addressSchema,
   emailSchema,
   optionalTextSchema,
   passwordSchema,
+  personNameSchema,
+  phoneSchema,
   requiredTextSchema,
 } from "@/lib/schemas/common";
 import { cepSchema, municipioIdSchema } from "@/lib/schemas/localizacao";
@@ -24,50 +27,62 @@ const optionalBooleanSelectSchema = z.preprocess((value) => {
 }, z.boolean().optional());
 
 export const adopterRegistrationSchema = z.object({
-  nomeCompleto: requiredTextSchema.min(3, "Informe o nome completo."),
-  cpf: cpfSchema.transform((value) => value.replace(/\D/g, "")),
+  nomeCompleto: personNameSchema,
+  cpf: cpfSchema,
   email: emailSchema,
-  telefone: requiredTextSchema.min(8, "Informe um telefone valido."),
-  instagram: optionalTextSchema,
-  endereco: requiredTextSchema,
+  telefone: phoneSchema,
+  instagram: z.string().trim().max(120, "O Instagram deve ter no máximo 120 caracteres.").optional(),
+  endereco: addressSchema,
   // Cidade e UF sao derivadas do CEP pelo servidor, nao digitadas.
   cep: cepSchema,
   municipioId: municipioIdSchema.optional(),
   password: passwordSchema,
 }).strict();
 
+const screeningText = requiredTextSchema.max(500, "Use no máximo 500 caracteres.");
+const screeningDetail = optionalTextSchema.pipe(z.string().max(500, "Use no máximo 500 caracteres.").optional());
+
 export const adopterScreeningSchema = z.object({
-  motivoAdocao: requiredTextSchema,
-  tipoAnimalDesejado: requiredTextSchema,
+  motivoAdocao: screeningText.min(10, "Descreva o motivo da adoção com pelo menos 10 caracteres."),
+  tipoAnimalDesejado: requiredTextSchema.max(120, "Use no máximo 120 caracteres."),
   podeArcarCustosVet: booleanSelectSchema,
   adocaoParaPresente: booleanSelectSchema,
-  adocaoParaPresenteDetalhe: optionalTextSchema,
+  adocaoParaPresenteDetalhe: screeningDetail,
   tipoMoradia: z.nativeEnum(TipoMoradia, { required_error: "Campo obrigatorio." }),
   moradiaPropria: booleanSelectSchema,
-  numAdultosCasa: z.coerce.number().int().min(1, "Informe ao menos 1 adulto."),
+  numAdultosCasa: z.coerce.number().int("Informe um número inteiro.").min(1, "Informe ao menos 1 adulto.").max(30, "Informe no máximo 30 adultos."),
   temCriancas: booleanSelectSchema,
-  criancasFaixaEtaria: optionalTextSchema,
+  criancasFaixaEtaria: screeningDetail,
   todosConordamAdocao: booleanSelectSchema,
-  condominioPermiteAnimal: optionalTextSchema,
+  condominioPermiteAnimal: screeningDetail,
   janelasTeladas: optionalBooleanSelectSchema,
-  acessoRua: requiredTextSchema,
+  acessoRua: screeningText,
   murosSeguros: optionalBooleanSelectSchema,
-  horasSozinho: requiredTextSchema,
-  responsavelViagem: requiredTextSchema,
-  planoEmGravidez: optionalTextSchema,
+  horasSozinho: screeningText,
+  responsavelViagem: screeningText,
+  planoEmGravidez: screeningDetail,
   alergicosNaCasa: booleanSelectSchema,
-  alergicosNaCasaDetalhe: optionalTextSchema,
-  planoMudanca: requiredTextSchema,
-  historicoDevolucao: requiredTextSchema,
-  historicoPercaDescuido: requiredTextSchema,
+  alergicosNaCasaDetalhe: screeningDetail,
+  planoMudanca: screeningText,
+  historicoDevolucao: screeningText,
+  historicoPercaDescuido: screeningText,
   cienteLongevidade: booleanSelectSchema,
   permiteVisitaProtetor: booleanSelectSchema,
   ciendeNaoRepassar: booleanSelectSchema,
   teveAnimaisAntes: booleanSelectSchema,
-  animaisAnterioresDescricao: optionalTextSchema,
+  animaisAnterioresDescricao: screeningDetail,
   temOutrosAnimais: booleanSelectSchema,
-  outrosAnimaisDescricao: optionalTextSchema,
-}).strict();
+  outrosAnimaisDescricao: screeningDetail,
+}).strict().superRefine((data, ctx) => {
+  const requireDetail = (condition: boolean, key: keyof typeof data, message: string) => {
+    if (condition && !data[key]) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [key], message });
+  };
+  requireDetail(data.adocaoParaPresente, "adocaoParaPresenteDetalhe", "Explique para quem será o presente.");
+  requireDetail(data.temCriancas, "criancasFaixaEtaria", "Informe a faixa etária das crianças.");
+  requireDetail(data.alergicosNaCasa, "alergicosNaCasaDetalhe", "Explique quem possui alergia e como será cuidado.");
+  requireDetail(data.teveAnimaisAntes, "animaisAnterioresDescricao", "Conte brevemente sobre os animais anteriores.");
+  requireDetail(data.temOutrosAnimais, "outrosAnimaisDescricao", "Descreva os outros animais da casa.");
+});
 
 export const loginSchema = z.object({
   email: emailSchema,

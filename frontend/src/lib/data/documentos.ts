@@ -56,7 +56,9 @@ export async function excluirDocumento(id: string): Promise<void> {
 export function validateDocumentFile(file: File): void {
   const isPdf = file.type === "application/pdf";
   const isImage = file.type.startsWith("image/");
-  if (!isPdf && !isImage) {
+  const extension = file.name.toLowerCase().split(".").pop() ?? "";
+  const imageExtension = ["jpg", "jpeg", "png", "webp", "gif", "avif", "heic", "heif"].includes(extension);
+  if ((!isPdf && !isImage) || (isPdf && extension !== "pdf") || (isImage && !imageExtension)) {
     throw new Error("Envie uma imagem ou arquivo PDF.");
   }
   if (file.size > MAX_HEALTH_DOCUMENT_BYTES) {

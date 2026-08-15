@@ -87,7 +87,8 @@ export async function POST(
         CPF_ALREADY_EXISTS: "CPF ja cadastrado.",
         CNPJ_ALREADY_EXISTS: "CNPJ ja cadastrado.",
       } as const;
-      return errorResponse(409, error.code, messages[error.code]);
+      const field = error.code === "EMAIL_ALREADY_EXISTS" ? "email" : error.code === "CPF_ALREADY_EXISTS" ? "cpf" : "cnpj";
+      return errorResponse(409, error.code, messages[error.code], { [field]: [messages[error.code]] });
     }
     if (error instanceof LocationError) {
       // CEP inexistente e erro de preenchimento e aponta para o campo;

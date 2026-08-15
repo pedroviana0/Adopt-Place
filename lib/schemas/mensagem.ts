@@ -6,11 +6,11 @@ export const mensagemSchema = z.object({
   texto: z
     .string()
     .trim()
-    .min(1, "Mensagem nao pode ser vazia.")
+    .min(1, "A mensagem não pode ser vazia.")
     .max(
       MAX_MESSAGE_LENGTH,
-      "Mensagem deve ter no maximo 2000 caracteres.",
+      "A mensagem deve ter no máximo 2.000 caracteres.",
     ),
-});
+}).strict();
 
 export type MensagemInput = z.infer<typeof mensagemSchema>;
