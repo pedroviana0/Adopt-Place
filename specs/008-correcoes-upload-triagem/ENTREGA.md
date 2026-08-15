@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | 2026-08-14 |
 | **Branch** | `008-correcoes-upload-triagem` |
-| **PRs** | não aberto |
+| **PRs** | #133 |
 | **Status** | **ENTREGUE COM PENDÊNCIA EXTERNA** |
 | **Spec** | [`spec.md`](spec.md) |
 
