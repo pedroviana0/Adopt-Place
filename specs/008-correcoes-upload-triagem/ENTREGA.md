@@ -41,7 +41,7 @@
 
 ## Registro de implementação
 
-- Commit: a registrar após a criação do commit desta entrega.
+- Commit: `dfc0dda` (`fix: corrige uploads, raças e triagem`).
 
 ## Pendência externa
 
