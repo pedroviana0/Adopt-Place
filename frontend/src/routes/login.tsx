@@ -151,19 +151,6 @@ function LoginPage() {
           </GlassCardFooter>
         </form>
       </GlassCard>
-
-      <div className="w-full max-w-sm rounded-xl border border-white/20 bg-white/10 p-4 text-xs text-white/80 backdrop-blur-md">
-        <p className="mb-2 font-medium text-white">
-          Contas de teste (senha: <code>AdoptPlace@2026</code>)
-        </p>
-        <ul className="space-y-0.5">
-          <li>admin.teste@example.com — administrador</li>
-          <li>organizacao.teste@example.com — organização</li>
-          <li>acolhedor.teste@example.com — acolhedor independente</li>
-          <li>adotante.aprovado@example.com — adotante com triagem concluída</li>
-          <li>adotante.pendente@example.com — adotante com triagem pendente</li>
-        </ul>
-      </div>
     </div>
   );
 }
