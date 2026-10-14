@@ -30,6 +30,18 @@ export const registroSaudeSchema = z
       }),
       ...base,
     }),
+    // Spec 009 (RF-008): a proxima dose gera o cuidado pendente que marca o
+    // animal como "em tratamento". O responsavel e preenchido pelo backend.
+    z.object({
+      tipo: z.literal(TipoRegistroSaude.MEDICAMENTO_TRATAMENTO),
+      medicamentoTratamento: z
+        .string()
+        .trim()
+        .min(1, "Informe o medicamento ou tratamento")
+        .max(160, "Use no máximo 160 caracteres."),
+      dataRegistro: base.dataRegistro,
+      dataProxima: base.dataProxima,
+    }),
   ])
   .refine(
     (v) => {

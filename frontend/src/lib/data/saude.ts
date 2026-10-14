@@ -62,6 +62,13 @@ export type NovoRegistroSaude =
       resultado: "POSITIVO" | "NEGATIVO";
       dataAplicacao: string;
       dataProxima?: string;
+    })
+  | (BaseHealthDetails & {
+      tipoRegistro: "MEDICAMENTO_TRATAMENTO";
+      medicamentoTratamento: string;
+      dataAplicacao: string;
+      // Spec 009: com proxima dose, o animal aparece "em tratamento" no painel.
+      dataProxima?: string;
     });
 
 export async function fetchRegistrosSaude(animalId: string): Promise<HealthRecordDTO[]> {

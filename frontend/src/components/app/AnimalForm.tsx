@@ -17,12 +17,17 @@ import {
 } from "@/components/ui/select";
 import { animalSchema, type AnimalInput } from "@/lib/schemas/animal";
 import { fetchCatalogosGerenciamento } from "@/lib/data/catalogos";
+import { useSessao } from "@/lib/data/hooks";
+import { fetchLaresTemporarios } from "@/lib/data/lares-temporarios";
 import {
   Porte,
   Sexo,
+  SituacaoLT,
   StatusAnimal,
   porteLabel,
   sexoLabel,
+  situacaoLTLabel,
+  statusAnimalHelp,
   statusAnimalLabel,
 } from "@/lib/domain/enums";
 import {
@@ -48,6 +53,9 @@ interface Props {
   mode: "create" | "edit";
 }
 
+// Radix Select nao aceita valor vazio: este marca "EM_LT sem LT registrado".
+const SEM_REGISTRO = "__sem_registro";
+
 export function AnimalForm({ animal, mode }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -72,10 +80,28 @@ export function AnimalForm({ animal, mode }: Props) {
     castrado: animal?.castrado ?? false,
     descricao: animal?.descricao ?? "",
     status: animal?.status ?? StatusAnimal.EM_CUIDADOS,
+    situacaoLT: animal?.situacaoLT ?? SituacaoLT.NAO_SE_APLICA,
+    larTemporarioId: animal?.larTemporario?.id ?? null,
   });
 
   const especies = catalogos.data?.especies ?? [];
   const racas = getBreedsForSpecies(especies, form.especieId);
+
+  // Lar temporario (spec 009): so organizacao, e nunca para animal adotado.
+  const sessao = useSessao();
+  const isOrganizacao = sessao?.tipoPerfil === "ORGANIZACAO";
+  const showFoster = isOrganizacao && form.status !== StatusAnimal.ADOTADO;
+  const lares = useQuery({
+    queryKey: ["lares-temporarios"],
+    queryFn: fetchLaresTemporarios,
+    enabled: showFoster && form.situacaoLT === SituacaoLT.EM_LT,
+  });
+  const vinculoAtual = animal?.situacaoLT === SituacaoLT.EM_LT ? animal.larTemporario : null;
+  const vinculoSeraRemovido =
+    vinculoAtual !== null &&
+    (form.situacaoLT !== SituacaoLT.EM_LT ||
+      form.status === StatusAnimal.ADOTADO ||
+      form.larTemporarioId !== vinculoAtual.id);
 
   const set = <K extends keyof AnimalInput>(k: K, v: AnimalInput[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -136,6 +162,19 @@ export function AnimalForm({ animal, mode }: Props) {
       castrado: parsed.data.castrado,
       descricao: parsed.data.descricao ?? "",
       status: parsed.data.status,
+      // Campos de LT so vao quando a ONG edita um animal nao adotado. Omitidos,
+      // o backend mantem o valor atual ou zera ao virar ADOTADO (RF-013a, RF-013).
+      // Fora de EM_LT o vinculo vai sempre null: o estado do formulario pode
+      // ainda guardar o LT anterior, e o backend recusaria a combinacao.
+      ...(isOrganizacao && parsed.data.status !== StatusAnimal.ADOTADO
+        ? {
+            situacaoLT: parsed.data.situacaoLT ?? SituacaoLT.NAO_SE_APLICA,
+            larTemporarioId:
+              parsed.data.situacaoLT === SituacaoLT.EM_LT
+                ? (parsed.data.larTemporarioId ?? null)
+                : null,
+          }
+        : {}),
     };
     let persistedAnimalId = createdAnimalId;
     setSaving(true);
@@ -322,7 +361,60 @@ export function AnimalForm({ animal, mode }: Props) {
               ))}
             </SelectContent>
           </Select>
+          <p id="animal-status-help" className="mt-1 text-xs text-muted-foreground">
+            {statusAnimalHelp[form.status]}
+          </p>
         </Field>
+        {showFoster && (
+          <Field label="Lar temporário (LT)" htmlFor="animal-foster">
+            <Select
+              value={form.situacaoLT ?? SituacaoLT.NAO_SE_APLICA}
+              onValueChange={(v) => set("situacaoLT", v as SituacaoLT)}
+            >
+              <SelectTrigger id="animal-foster">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(situacaoLTLabel) as SituacaoLT[]).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {situacaoLTLabel[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
+        {showFoster && form.situacaoLT === SituacaoLT.EM_LT && (
+          <Field label="Vinculado a" htmlFor="animal-foster-home">
+            <Select
+              value={form.larTemporarioId ?? SEM_REGISTRO}
+              onValueChange={(v) => set("larTemporarioId", v === SEM_REGISTRO ? null : v)}
+              disabled={lares.isPending || lares.isError}
+            >
+              <SelectTrigger id="animal-foster-home">
+                <SelectValue
+                  placeholder={lares.isError ? "Lista de LTs indisponível" : "Carregando LTs..."}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SEM_REGISTRO}>Ainda não registrado</SelectItem>
+                {(lares.data ?? []).map((lt) => (
+                  <SelectItem key={lt.id} value={lt.id}>
+                    {lt.nomeTutor} · {lt.cidade}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
+        {isOrganizacao && vinculoSeraRemovido && vinculoAtual && (
+          <p
+            role="status"
+            className="rounded-md bg-warning-muted px-3 py-2 text-sm text-warning-muted-foreground md:col-span-2"
+          >
+            O vínculo com {vinculoAtual.nomeTutor} será removido ao salvar.
+          </p>
+        )}
         <div className="flex items-center gap-2 md:col-span-2">
           <Checkbox
             id="castrado"

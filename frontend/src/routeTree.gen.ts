@@ -34,6 +34,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardAdotadosRouteImport } from './routes/_authenticated.dashboard.adotados'
 import { Route as AuthenticatedDashboardAnimaisRouteImport } from './routes/_authenticated.dashboard.animais'
 import { Route as AuthenticatedDashboardDocumentosRouteImport } from './routes/_authenticated.dashboard.documentos'
+import { Route as AuthenticatedDashboardLaresTemporariosRouteImport } from './routes/_authenticated.dashboard.lares-temporarios'
 import { Route as AuthenticatedDashboardMensagensRouteImport } from './routes/_authenticated.dashboard.mensagens'
 import { Route as AuthenticatedDashboardPerfilRouteImport } from './routes/_authenticated.dashboard.perfil'
 import { Route as AuthenticatedDashboardSaudeRouteImport } from './routes/_authenticated.dashboard.saude'
@@ -45,6 +46,8 @@ import { Route as AuthenticatedDashboardAnimaisIndexRouteImport } from './routes
 import { Route as AuthenticatedDashboardAnimaisAnimalIdRouteImport } from './routes/_authenticated.dashboard.animais.$animalId'
 import { Route as AuthenticatedDashboardAnimaisNovoRouteImport } from './routes/_authenticated.dashboard.animais.novo'
 import { Route as AuthenticatedDashboardDocumentosIndexRouteImport } from './routes/_authenticated.dashboard.documentos.index'
+import { Route as AuthenticatedDashboardLaresTemporariosIndexRouteImport } from './routes/_authenticated.dashboard.lares-temporarios.index'
+import { Route as AuthenticatedDashboardLaresTemporariosLarIdRouteImport } from './routes/_authenticated.dashboard.lares-temporarios.$larId'
 import { Route as AuthenticatedDashboardMensagensIndexRouteImport } from './routes/_authenticated.dashboard.mensagens.index'
 import { Route as AuthenticatedDashboardMensagensConversaIdRouteImport } from './routes/_authenticated.dashboard.mensagens.$conversaId'
 import { Route as AuthenticatedDashboardSaudeIndexRouteImport } from './routes/_authenticated.dashboard.saude.index'
@@ -182,6 +185,12 @@ const AuthenticatedDashboardDocumentosRoute =
     path: '/documentos',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardLaresTemporariosRoute =
+  AuthenticatedDashboardLaresTemporariosRouteImport.update({
+    id: '/lares-temporarios',
+    path: '/lares-temporarios',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardMensagensRoute =
   AuthenticatedDashboardMensagensRouteImport.update({
     id: '/mensagens',
@@ -248,6 +257,18 @@ const AuthenticatedDashboardDocumentosIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardDocumentosRoute,
   } as any)
+const AuthenticatedDashboardLaresTemporariosIndexRoute =
+  AuthenticatedDashboardLaresTemporariosIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardLaresTemporariosRoute,
+  } as any)
+const AuthenticatedDashboardLaresTemporariosLarIdRoute =
+  AuthenticatedDashboardLaresTemporariosLarIdRouteImport.update({
+    id: '/$larId',
+    path: '/$larId',
+    getParentRoute: () => AuthenticatedDashboardLaresTemporariosRoute,
+  } as any)
 const AuthenticatedDashboardMensagensIndexRoute =
   AuthenticatedDashboardMensagensIndexRouteImport.update({
     id: '/',
@@ -303,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/adotados': typeof AuthenticatedDashboardAdotadosRoute
   '/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
   '/dashboard/documentos': typeof AuthenticatedDashboardDocumentosRouteWithChildren
+  '/dashboard/lares-temporarios': typeof AuthenticatedDashboardLaresTemporariosRouteWithChildren
   '/dashboard/mensagens': typeof AuthenticatedDashboardMensagensRouteWithChildren
   '/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
   '/dashboard/saude': typeof AuthenticatedDashboardSaudeRouteWithChildren
@@ -313,10 +335,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
+  '/dashboard/lares-temporarios/$larId': typeof AuthenticatedDashboardLaresTemporariosLarIdRoute
   '/dashboard/mensagens/$conversaId': typeof AuthenticatedDashboardMensagensConversaIdRoute
   '/dashboard/solicitacoes/$solicitacaoId': typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute
   '/dashboard/animais/': typeof AuthenticatedDashboardAnimaisIndexRoute
   '/dashboard/documentos/': typeof AuthenticatedDashboardDocumentosIndexRoute
+  '/dashboard/lares-temporarios/': typeof AuthenticatedDashboardLaresTemporariosIndexRoute
   '/dashboard/mensagens/': typeof AuthenticatedDashboardMensagensIndexRoute
   '/dashboard/saude/': typeof AuthenticatedDashboardSaudeIndexRoute
   '/dashboard/solicitacoes/': typeof AuthenticatedDashboardSolicitacoesIndexRoute
@@ -347,10 +371,12 @@ export interface FileRoutesByTo {
   '/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
+  '/dashboard/lares-temporarios/$larId': typeof AuthenticatedDashboardLaresTemporariosLarIdRoute
   '/dashboard/mensagens/$conversaId': typeof AuthenticatedDashboardMensagensConversaIdRoute
   '/dashboard/solicitacoes/$solicitacaoId': typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute
   '/dashboard/animais': typeof AuthenticatedDashboardAnimaisIndexRoute
   '/dashboard/documentos': typeof AuthenticatedDashboardDocumentosIndexRoute
+  '/dashboard/lares-temporarios': typeof AuthenticatedDashboardLaresTemporariosIndexRoute
   '/dashboard/mensagens': typeof AuthenticatedDashboardMensagensIndexRoute
   '/dashboard/saude': typeof AuthenticatedDashboardSaudeIndexRoute
   '/dashboard/solicitacoes': typeof AuthenticatedDashboardSolicitacoesIndexRoute
@@ -381,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/adotados': typeof AuthenticatedDashboardAdotadosRoute
   '/_authenticated/dashboard/animais': typeof AuthenticatedDashboardAnimaisRouteWithChildren
   '/_authenticated/dashboard/documentos': typeof AuthenticatedDashboardDocumentosRouteWithChildren
+  '/_authenticated/dashboard/lares-temporarios': typeof AuthenticatedDashboardLaresTemporariosRouteWithChildren
   '/_authenticated/dashboard/mensagens': typeof AuthenticatedDashboardMensagensRouteWithChildren
   '/_authenticated/dashboard/perfil': typeof AuthenticatedDashboardPerfilRoute
   '/_authenticated/dashboard/saude': typeof AuthenticatedDashboardSaudeRouteWithChildren
@@ -391,10 +418,12 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/admin/usuarios': typeof AuthenticatedDashboardAdminUsuariosRoute
   '/_authenticated/dashboard/animais/$animalId': typeof AuthenticatedDashboardAnimaisAnimalIdRoute
   '/_authenticated/dashboard/animais/novo': typeof AuthenticatedDashboardAnimaisNovoRoute
+  '/_authenticated/dashboard/lares-temporarios/$larId': typeof AuthenticatedDashboardLaresTemporariosLarIdRoute
   '/_authenticated/dashboard/mensagens/$conversaId': typeof AuthenticatedDashboardMensagensConversaIdRoute
   '/_authenticated/dashboard/solicitacoes/$solicitacaoId': typeof AuthenticatedDashboardSolicitacoesSolicitacaoIdRoute
   '/_authenticated/dashboard/animais/': typeof AuthenticatedDashboardAnimaisIndexRoute
   '/_authenticated/dashboard/documentos/': typeof AuthenticatedDashboardDocumentosIndexRoute
+  '/_authenticated/dashboard/lares-temporarios/': typeof AuthenticatedDashboardLaresTemporariosIndexRoute
   '/_authenticated/dashboard/mensagens/': typeof AuthenticatedDashboardMensagensIndexRoute
   '/_authenticated/dashboard/saude/': typeof AuthenticatedDashboardSaudeIndexRoute
   '/_authenticated/dashboard/solicitacoes/': typeof AuthenticatedDashboardSolicitacoesIndexRoute
@@ -425,6 +454,7 @@ export interface FileRouteTypes {
     | '/dashboard/adotados'
     | '/dashboard/animais'
     | '/dashboard/documentos'
+    | '/dashboard/lares-temporarios'
     | '/dashboard/mensagens'
     | '/dashboard/perfil'
     | '/dashboard/saude'
@@ -435,10 +465,12 @@ export interface FileRouteTypes {
     | '/dashboard/admin/usuarios'
     | '/dashboard/animais/$animalId'
     | '/dashboard/animais/novo'
+    | '/dashboard/lares-temporarios/$larId'
     | '/dashboard/mensagens/$conversaId'
     | '/dashboard/solicitacoes/$solicitacaoId'
     | '/dashboard/animais/'
     | '/dashboard/documentos/'
+    | '/dashboard/lares-temporarios/'
     | '/dashboard/mensagens/'
     | '/dashboard/saude/'
     | '/dashboard/solicitacoes/'
@@ -469,10 +501,12 @@ export interface FileRouteTypes {
     | '/dashboard/admin/usuarios'
     | '/dashboard/animais/$animalId'
     | '/dashboard/animais/novo'
+    | '/dashboard/lares-temporarios/$larId'
     | '/dashboard/mensagens/$conversaId'
     | '/dashboard/solicitacoes/$solicitacaoId'
     | '/dashboard/animais'
     | '/dashboard/documentos'
+    | '/dashboard/lares-temporarios'
     | '/dashboard/mensagens'
     | '/dashboard/saude'
     | '/dashboard/solicitacoes'
@@ -502,6 +536,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/adotados'
     | '/_authenticated/dashboard/animais'
     | '/_authenticated/dashboard/documentos'
+    | '/_authenticated/dashboard/lares-temporarios'
     | '/_authenticated/dashboard/mensagens'
     | '/_authenticated/dashboard/perfil'
     | '/_authenticated/dashboard/saude'
@@ -512,10 +547,12 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/admin/usuarios'
     | '/_authenticated/dashboard/animais/$animalId'
     | '/_authenticated/dashboard/animais/novo'
+    | '/_authenticated/dashboard/lares-temporarios/$larId'
     | '/_authenticated/dashboard/mensagens/$conversaId'
     | '/_authenticated/dashboard/solicitacoes/$solicitacaoId'
     | '/_authenticated/dashboard/animais/'
     | '/_authenticated/dashboard/documentos/'
+    | '/_authenticated/dashboard/lares-temporarios/'
     | '/_authenticated/dashboard/mensagens/'
     | '/_authenticated/dashboard/saude/'
     | '/_authenticated/dashboard/solicitacoes/'
@@ -711,6 +748,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardDocumentosRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/lares-temporarios': {
+      id: '/_authenticated/dashboard/lares-temporarios'
+      path: '/lares-temporarios'
+      fullPath: '/dashboard/lares-temporarios'
+      preLoaderRoute: typeof AuthenticatedDashboardLaresTemporariosRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/mensagens': {
       id: '/_authenticated/dashboard/mensagens'
       path: '/mensagens'
@@ -788,6 +832,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardDocumentosIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardDocumentosRoute
     }
+    '/_authenticated/dashboard/lares-temporarios/': {
+      id: '/_authenticated/dashboard/lares-temporarios/'
+      path: '/'
+      fullPath: '/dashboard/lares-temporarios/'
+      preLoaderRoute: typeof AuthenticatedDashboardLaresTemporariosIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardLaresTemporariosRoute
+    }
+    '/_authenticated/dashboard/lares-temporarios/$larId': {
+      id: '/_authenticated/dashboard/lares-temporarios/$larId'
+      path: '/$larId'
+      fullPath: '/dashboard/lares-temporarios/$larId'
+      preLoaderRoute: typeof AuthenticatedDashboardLaresTemporariosLarIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardLaresTemporariosRoute
+    }
     '/_authenticated/dashboard/mensagens/': {
       id: '/_authenticated/dashboard/mensagens/'
       path: '/'
@@ -862,6 +920,24 @@ const AuthenticatedDashboardDocumentosRouteWithChildren =
     AuthenticatedDashboardDocumentosRouteChildren,
   )
 
+interface AuthenticatedDashboardLaresTemporariosRouteChildren {
+  AuthenticatedDashboardLaresTemporariosLarIdRoute: typeof AuthenticatedDashboardLaresTemporariosLarIdRoute
+  AuthenticatedDashboardLaresTemporariosIndexRoute: typeof AuthenticatedDashboardLaresTemporariosIndexRoute
+}
+
+const AuthenticatedDashboardLaresTemporariosRouteChildren: AuthenticatedDashboardLaresTemporariosRouteChildren =
+  {
+    AuthenticatedDashboardLaresTemporariosLarIdRoute:
+      AuthenticatedDashboardLaresTemporariosLarIdRoute,
+    AuthenticatedDashboardLaresTemporariosIndexRoute:
+      AuthenticatedDashboardLaresTemporariosIndexRoute,
+  }
+
+const AuthenticatedDashboardLaresTemporariosRouteWithChildren =
+  AuthenticatedDashboardLaresTemporariosRoute._addFileChildren(
+    AuthenticatedDashboardLaresTemporariosRouteChildren,
+  )
+
 interface AuthenticatedDashboardMensagensRouteChildren {
   AuthenticatedDashboardMensagensConversaIdRoute: typeof AuthenticatedDashboardMensagensConversaIdRoute
   AuthenticatedDashboardMensagensIndexRoute: typeof AuthenticatedDashboardMensagensIndexRoute
@@ -917,6 +993,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAdotadosRoute: typeof AuthenticatedDashboardAdotadosRoute
   AuthenticatedDashboardAnimaisRoute: typeof AuthenticatedDashboardAnimaisRouteWithChildren
   AuthenticatedDashboardDocumentosRoute: typeof AuthenticatedDashboardDocumentosRouteWithChildren
+  AuthenticatedDashboardLaresTemporariosRoute: typeof AuthenticatedDashboardLaresTemporariosRouteWithChildren
   AuthenticatedDashboardMensagensRoute: typeof AuthenticatedDashboardMensagensRouteWithChildren
   AuthenticatedDashboardPerfilRoute: typeof AuthenticatedDashboardPerfilRoute
   AuthenticatedDashboardSaudeRoute: typeof AuthenticatedDashboardSaudeRouteWithChildren
@@ -932,6 +1009,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardAnimaisRouteWithChildren,
     AuthenticatedDashboardDocumentosRoute:
       AuthenticatedDashboardDocumentosRouteWithChildren,
+    AuthenticatedDashboardLaresTemporariosRoute:
+      AuthenticatedDashboardLaresTemporariosRouteWithChildren,
     AuthenticatedDashboardMensagensRoute:
       AuthenticatedDashboardMensagensRouteWithChildren,
     AuthenticatedDashboardPerfilRoute: AuthenticatedDashboardPerfilRoute,

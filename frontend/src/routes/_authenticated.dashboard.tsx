@@ -11,6 +11,7 @@ import {
   UserCog,
   HeartPulse,
   HeartHandshake,
+  Home,
   FileText,
   MessageCircle,
   Menu,
@@ -64,6 +65,10 @@ function DashLayout() {
       : [
           { to: "/dashboard", label: "Painel", icon: LayoutDashboard, exact: true },
           { to: "/dashboard/animais", label: "Meus animais", icon: PawPrint },
+          // Spec 009: lar temporario e so de organizacao.
+          ...(s.tipoPerfil === "ORGANIZACAO"
+            ? [{ to: "/dashboard/lares-temporarios", label: "Lares temporários", icon: Home }]
+            : []),
           { to: "/dashboard/saude", label: "Saúde", icon: HeartPulse },
           { to: "/dashboard/documentos", label: "Documentos", icon: FileText },
           { to: "/dashboard/mensagens", label: "Mensagens", icon: MessageCircle },

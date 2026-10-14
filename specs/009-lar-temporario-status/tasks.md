@@ -167,50 +167,50 @@ formulário de tratamento.
 
 ### 3A — Domínio, schemas e dados
 
-- [ ] T051 [P] Em `frontend/src/lib/domain/enums.ts`, acrescentar três coisas: o objeto `SituacaoLT`; `situacaoLTLabel` ("Não precisa", "Procurando LT", "Em LT"); e `statusAnimalHelp` com o texto de ajuda por status (`EM_CUIDADOS`: "Não aparece na vitrine. Use enquanto o animal não pode ser anunciado."; `DISPONIVEL`: "Aparece na vitrine. Pode estar em tratamento."; mais uma frase curta para os outros dois) (RF-004, C13, C14; CA-02).
-- [ ] T052 [P] Em `frontend/src/lib/domain/types.ts`, acrescentar `situacaoLT`, `larTemporario` e `emTratamento` ao animal gerenciado, e os tipos `LarTemporarioDTO` e `LarTemporarioDetailDTO` (RF-016, RF-021; CA-01).
-- [ ] T053 [P] Acrescentar `situacaoLT` e `larTemporarioId` opcionais ao `animalSchema` em `frontend/src/lib/schemas/animal.ts` (RF-013a; CA-04).
-- [ ] T054 [P] Criar `frontend/src/lib/schemas/larTemporario.ts`, espelhando o servidor com `phoneSchema`, `personNameSchema` e `addressSchema` de `frontend/src/lib/schemas/common.ts`. A cidade tem de 2 a 80 caracteres, as observações até 1.000, e `autorizacaoTutor` é obrigatório só no create (RF-022, RF-022a; CA-07).
-- [ ] T055 [P] Criar `frontend/src/lib/data/lares-temporarios.ts` com as funções `fetchLaresTemporarios`, `fetchLarTemporario`, `criarLarTemporario`, `atualizarLarTemporario`, `excluirLarTemporario`, `fetchVinculaveis`, `vincularAnimalLT` e `desvincularAnimalLT`, todas via `apiRequest` (RF-020 a RF-025; CA-05, CA-06).
-- [ ] T056 Em `frontend/src/lib/data/animais.ts`, aceitar `lt` e `tratamento` em `fetchAnimaisGerenciados` e tipar os campos novos do DTO (RF-018; CA-08).
-- [ ] T057 [P] Em `frontend/src/lib/data/dashboard.ts`, tipar `animalsInTreatment` e, como opcionais, `animalsSeekingFoster` e `animalsInFosterUnregistered` (RF-017; CA-01).
+- [X] T051 [P] Em `frontend/src/lib/domain/enums.ts`, acrescentar três coisas: o objeto `SituacaoLT`; `situacaoLTLabel` ("Não precisa", "Procurando LT", "Em LT"); e `statusAnimalHelp` com o texto de ajuda por status (`EM_CUIDADOS`: "Não aparece na vitrine. Use enquanto o animal não pode ser anunciado."; `DISPONIVEL`: "Aparece na vitrine. Pode estar em tratamento."; mais uma frase curta para os outros dois) (RF-004, C13, C14; CA-02).
+- [X] T052 [P] Em `frontend/src/lib/domain/types.ts`, acrescentar `situacaoLT`, `larTemporario` e `emTratamento` ao animal gerenciado, e os tipos `LarTemporarioDTO` e `LarTemporarioDetailDTO` (RF-016, RF-021; CA-01).
+- [X] T053 [P] Acrescentar `situacaoLT` e `larTemporarioId` opcionais ao `animalSchema` em `frontend/src/lib/schemas/animal.ts` (RF-013a; CA-04).
+- [X] T054 [P] Criar `frontend/src/lib/schemas/larTemporario.ts`, espelhando o servidor com `phoneSchema`, `personNameSchema` e `addressSchema` de `frontend/src/lib/schemas/common.ts`. A cidade tem de 2 a 80 caracteres, as observações até 1.000, e `autorizacaoTutor` é obrigatório só no create (RF-022, RF-022a; CA-07).
+- [X] T055 [P] Criar `frontend/src/lib/data/lares-temporarios.ts` com as funções `fetchLaresTemporarios`, `fetchLarTemporario`, `criarLarTemporario`, `atualizarLarTemporario`, `excluirLarTemporario`, `fetchVinculaveis`, `vincularAnimalLT` e `desvincularAnimalLT`, todas via `apiRequest` (RF-020 a RF-025; CA-05, CA-06).
+- [X] T056 Em `frontend/src/lib/data/animais.ts`, aceitar `lt` e `tratamento` em `fetchAnimaisGerenciados` e tipar os campos novos do DTO (RF-018; CA-08).
+- [X] T057 [P] Em `frontend/src/lib/data/dashboard.ts`, tipar `animalsInTreatment` e, como opcionais, `animalsSeekingFoster` e `animalsInFosterUnregistered` (RF-017; CA-01).
 
 ### 3B — Animal: formulário, lista, detalhe, dashboard
 
-- [ ] T058 [P] Criar `frontend/src/components/app/AnimalIndicators.tsx` com os badges "Em tratamento", "Procurando LT", "Em LT · <nomeTutor>" e "Em LT · sem registro". O texto é sempre visível, e só tokens semânticos (§8 do `CLAUDE.md`). Os badges de LT aparecem só quando `situacaoLT ≠ NAO_SE_APLICA` (RF-016, C15; CA-01).
-- [ ] T059 No `frontend/src/components/app/AnimalForm.tsx`, mostrar `statusAnimalHelp[form.status]` sob o select de Status (RF-004, C13; CA-02).
-- [ ] T060 No `AnimalForm.tsx`, só quando a sessão for `ORGANIZACAO` e o status não for `ADOTADO`, mostrar (RF-014, C12; CA-04):
+- [X] T058 [P] Criar `frontend/src/components/app/AnimalIndicators.tsx` com os badges "Em tratamento", "Procurando LT", "Em LT · <nomeTutor>" e "Em LT · sem registro". O texto é sempre visível, e só tokens semânticos (§8 do `CLAUDE.md`). Os badges de LT aparecem só quando `situacaoLT ≠ NAO_SE_APLICA` (RF-016, C15; CA-01).
+- [X] T059 No `frontend/src/components/app/AnimalForm.tsx`, mostrar `statusAnimalHelp[form.status]` sob o select de Status (RF-004, C13; CA-02).
+- [X] T060 No `AnimalForm.tsx`, só quando a sessão for `ORGANIZACAO` e o status não for `ADOTADO`, mostrar (RF-014, C12; CA-04):
   - o select "Lar temporário (LT)";
   - com `EM_LT`, o select "Vinculado a", carregado de `fetchLaresTemporarios`, com a opção "Ainda não registrado" (= `null`).
-- [ ] T061 No submit do `AnimalForm.tsx`, decidir o envio dos campos de LT (RF-012, RF-013, RF-013a; CA-03, CA-04):
+- [X] T061 No submit do `AnimalForm.tsx`, decidir o envio dos campos de LT (RF-012, RF-013, RF-013a; CA-03, CA-04):
   - **omitir** `situacaoLT` e `larTemporarioId` quando o status for `ADOTADO` ou o perfil for acolhedor;
   - nos outros casos (ONG), enviar sempre os dois, com **`larTemporarioId: null` sempre que `situacaoLT ≠ EM_LT`**, mesmo que o estado do formulário ainda guarde o LT anterior. Sem isso, o backend responde `INVALID_FOSTER_LINK` ao trocar `EM_LT` vinculado por `PROCURANDO` (roteiro H7).
-- [ ] T062 No `AnimalForm.tsx`, mostrar o aviso inline "O vínculo com <nomeTutor> será removido" quando o animal estava `EM_LT` vinculado e o usuário escolher outro valor (RF-012, C5; CA-04).
-- [ ] T063 Em `frontend/src/routes/_authenticated.dashboard.animais.index.tsx`, acrescentar `validateSearch` (`status`, `lt`, `tratamento`) e trocar o `useState` do filtro de status pela URL, para que os links dos cards filtrem a lista (RF-019; CA-01, CA-06, CA-08).
-- [ ] T064 Na mesma rota, acrescentar o select de LT (só ONG) e o filtro "Em tratamento", e renderizar `<AnimalIndicators>` ao lado do `StatusBadge` em cada linha (RF-016, RF-018; CA-01, CA-08).
-- [ ] T065 [P] Renderizar `<AnimalIndicators>` ao lado do status em `frontend/src/routes/_authenticated.dashboard.animais.$animalId.tsx` (RF-016; CA-01).
-- [ ] T066 [P] Acrescentar à grade de indicadores de `frontend/src/routes/_authenticated.dashboard.index.tsx` os cards "Em tratamento" (sempre), "Procurando LT" e "Em LT sem registro" (só quando o indicador vier no JSON), com links via `resolveHref` (RF-017, RF-019, C16; CA-01, CA-06, CA-08).
+- [X] T062 No `AnimalForm.tsx`, mostrar o aviso inline "O vínculo com <nomeTutor> será removido" quando o animal estava `EM_LT` vinculado e o usuário escolher outro valor (RF-012, C5; CA-04).
+- [X] T063 Em `frontend/src/routes/_authenticated.dashboard.animais.index.tsx`, acrescentar `validateSearch` (`status`, `lt`, `tratamento`) e trocar o `useState` do filtro de status pela URL, para que os links dos cards filtrem a lista (RF-019; CA-01, CA-06, CA-08).
+- [X] T064 Na mesma rota, acrescentar o select de LT (só ONG) e o filtro "Em tratamento", e renderizar `<AnimalIndicators>` ao lado do `StatusBadge` em cada linha (RF-016, RF-018; CA-01, CA-08).
+- [X] T065 [P] Renderizar `<AnimalIndicators>` ao lado do status em `frontend/src/routes/_authenticated.dashboard.animais.$animalId.tsx` (RF-016; CA-01).
+- [X] T066 [P] Acrescentar à grade de indicadores de `frontend/src/routes/_authenticated.dashboard.index.tsx` os cards "Em tratamento" (sempre), "Procurando LT" e "Em LT sem registro" (só quando o indicador vier no JSON), com links via `resolveHref` (RF-017, RF-019, C16; CA-01, CA-06, CA-08).
 
 ### 3C — Aba "Lares temporários"
 
-- [ ] T067 Em `frontend/src/routes/_authenticated.dashboard.tsx`, acrescentar o item de menu "Lares temporários", que só aparece para `ORGANIZACAO` (RF-020; CA-07).
-- [ ] T068 [P] Criar `frontend/src/routes/_authenticated.dashboard.lares-temporarios.tsx` com `<Outlet />`, igual a `…animais.tsx` (RF-020; CA-07).
-- [ ] T069 Criar `frontend/src/routes/_authenticated.dashboard.lares-temporarios.index.tsx` com quatro partes (RF-020, RF-021, RF-022, RF-022a, C3; CA-07):
+- [X] T067 Em `frontend/src/routes/_authenticated.dashboard.tsx`, acrescentar o item de menu "Lares temporários", que só aparece para `ORGANIZACAO` (RF-020; CA-07).
+- [X] T068 [P] Criar `frontend/src/routes/_authenticated.dashboard.lares-temporarios.tsx` com `<Outlet />`, igual a `…animais.tsx` (RF-020; CA-07).
+- [X] T069 Criar `frontend/src/routes/_authenticated.dashboard.lares-temporarios.index.tsx` com quatro partes (RF-020, RF-021, RF-022, RF-022a, C3; CA-07):
   - a lista (nome, cidade, telefone, total de animais) com `page-canvas`;
   - busca por nome no cliente, normalizando acentos com `normalize("NFD")`;
   - diálogo "Novo LT" com o schema de T054 e o checkbox de autorização obrigatório;
   - para acolhedor, uma explicação ("disponível só para organizações"), sem redirect.
-- [ ] T070 Criar `frontend/src/routes/_authenticated.dashboard.lares-temporarios.$larId.tsx` com os dados do LT, a edição (sem checkbox) e a lista de animais vinculados com o botão "Desvincular" (RF-022, RF-023; CA-05).
-- [ ] T071 Em `….lares-temporarios.$larId.tsx`, acrescentar o diálogo "Vincular animal", que lista só `fetchVinculaveis()` e mostra estado vazio quando não há candidatos (RF-024; CA-05).
-- [ ] T072 Em `….lares-temporarios.$larId.tsx`, acrescentar o diálogo "Excluir LT", que lista os animais vinculados e avisa que eles continuarão "Em LT · sem registro". Depois de confirmar, volta à lista (RF-025, C4; CA-06).
+- [X] T070 Criar `frontend/src/routes/_authenticated.dashboard.lares-temporarios.$larId.tsx` com os dados do LT, a edição (sem checkbox) e a lista de animais vinculados com o botão "Desvincular" (RF-022, RF-023; CA-05).
+- [X] T071 Em `….lares-temporarios.$larId.tsx`, acrescentar o diálogo "Vincular animal", que lista só `fetchVinculaveis()` e mostra estado vazio quando não há candidatos (RF-024; CA-05).
+- [X] T072 Em `….lares-temporarios.$larId.tsx`, acrescentar o diálogo "Excluir LT", que lista os animais vinculados e avisa que eles continuarão "Em LT · sem registro". Depois de confirmar, volta à lista (RF-025, C4; CA-06).
 
 ### 3D — Saúde: tratamento alcançável
 
-- [ ] T073 [P] Em `frontend/src/lib/data/saude.ts` e `frontend/src/lib/data/cuidados.ts`, aceitar `dataProxima?: string` no payload `MEDICAMENTO_TRATAMENTO` (RF-008; CA-08).
-- [ ] T074 [P] Acrescentar a variante `MEDICAMENTO_TRATAMENTO` (`medicamentoTratamento`, `dataAplicacao`, `dataProxima?` posterior à aplicação) em `frontend/src/lib/schemas/registroSaude.ts` (RF-008; CA-08).
-- [ ] T075 Criar `TratamentoForm` em `frontend/src/components/app/HealthPanel.tsx`, no molde do `ParasitaForm`, com o campo "Próxima dose" e a dica "Informe a próxima dose para o animal aparecer como em tratamento" (RF-008, C9; CA-01, CA-08).
-- [ ] T076 No `CompletionForm` de `frontend/src/routes/_authenticated.dashboard.saude.index.tsx`, acrescentar "Próxima dose (opcional)" quando `item.tipo === "MEDICAMENTO_TRATAMENTO"`, enviado como `dataProxima` (RF-008; CA-08).
-- [ ] T077 Rodar o portão completo. **Commitar** `frontend/src/routeTree.gen.ts`, regenerado pelas rotas novas (CA-09).
+- [X] T073 [P] Em `frontend/src/lib/data/saude.ts` e `frontend/src/lib/data/cuidados.ts`, aceitar `dataProxima?: string` no payload `MEDICAMENTO_TRATAMENTO` (RF-008; CA-08).
+- [X] T074 [P] Acrescentar a variante `MEDICAMENTO_TRATAMENTO` (`medicamentoTratamento`, `dataAplicacao`, `dataProxima?` posterior à aplicação) em `frontend/src/lib/schemas/registroSaude.ts` (RF-008; CA-08).
+- [X] T075 Criar `TratamentoForm` em `frontend/src/components/app/HealthPanel.tsx`, no molde do `ParasitaForm`, com o campo "Próxima dose" e a dica "Informe a próxima dose para o animal aparecer como em tratamento" (RF-008, C9; CA-01, CA-08).
+- [X] T076 No `CompletionForm` de `frontend/src/routes/_authenticated.dashboard.saude.index.tsx`, acrescentar "Próxima dose (opcional)" quando `item.tipo === "MEDICAMENTO_TRATAMENTO"`, enviado como `dataProxima` (RF-008; CA-08).
+- [X] T077 Rodar o portão completo. **Commitar** `frontend/src/routeTree.gen.ts`, regenerado pelas rotas novas (CA-09).
 - [ ] T078 Commit da Fase 3 (`feat: telas de lar temporario, indicadores e tratamento`) (CA-01 a CA-08).
 
 **Checkpoint:** sistema completo em código. Falta provar contra banco real.

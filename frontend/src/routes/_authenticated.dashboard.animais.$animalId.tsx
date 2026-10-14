@@ -4,6 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { AnimalForm } from "@/components/app/AnimalForm";
+import { AnimalIndicators } from "@/components/app/AnimalIndicators";
+import { StatusBadge } from "@/components/app/StatusBadge";
+import { SituacaoLT } from "@/lib/domain/enums";
 import { AnimalPhotosPanel } from "@/components/app/AnimalPhotosPanel";
 import { HealthPanel } from "@/components/app/HealthPanel";
 import { RelatedAnimalsPanel } from "@/components/app/RelatedAnimalsPanel";
@@ -80,7 +83,19 @@ function Page() {
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-serif text-3xl font-semibold">Editar {animal.nome}</h1>
+        <div className="min-w-0 space-y-2">
+          <h1 className="font-serif text-3xl font-semibold">Editar {animal.nome}</h1>
+          <div className="flex flex-wrap gap-1.5">
+            <StatusBadge status={animal.status} />
+            <AnimalIndicators
+              emTratamento={animal.emTratamento}
+              situacaoLT={
+                s.tipoPerfil === "ORGANIZACAO" ? animal.situacaoLT : SituacaoLT.NAO_SE_APLICA
+              }
+              larTemporario={animal.larTemporario}
+            />
+          </div>
+        </div>
         <ConfirmDestructiveAction
           title="Excluir este animal?"
           item={animal.nome}

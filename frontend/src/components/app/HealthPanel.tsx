@@ -13,7 +13,8 @@ import {
   excluirRegistroSaude,
   type NovoRegistroSaude,
 } from "@/lib/data/saude";
-import { ResultadoTeste } from "@/lib/domain/enums";
+import { ResultadoTeste, TipoRegistroSaude } from "@/lib/domain/enums";
+import { registroSaudeSchema } from "@/lib/schemas/registroSaude";
 
 interface Props {
   animalId: string;
@@ -37,6 +38,14 @@ export function HealthPanel({ animalId }: Props) {
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["registros-saude", animalId] });
+  // Tratamento com proxima dose muda o indicador "Em tratamento" (spec 009).
+  const invalidateTratamento = () =>
+    Promise.all([
+      invalidate(),
+      queryClient.invalidateQueries({ queryKey: ["animal-gerenciado", animalId] }),
+      queryClient.invalidateQueries({ queryKey: ["animais-gerenciados"] }),
+      queryClient.invalidateQueries({ queryKey: ["operational-dashboard"] }),
+    ]);
 
   if (registrosQuery.isLoading) {
     return <p className="text-sm text-muted-foreground">Carregando…</p>;
@@ -55,6 +64,7 @@ export function HealthPanel({ animalId }: Props) {
   const vacinas = registros.filter((r) => r.tipoRegistro === "VACINA");
   const parasitas = registros.filter((r) => r.tipoRegistro === "CONTROLE_PARASITAS");
   const testes = registros.filter((r) => r.tipoRegistro === "TESTE_DOENCA");
+  const tratamentos = registros.filter((r) => r.tipoRegistro === "MEDICAMENTO_TRATAMENTO");
 
   return (
     <div>
@@ -65,6 +75,7 @@ export function HealthPanel({ animalId }: Props) {
           <TabsTrigger value="vacinas">Vacinas ({vacinas.length})</TabsTrigger>
           <TabsTrigger value="parasitas">Parasitas ({parasitas.length})</TabsTrigger>
           <TabsTrigger value="testes">Testes ({testes.length})</TabsTrigger>
+          <TabsTrigger value="tratamentos">Tratamentos ({tratamentos.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="vacinas" className="mt-4 space-y-4">
           <VacinaForm animalId={animalId} onSaved={invalidate} />
@@ -101,6 +112,19 @@ export function HealthPanel({ animalId }: Props) {
               id: r.id,
               titulo: r.nomeDoenca ?? "—",
               subtitulo: `Testado em ${fmt(r.dataAplicacao)} · Resultado: ${r.resultado ?? "—"}`,
+              extra: `Responsável: ${r.responsavelRegistro}`,
+            }))}
+          />
+        </TabsContent>
+        <TabsContent value="tratamentos" className="mt-4 space-y-4">
+          <TratamentoForm animalId={animalId} onSaved={invalidateTratamento} />
+          <RegistroList
+            animalId={animalId}
+            onDeleted={invalidateTratamento}
+            items={tratamentos.map((r) => ({
+              id: r.id,
+              titulo: r.medicamentoTratamento ?? "—",
+              subtitulo: `Iniciado em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima dose em " + fmt(r.dataProxima) : ""}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -294,6 +318,75 @@ function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => 
           />
         </div>
         <DateFields base={base} prefix="p" nextLabel="Próxima data (opcional)" />
+      </div>
+      <div className="mt-3 flex justify-end">
+        <Button type="submit" size="sm" disabled={base.saving}>
+          <Plus className="mr-1 h-4 w-4" />
+          {base.saving ? "Salvando..." : "Adicionar"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Spec 009 (RF-008, C9): o indicador "Em tratamento" vem do cuidado pendente
+// que so nasce quando ha proxima dose.
+function TratamentoForm({ animalId, onSaved }: { animalId: string; onSaved: () => unknown }) {
+  const base = useBaseState();
+  const [tratamento, setTratamento] = useState("");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = registroSaudeSchema.safeParse({
+      tipo: TipoRegistroSaude.MEDICAMENTO_TRATAMENTO,
+      medicamentoTratamento: tratamento,
+      dataRegistro: base.dataAplicacao,
+      dataProxima: base.dataProxima || null,
+    });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Revise os campos");
+      return;
+    }
+    const input: NovoRegistroSaude = {
+      tipoRegistro: "MEDICAMENTO_TRATAMENTO",
+      medicamentoTratamento: tratamento.trim(),
+      dataAplicacao: toIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+    };
+    base.setSaving(true);
+    try {
+      await criarRegistroSaude(animalId, input);
+      await onSaved();
+      toast.success("Tratamento registrado");
+      base.reset();
+      setTratamento("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      base.setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="rounded-xl border bg-muted/30 p-4">
+      <p className="mb-3 text-sm font-medium">Novo medicamento / tratamento</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Label htmlFor="t-med" className="mb-1 block text-xs">
+            Medicamento / tratamento
+          </Label>
+          <Input
+            id="t-med"
+            maxLength={160}
+            value={tratamento}
+            onChange={(e) => setTratamento(e.target.value)}
+            placeholder="Ex.: Antibiótico (amoxicilina)"
+          />
+        </div>
+        <DateFields base={base} prefix="tr" nextLabel="Próxima dose (opcional)" />
+        <p className="text-xs text-muted-foreground sm:col-span-2">
+          Informe a próxima dose para o animal aparecer como em tratamento.
+        </p>
       </div>
       <div className="mt-3 flex justify-end">
         <Button type="submit" size="sm" disabled={base.saving}>

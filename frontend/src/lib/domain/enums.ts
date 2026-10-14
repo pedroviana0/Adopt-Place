@@ -20,6 +20,14 @@ export const StatusAnimal = {
 } as const;
 export type StatusAnimal = (typeof StatusAnimal)[keyof typeof StatusAnimal];
 
+// Spec 009: lar temporario, independente do status e so de organizacao.
+export const SituacaoLT = {
+  NAO_SE_APLICA: "NAO_SE_APLICA",
+  PROCURANDO: "PROCURANDO",
+  EM_LT: "EM_LT",
+} as const;
+export type SituacaoLT = (typeof SituacaoLT)[keyof typeof SituacaoLT];
+
 export const StatusSolicitacao = {
   EM_ANALISE: "EM_ANALISE",
   APROVADA: "APROVADA",
@@ -97,6 +105,18 @@ export const statusAnimalLabel: Record<StatusAnimal, string> = {
   DISPONIVEL: "Disponível",
   EM_PROCESSO_ADOCAO: "Em processo de adoção",
   ADOTADO: "Adotado",
+};
+// "Em cuidados" passa a significar "ainda não anunciado" (spec 009, D2/C13).
+export const statusAnimalHelp: Record<StatusAnimal, string> = {
+  EM_CUIDADOS: "Não aparece na vitrine. Use enquanto o animal não pode ser anunciado.",
+  DISPONIVEL: "Aparece na vitrine. Pode estar em tratamento.",
+  EM_PROCESSO_ADOCAO: "Sai da vitrine enquanto uma adoção aprovada está em andamento.",
+  ADOTADO: "Adoção concluída. O animal sai da vitrine e deixa de precisar de lar temporário.",
+};
+export const situacaoLTLabel: Record<SituacaoLT, string> = {
+  NAO_SE_APLICA: "Não precisa",
+  PROCURANDO: "Procurando LT",
+  EM_LT: "Em LT",
 };
 export const statusSolicitacaoLabel: Record<StatusSolicitacao, string> = {
   EM_ANALISE: "Em análise",
