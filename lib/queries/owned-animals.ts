@@ -1,9 +1,10 @@
-import { Prisma, TipoPerfil } from "@prisma/client";
+import { Prisma, SituacaoLT, StatusAnimal, TipoPerfil } from "@prisma/client";
 
 import type {
   ResponsibleContext,
   ResponsibleRole,
 } from "@/lib/api/responsible-context";
+import { inTreatmentWhere, pendingTreatmentCareWhere } from "@/lib/lar-temporario";
 import { prisma } from "@/lib/prisma";
 import type { OwnedAnimalFilters } from "@/lib/schemas/dashboard-filters";
 
@@ -16,6 +17,8 @@ export const ownedAnimalSummarySelect = {
   cor: true,
   idadeEstimada: true,
   castrado: true,
+  situacaoLT: true,
+  larTemporario: { select: { id: true, nomeTutor: true } },
   especie: { select: { id: true, nome: true } },
   raca: { select: { id: true, nome: true } },
   fotos: {
@@ -33,6 +36,7 @@ export const ownedAnimalSummarySelect = {
       solicitacoes: {
         where: { status: "EM_ANALISE" as const },
       },
+      cuidadosPlanejados: { where: pendingTreatmentCareWhere },
     },
   },
 } satisfies Prisma.AnimalSelect;
@@ -80,6 +84,13 @@ function buildFilterWhere(filters: OwnedAnimalFilters): Prisma.AnimalWhereInput 
     ...(filters.racaId ? { racaId: filters.racaId } : {}),
     ...(filters.porte ? { porte: filters.porte } : {}),
     ...(filters.sexo ? { sexo: filters.sexo } : {}),
+    ...(filters.lt === "EM_LT_SEM_VINCULO"
+      ? { situacaoLT: SituacaoLT.EM_LT, larTemporarioId: null }
+      : filters.lt
+        ? { situacaoLT: filters.lt }
+        : {}),
+    // Em AND para nao colidir com o filtro de status da mesma consulta.
+    ...(filters.tratamento ? { AND: [inTreatmentWhere] } : {}),
   };
 }
 
@@ -125,6 +136,11 @@ export function toOwnedAnimalDTO(animal: OwnedAnimalRecord) {
     raca: animal.raca,
     fotoPrincipal: animal.fotos[0] ?? null,
     solicitacoesEmAnalise: animal._count.solicitacoes,
+    situacaoLT: animal.situacaoLT,
+    larTemporario: animal.larTemporario,
+    emTratamento:
+      animal.status !== StatusAnimal.ADOTADO &&
+      animal._count.cuidadosPlanejados > 0,
   };
 }
 

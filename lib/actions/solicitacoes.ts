@@ -8,6 +8,7 @@ import {
   type ResponsibleContext,
 } from "@/lib/api/responsible-context";
 import { getServerSession } from "@/lib/auth";
+import { FOSTER_RESET_ON_ADOPTION } from "@/lib/lar-temporario";
 import { notificar } from "@/lib/notificacoes";
 import { prisma } from "@/lib/prisma";
 import { adoptionRequestSchema } from "@/lib/schemas/solicitacao";
@@ -283,7 +284,8 @@ export async function completeAdoption(
           id: request.animalId,
           status: StatusAnimal.EM_PROCESSO_ADOCAO,
         },
-        data: { status: StatusAnimal.ADOTADO },
+        // Mesmo comando condicional: adotado sai de LT junto (spec 009, RF-013).
+        data: { status: StatusAnimal.ADOTADO, ...FOSTER_RESET_ON_ADOPTION },
       });
       if (animalChanged.count !== 1) throw new InvalidTransitionError();
 

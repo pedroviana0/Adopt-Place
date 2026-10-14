@@ -56,13 +56,13 @@ constituição exige que sejam escritos e falhem antes do código. A fase "Teste
 **Teste independente:** `prisma validate` passa; `tsc` passa nos dois apps; `npm test` verde com as
 fixtures atualizadas.
 
-- [ ] T001 [Pedro] Criar no console do Neon o branch **`dev-009`** a partir da produção, trocar o `DATABASE_URL` do `.env` local para a connection string desse branch e conferir que o host **não** é o endpoint da produção, conforme `quickstart.md` §0.1. Daqui até T097, toda migration da 009 roda **só** no `dev-009`, e o `npm run dev` usa só ele (C10, Clarification 2; CA-02, CA-09).
+- [X] T001 [Pedro] Criar no console do Neon o branch **`dev-009`** a partir da produção, trocar o `DATABASE_URL` do `.env` local para a connection string desse branch e conferir que o host **não** é o endpoint da produção, conforme `quickstart.md` §0.1. Daqui até T097, toda migration da 009 roda **só** no `dev-009`, e o `npm run dev` usa só ele (C10, Clarification 2; CA-02, CA-09).
 - [X] T002 Em `prisma/schema.prisma`, remover `RESGATADO` do enum `StatusAnimal` e trocar `Animal.status` para `@default(EM_CUIDADOS)`, sem nenhuma outra mudança (RF-001, D1; CA-02).
 - [X] T003 No Git Bash, extrair `git show main:prisma/schema.prisma` para `.tmp-009/schema-main.prisma` e gerar `prisma/migrations/<ts1>_status_sem_resgatado/migration.sql` com `npx prisma migrate diff --from-schema-datamodel … --to-schema-datamodel prisma/schema.prisma --script`, conforme `quickstart.md` §1. O arquivo sai em UTF-8 sem BOM (RF-002, C10; CA-02).
 - [X] T004 Em `prisma/migrations/<ts1>_status_sem_resgatado/migration.sql`, inserir logo depois de `BEGIN;` a linha `UPDATE "Animal" SET "status" = 'EM_CUIDADOS' WHERE "status" = 'RESGATADO';`. Conferir que a ordem bate com `research.md` R1 (UPDATE → CREATE TYPE → DROP DEFAULT → ALTER … USING → RENAME → DROP → SET DEFAULT) (RF-002; CA-02).
 - [X] T005 Copiar `prisma/schema.prisma` para `.tmp-009/schema-pos-m1.prisma` e então acrescentar ao schema: enum `SituacaoLT`; model `LarTemporario` com `@@index([organizacaoId], map: "idx_lar_temporario_organizacao_id")`; em `Animal`, `situacaoLT @default(NAO_SE_APLICA)`, `larTemporarioId` e a relação `onDelete: SetNull`, mais `@@index([larTemporarioId], map: "idx_animal_lar_temporario_id")`; em `Organizacao`, `laresTemporarios LarTemporario[]`, conforme `data-model.md` §1 (RF-009, RF-011, C1, C6; CA-04, CA-06).
 - [X] T006 Gerar `prisma/migrations/<ts2>_lar_temporario/migration.sql` (`ts2 > ts1`) com `migrate diff` a partir de `.tmp-009/schema-pos-m1.prisma`, **sem edição manual**. Conferir FK `ON DELETE SET NULL` em `Animal` e `ON DELETE CASCADE` em `LarTemporario`, e apagar `.tmp-009/` (RF-009, RF-025, C6; CA-06).
-- [ ] T007 Rodar `npm run prisma:validate` e `npm run prisma:generate` na raiz. Depois de repetir a conferência do host (`quickstart.md` §0.1), aplicar as duas migrations **no `dev-009`** com `npx prisma migrate deploy` (RF-001, RF-009; CA-02, CA-09). **Estado (2026-10-14):** `prisma validate` (com URL fictícia de localhost) e `prisma generate` feitos; falta o `migrate deploy` no `dev-009`, que depende de T001.
+- [X] T007 Rodar `npm run prisma:validate` e `npm run prisma:generate` na raiz. Depois de repetir a conferência do host (`quickstart.md` §0.1), aplicar as duas migrations **no `dev-009`** com `npx prisma migrate deploy` (RF-001, RF-009; CA-02, CA-09).
 - [X] T008 [P] Remover a chave `RESGATADO` de `statusInitial` em `lib/queries/operational-dashboard.ts` (RF-001; CA-02).
 - [X] T009 [P] Remover `RESGATADO` do objeto `StatusAnimal` e de `statusAnimalLabel` em `frontend/src/lib/domain/enums.ts` (RF-003; CA-02).
 - [X] T010 [P] Remover `StatusAnimal.RESGATADO` do `z.enum` de status em `frontend/src/lib/schemas/animal.ts` (RF-003; CA-02).
@@ -86,7 +86,7 @@ dashboard. Todas as mudanças de contrato são **aditivas**: o frontend antigo c
 
 ### 2A — Regra de LT e os caminhos até `ADOTADO`
 
-- [ ] T018 [TEST-FIRST] Criar `__tests__/lib/lar-temporario.test.ts` para `resolveFosterState`, com estes casos (RF-010, RF-011, RF-012, RF-013, RF-013a; CA-03, CA-04):
+- [X] T018 [TEST-FIRST] Criar `__tests__/lib/lar-temporario.test.ts` para `resolveFosterState`, com estes casos (RF-010, RF-011, RF-012, RF-013, RF-013a; CA-03, CA-04):
   - campo ausente mantém o valor atual;
   - create sem campos gera `NAO_SE_APLICA`/`null`;
   - acolhedor com `PROCURANDO` ou com `larTemporarioId` → `FOSTER_STATE_NOT_ALLOWED`;
@@ -95,64 +95,64 @@ dashboard. Todas as mudanças de contrato são **aditivas**: o frontend antigo c
   - `EM_LT` → `PROCURANDO` zera o vínculo;
   - `larTemporarioId` com `situacaoLT` explícito `PROCURANDO` → `INVALID_FOSTER_LINK`;
   - LT de outra ONG ou inexistente → `INVALID_FOSTER_LINK`.
-- [ ] T019 Criar `lib/lar-temporario.ts` (server-only) com `resolveFosterState(atual, entrada, contexto)` e a constante `FOSTER_RESET_ON_ADOPTION = { situacaoLT: NAO_SE_APLICA, larTemporarioId: null }`, seguindo as regras 1–5 de `research.md` R4. A única consulta é `prisma.larTemporario.findFirst({ where: { id, organizacaoId } })`. Estado atual com `situacaoLT`/`larTemporarioId` **ausentes** (`undefined`, como nos mocks antigos de `prisma.animal.findUnique` em `animal-publication.test.ts:69`) é tratado como `NAO_SE_APLICA`/`null`, sem exigir mudança nesses mocks. T018 fica verde (RF-010 a RF-013a; CA-03, CA-04).
-- [ ] T020 [P] Acrescentar `situacaoLT: z.nativeEnum(SituacaoLT).optional()` e `larTemporarioId: idSchema.nullable().optional()` ao `animalInputSchema` em `lib/schemas/animal.ts`, mantendo `.strict()` (RF-013a; CA-04).
-- [ ] T021 [TEST-FIRST] Em `__tests__/actions/animais.test.ts`, acrescentar casos de `createAnimal` e `updateAnimal`: com campos de LT ausentes, o `update` preserva o valor; status manual `ADOTADO` grava `NAO_SE_APLICA`/`null`; acolhedor com `PROCURANDO` → `FOSTER_STATE_NOT_ALLOWED`; `larTemporarioId` de outra ONG → `INVALID_FOSTER_LINK` (RF-010, RF-011, RF-013, RF-013a; CA-03, CA-04).
-- [ ] T022 [TEST-FIRST] Em `__tests__/actions/animais.test.ts`, acrescentar o caso em que `updateAnimalStatus(id, ADOTADO)` grava `{ status: ADOTADO, ...FOSTER_RESET_ON_ADOPTION }` (RF-013; CA-03).
-- [ ] T023 [TEST-FIRST] Em `__tests__/actions/solicitacoes.test.ts`, acrescentar o caso em que o `tx.animal.updateMany` de `completeAdoption` usa `data: { status: ADOTADO, situacaoLT: NAO_SE_APLICA, larTemporarioId: null }` no **mesmo** comando condicional `where: { status: EM_PROCESSO_ADOCAO }` (RF-013, C7; CA-03).
-- [ ] T024 Em `lib/actions/animais.ts`, mudar quatro pontos (RF-010 a RF-013a; CA-03, CA-04):
+- [X] T019 Criar `lib/lar-temporario.ts` (server-only) com `resolveFosterState(atual, entrada, contexto)` e a constante `FOSTER_RESET_ON_ADOPTION = { situacaoLT: NAO_SE_APLICA, larTemporarioId: null }`, seguindo as regras 1–5 de `research.md` R4. A única consulta é `prisma.larTemporario.findFirst({ where: { id, organizacaoId } })`. Estado atual com `situacaoLT`/`larTemporarioId` **ausentes** (`undefined`, como nos mocks antigos de `prisma.animal.findUnique` em `animal-publication.test.ts:69`) é tratado como `NAO_SE_APLICA`/`null`, sem exigir mudança nesses mocks. T018 fica verde (RF-010 a RF-013a; CA-03, CA-04).
+- [X] T020 [P] Acrescentar `situacaoLT: z.nativeEnum(SituacaoLT).optional()` e `larTemporarioId: idSchema.nullable().optional()` ao `animalInputSchema` em `lib/schemas/animal.ts`, mantendo `.strict()` (RF-013a; CA-04).
+- [X] T021 [TEST-FIRST] Em `__tests__/actions/animais.test.ts`, acrescentar casos de `createAnimal` e `updateAnimal`: com campos de LT ausentes, o `update` preserva o valor; status manual `ADOTADO` grava `NAO_SE_APLICA`/`null`; acolhedor com `PROCURANDO` → `FOSTER_STATE_NOT_ALLOWED`; `larTemporarioId` de outra ONG → `INVALID_FOSTER_LINK` (RF-010, RF-011, RF-013, RF-013a; CA-03, CA-04).
+- [X] T022 [TEST-FIRST] Em `__tests__/actions/animais.test.ts`, acrescentar o caso em que `updateAnimalStatus(id, ADOTADO)` grava `{ status: ADOTADO, ...FOSTER_RESET_ON_ADOPTION }` (RF-013; CA-03).
+- [X] T023 [TEST-FIRST] Em `__tests__/actions/solicitacoes.test.ts`, acrescentar o caso em que o `tx.animal.updateMany` de `completeAdoption` usa `data: { status: ADOTADO, situacaoLT: NAO_SE_APLICA, larTemporarioId: null }` no **mesmo** comando condicional `where: { status: EM_PROCESSO_ADOCAO }` (RF-013, C7; CA-03).
+- [X] T024 Em `lib/actions/animais.ts`, mudar quatro pontos (RF-010 a RF-013a; CA-03, CA-04):
   - `findAnimalById` passa a selecionar `situacaoLT` e `larTemporarioId` (os mocks existentes sem esses campos continuam válidos; ver T019);
   - `createAnimal` e `updateAnimal` chamam `resolveFosterState` antes de gravar e devolvem o erro tipado;
   - `updateAnimal` monta `data` **explícito** (campos do animal + `situacaoLT` + `larTemporarioId` finais) no lugar de `data: parsed.data`;
   - T021 fica verde.
-- [ ] T025 Em `updateAnimalStatus` (`lib/actions/animais.ts`), espalhar `FOSTER_RESET_ON_ADOPTION` no `data` quando o status for `ADOTADO`. T022 fica verde (RF-013; CA-03).
-- [ ] T026 Em `completeAdoption` (`lib/actions/solicitacoes.ts:281`), espalhar `FOSTER_RESET_ON_ADOPTION` no `data` do `tx.animal.updateMany` existente. T023 fica verde (RF-013, C7; CA-03).
+- [X] T025 Em `updateAnimalStatus` (`lib/actions/animais.ts`), espalhar `FOSTER_RESET_ON_ADOPTION` no `data` quando o status for `ADOTADO`. T022 fica verde (RF-013; CA-03).
+- [X] T026 Em `completeAdoption` (`lib/actions/solicitacoes.ts:281`), espalhar `FOSTER_RESET_ON_ADOPTION` no `data` do `tx.animal.updateMany` existente. T023 fica verde (RF-013, C7; CA-03).
 
 ### 2B — API de lares temporários
 
-- [ ] T027 [P] Criar `lib/schemas/lar-temporario.ts` com os campos de `data-model.md` §2.1, reaproveitando `personNameSchema`, `phoneSchema`, `addressSchema` e `optionalTextSchema` de `lib/schemas/common.ts`. O create exige `autorizacaoTutor: z.literal(true)`; o update não tem esse campo; os dois são `.strict()` (RF-022, RF-022a, C3; CA-07).
-- [ ] T028 [P] Criar `requireActiveOrganization()` em `lib/api/responsible-http.ts`, que chama `requireActiveResponsible()` e devolve 403 `FORBIDDEN` quando `tipoPerfil !== ORGANIZACAO`. É usada pelas 5 rotas de LT (RF-020; CA-07).
-- [ ] T029 [TEST-FIRST] Criar `__tests__/api/lares-temporarios.test.ts` com os casos de cadastro e autorização (RF-020, RF-022, RF-022a, RF-026, C2, C3; CA-07):
+- [X] T027 [P] Criar `lib/schemas/lar-temporario.ts` com os campos de `data-model.md` §2.1, reaproveitando `personNameSchema`, `phoneSchema`, `addressSchema` e `optionalTextSchema` de `lib/schemas/common.ts`. O create exige `autorizacaoTutor: z.literal(true)`; o update não tem esse campo; os dois são `.strict()` (RF-022, RF-022a, C3; CA-07).
+- [X] T028 [P] Criar `requireActiveOrganization()` em `lib/api/responsible-http.ts`, que chama `requireActiveResponsible()` e devolve 403 `FORBIDDEN` quando `tipoPerfil !== ORGANIZACAO`. É usada pelas 5 rotas de LT (RF-020; CA-07).
+- [X] T029 [TEST-FIRST] Criar `__tests__/api/lares-temporarios.test.ts` com os casos de cadastro e autorização (RF-020, RF-022, RF-022a, RF-026, C2, C3; CA-07):
   - `GET`/`POST /api/lares-temporarios`: acolhedor → 403; sem `autorizacaoTutor` → 400; telefone inválido → 400; válido → 201 com `organizacaoId` vindo da sessão;
   - `GET`/`PATCH`/`DELETE /api/lares-temporarios/[id]`: LT da ONG B → 404.
-- [ ] T030 [TEST-FIRST] Em `__tests__/api/lares-temporarios.test.ts`, acrescentar os casos de vínculo e exclusão (RF-023, RF-024, RF-025; CA-05, CA-06):
+- [X] T030 [TEST-FIRST] Em `__tests__/api/lares-temporarios.test.ts`, acrescentar os casos de vínculo e exclusão (RF-023, RF-024, RF-025; CA-05, CA-06):
   - `GET /vinculaveis` filtra `situacaoLT: EM_LT, larTemporarioId: null, organizacaoId`;
   - `POST /[id]/animais` com `updateMany` condicional, e `count 0` → 409 `INVALID_TRANSITION`;
   - `DELETE /[id]/animais/[animalId]` mantém `situacaoLT` e devolve 404 quando o animal não está vinculado ao LT;
   - `DELETE /[id]` usa `deleteMany({ where: { id, organizacaoId } })`.
-- [ ] T031 Criar `lib/queries/lares-temporarios.ts` com três consultas: `getFosterHomes(organizacaoId)` (lista ordenada por `nomeTutor`, com `totalAnimais` via `_count`), `getFosterHomeDetail(id, organizacaoId)` (com animais vinculados e foto principal) e `getLinkableAnimals(organizacaoId)`, todas devolvendo os DTOs de `data-model.md` §4 (RF-021, RF-023, RF-024; CA-05).
-- [ ] T032 Criar `lib/actions/lares-temporarios.ts` com `createFosterHome`, `updateFosterHome` e `deleteFosterHome`, que recebem `ResponsibleContext`. Toda escrita filtra `organizacaoId: context.responsavelId`, e `autorizacaoTutor` é descartado antes do `create` (RF-022, RF-025, RF-026, C3, C4; CA-06, CA-07).
-- [ ] T033 Em `lib/actions/lares-temporarios.ts`, criar `linkAnimalToFosterHome` (confere que o LT é da ONG, depois faz `updateMany` com `where: { id, organizacaoId, situacaoLT: EM_LT, larTemporarioId: null }`) e `unlinkAnimalFromFosterHome` (`where: { id, organizacaoId, larTemporarioId: ltId }`, `data: { larTemporarioId: null }`) (RF-023, RF-024; CA-05).
-- [ ] T034 Criar `app/api/lares-temporarios/route.ts` com `GET` (lista) e `POST` (cria, 201), usando `requireActiveOrganization`, `readJson` e `actionErrorResponse` (RF-020, RF-021, RF-022; CA-07).
-- [ ] T035 [P] Criar `app/api/lares-temporarios/vinculaveis/route.ts` (`GET`) (RF-024; CA-05).
-- [ ] T036 Criar `app/api/lares-temporarios/[id]/route.ts` com `GET` (detalhe, 404 indistinguível), `PATCH` e `DELETE` (RF-022, RF-023, RF-025, RF-026; CA-06, CA-07).
-- [ ] T037 [P] Criar `app/api/lares-temporarios/[id]/animais/route.ts` (`POST { animalId }`; 409 quando o animal não é vinculável) (RF-024; CA-05).
-- [ ] T038 [P] Criar `app/api/lares-temporarios/[id]/animais/[animalId]/route.ts` (`DELETE`). T029 e T030 ficam verdes (RF-023; CA-05).
+- [X] T031 Criar `lib/queries/lares-temporarios.ts` com três consultas: `getFosterHomes(organizacaoId)` (lista ordenada por `nomeTutor`, com `totalAnimais` via `_count`), `getFosterHomeDetail(id, organizacaoId)` (com animais vinculados e foto principal) e `getLinkableAnimals(organizacaoId)`, todas devolvendo os DTOs de `data-model.md` §4 (RF-021, RF-023, RF-024; CA-05).
+- [X] T032 Criar `lib/actions/lares-temporarios.ts` com `createFosterHome`, `updateFosterHome` e `deleteFosterHome`, que recebem `ResponsibleContext`. Toda escrita filtra `organizacaoId: context.responsavelId`, e `autorizacaoTutor` é descartado antes do `create` (RF-022, RF-025, RF-026, C3, C4; CA-06, CA-07).
+- [X] T033 Em `lib/actions/lares-temporarios.ts`, criar `linkAnimalToFosterHome` (confere que o LT é da ONG, depois faz `updateMany` com `where: { id, organizacaoId, situacaoLT: EM_LT, larTemporarioId: null }`) e `unlinkAnimalFromFosterHome` (`where: { id, organizacaoId, larTemporarioId: ltId }`, `data: { larTemporarioId: null }`) (RF-023, RF-024; CA-05).
+- [X] T034 Criar `app/api/lares-temporarios/route.ts` com `GET` (lista) e `POST` (cria, 201), usando `requireActiveOrganization`, `readJson` e `actionErrorResponse` (RF-020, RF-021, RF-022; CA-07).
+- [X] T035 [P] Criar `app/api/lares-temporarios/vinculaveis/route.ts` (`GET`) (RF-024; CA-05).
+- [X] T036 Criar `app/api/lares-temporarios/[id]/route.ts` com `GET` (detalhe, 404 indistinguível), `PATCH` e `DELETE` (RF-022, RF-023, RF-025, RF-026; CA-06, CA-07).
+- [X] T037 [P] Criar `app/api/lares-temporarios/[id]/animais/route.ts` (`POST { animalId }`; 409 quando o animal não é vinculável) (RF-024; CA-05).
+- [X] T038 [P] Criar `app/api/lares-temporarios/[id]/animais/[animalId]/route.ts` (`DELETE`). T029 e T030 ficam verdes (RF-023; CA-05).
 
 ### 2C — "Em tratamento", filtros e dashboard
 
-- [ ] T039 [TEST-FIRST] Em `__tests__/queries/owned-animals.test.ts`, acrescentar os casos (RF-006, RF-016, RF-018; CA-01, CA-08):
+- [X] T039 [TEST-FIRST] Em `__tests__/queries/owned-animals.test.ts`, acrescentar os casos (RF-006, RF-016, RF-018; CA-01, CA-08):
   - o DTO traz `situacaoLT`, `larTemporario { id, nomeTutor }` e `emTratamento`;
   - `emTratamento` é `false` para animal `ADOTADO` com cuidado pendente;
   - o filtro `tratamento: "1"` aplica `inTreatmentWhere`;
   - `lt: "EM_LT_SEM_VINCULO"` vira `{ situacaoLT: EM_LT, larTemporarioId: null }`.
-- [ ] T040 [P] [TEST-FIRST] Em `__tests__/schemas/dashboard-filters.test.ts`, verificar que `lt` aceita os 4 valores e rejeita outros, e que `tratamento` aceita só `"1"` (RF-018; CA-08).
-- [ ] T041 [P] [TEST-FIRST] Em `__tests__/api/owner-animals.test.ts`, cobrir `GET /api/animais/gerenciados?lt=EM_LT` vindo de acolhedor → 400 `VALIDATION_ERROR` e o mesmo pedido vindo de ONG → 200 (RF-018; CA-07).
-- [ ] T042 [P] [TEST-FIRST] Em `__tests__/queries/operational-dashboard.test.ts`, cobrir três pontos (RF-017, RF-019; CA-01, CA-06, CA-08):
+- [X] T040 [P] [TEST-FIRST] Em `__tests__/schemas/dashboard-filters.test.ts`, verificar que `lt` aceita os 4 valores e rejeita outros, e que `tratamento` aceita só `"1"` (RF-018; CA-08).
+- [X] T041 [P] [TEST-FIRST] Em `__tests__/api/owner-animals.test.ts`, cobrir `GET /api/animais/gerenciados?lt=EM_LT` vindo de acolhedor → 400 `VALIDATION_ERROR` e o mesmo pedido vindo de ONG → 200 (RF-018; CA-07).
+- [X] T042 [P] [TEST-FIRST] Em `__tests__/queries/operational-dashboard.test.ts`, cobrir três pontos (RF-017, RF-019; CA-01, CA-06, CA-08):
   - `animalsInTreatment` existe para ONG e para acolhedor;
   - `animalsSeekingFoster` e `animalsInFosterUnregistered` existem só para ONG;
   - os hrefs são `?tratamento=1`, `?lt=PROCURANDO` e `?lt=EM_LT_SEM_VINCULO`.
 
   `__tests__/actions/health-chat-dashboard-flow.test.ts` **não** ganha casos novos: ele só lê `indicators.overdueHealthCare` e `animalStatusCounts` (linhas 129, 140, 251, 259). O único ajuste permitido é acrescentar `vi.mocked(prisma.animal.count).mockResolvedValue(0)`, se as contagens novas quebrarem o fluxo por falta de mock.
-- [ ] T043 Acrescentar `inTreatmentWhere` a `lib/lar-temporario.ts`: `status` diferente de `ADOTADO` + `cuidadosPlanejados.some({ tipo: MEDICAMENTO_TRATAMENTO, status: PENDENTE })`, conforme `research.md` R5 (RF-006, C8; CA-08).
-- [ ] T044 Em `lib/queries/owned-animals.ts`, mudar o select e o DTO (RF-006, RF-016; CA-01, CA-08):
+- [X] T043 Acrescentar `inTreatmentWhere` a `lib/lar-temporario.ts`: `status` diferente de `ADOTADO` + `cuidadosPlanejados.some({ tipo: MEDICAMENTO_TRATAMENTO, status: PENDENTE })`, conforme `research.md` R5 (RF-006, C8; CA-08).
+- [X] T044 Em `lib/queries/owned-animals.ts`, mudar o select e o DTO (RF-006, RF-016; CA-01, CA-08):
   - `ownedAnimalSummarySelect` ganha `situacaoLT`, `larTemporario: { select: { id, nomeTutor } }` e `_count.cuidadosPlanejados` com o filtro de tratamento;
   - `toOwnedAnimalDTO` calcula `emTratamento`.
-- [ ] T045 [P] Acrescentar `lt` e `tratamento` ao `ownedAnimalFilterSchema` em `lib/schemas/dashboard-filters.ts`. T040 fica verde (RF-018; CA-08).
-- [ ] T046 Em `buildFilterWhere` (`lib/queries/owned-animals.ts`), aplicar `lt` (incluindo `EM_LT_SEM_VINCULO`) e `tratamento` com `inTreatmentWhere`. T039 fica verde (RF-018; CA-01, CA-08).
-- [ ] T047 No `GET` de `app/api/animais/gerenciados/route.ts`, responder 400 `VALIDATION_ERROR` quando `filters.data.lt` vier de um contexto `ACOLHEDOR`. T041 fica verde (RF-018; CA-07).
-- [ ] T048 Em `lib/queries/operational-dashboard.ts`, criar os 3 indicadores com `prisma.animal.count`: `ownerWhere` + `inTreatmentWhere`; `situacaoLT: PROCURANDO`; `situacaoLT: EM_LT, larTemporarioId: null`. Os dois de LT ficam só para ONG. T042 fica verde (RF-017, RF-019; CA-01, CA-06, CA-08).
-- [ ] T049 Rodar o portão completo e confirmar que nenhum teste pré-existente mudou de sentido (CA-09).
+- [X] T045 [P] Acrescentar `lt` e `tratamento` ao `ownedAnimalFilterSchema` em `lib/schemas/dashboard-filters.ts`. T040 fica verde (RF-018; CA-08).
+- [X] T046 Em `buildFilterWhere` (`lib/queries/owned-animals.ts`), aplicar `lt` (incluindo `EM_LT_SEM_VINCULO`) e `tratamento` com `inTreatmentWhere`. T039 fica verde (RF-018; CA-01, CA-08).
+- [X] T047 No `GET` de `app/api/animais/gerenciados/route.ts`, responder 400 `VALIDATION_ERROR` quando `filters.data.lt` vier de um contexto `ACOLHEDOR`. T041 fica verde (RF-018; CA-07).
+- [X] T048 Em `lib/queries/operational-dashboard.ts`, criar os 3 indicadores com `prisma.animal.count`: `ownerWhere` + `inTreatmentWhere`; `situacaoLT: PROCURANDO`; `situacaoLT: EM_LT, larTemporarioId: null`. Os dois de LT ficam só para ONG. T042 fica verde (RF-017, RF-019; CA-01, CA-06, CA-08).
+- [X] T049 Rodar o portão completo e confirmar que nenhum teste pré-existente mudou de sentido (CA-09).
 - [ ] T050 Commit da Fase 2 (`feat: regra de lar temporario, api de LT e indicadores de tratamento`) (CA-03 a CA-08).
 
 **Checkpoint:** a API completa existe e está testada. O frontend antigo continua funcionando, porque todos os campos novos são opcionais ou aditivos.

@@ -1,4 +1,4 @@
-import { Porte, Sexo, StatusAnimal } from "@prisma/client";
+import { Porte, Sexo, SituacaoLT, StatusAnimal } from "@prisma/client";
 import { z } from "zod";
 
 import {
@@ -23,6 +23,11 @@ export const animalInputSchema = z
     castrado: z.boolean().default(false),
     descricao: optionalTextSchema.pipe(z.string().max(2000, "A descrição deve ter no máximo 2.000 caracteres.").optional()),
     status: animalStatusSchema,
+    // Opcionais (spec 009, RF-013a): ausente no update mantem o valor atual.
+    // As regras que dependem do dono e do estado atual ficam em
+    // resolveFosterState, nao no schema.
+    situacaoLT: z.nativeEnum(SituacaoLT).optional(),
+    larTemporarioId: idSchema.nullable().optional(),
   })
   .strict("Revise os campos informados");
 
