@@ -14,8 +14,8 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
-| 1 | Migration e remoção de `RESGATADO` | Código pronto (`fd8f99c`); falta T001 e o `migrate deploy` no `dev-009` (T007) |
-| 2 | Backend (regra de LT, API de LT, tratamento, dashboard) | Não iniciada |
+| 1 | Migration e remoção de `RESGATADO` | Concluída (`fd8f99c`); migrations aplicadas no `dev-009` pelo Pedro |
+| 2 | Backend (regra de LT, API de LT, tratamento, dashboard) | Concluída (`e708562`) |
 | 3 | Frontend | Não iniciada |
 | 4 | Testes, seed e homologação | Não iniciada |
 | 5 | Documentação, PR e virada | Não iniciada |
@@ -45,8 +45,43 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
   `DATABASE_URL` real; é só leitura e não depende desta mudança. Deve passar com o `.env` no
   `dev-009` (T001).
 
-**Pendente na Fase 1:** T001 (criar o `dev-009` e apontar o `.env`) e o `migrate deploy` no
-`dev-009` (T007), ambos do Pedro.
+**Fechamento da Fase 1:** o Pedro fez T001 (branch `dev-009`, `.env` apontado) e T007
+(`migrate deploy`). Conferido em 2026-10-14: `prisma migrate status` no host do `.env` mostra 7
+migrations, as duas da 009 incluídas, e "Database schema is up to date". Como a produção só recebe
+migration em T097, isso também confirma que o `.env` não aponta para a produção.
+
+### Fase 2 — backend (commit `e708562`)
+
+- `lib/lar-temporario.ts`:
+  - `resolveFosterState`: campo ausente mantém o valor; acolhedor sem LT; `ADOTADO` zera; vínculo
+    exige `EM_LT` e LT da própria ONG;
+  - `FOSTER_RESET_ON_ADOPTION`;
+  - `pendingTreatmentCareWhere` e `inTreatmentWhere`, a regra única de "em tratamento".
+- Reset de LT nos **três** caminhos até `ADOTADO`:
+  - `completeAdoption`, no mesmo `updateMany` condicional;
+  - `updateAnimal`;
+  - `updateAnimalStatus`.
+
+  `createAnimal` e `updateAnimal` passam pela mesma regra.
+- `lib/schemas/animal.ts`: `situacaoLT` e `larTemporarioId` opcionais.
+- API `/api/lares-temporarios`:
+  - rotas `route.ts`, `vinculaveis`, `[id]`, `[id]/animais` e `[id]/animais/[animalId]`;
+  - `requireActiveOrganization` em `lib/api/responsible-http.ts`;
+  - schemas em `lib/schemas/lar-temporario.ts`, consultas em `lib/queries/lares-temporarios.ts` e
+    actions em `lib/actions/lares-temporarios.ts`.
+- Gestão de animais:
+  - o DTO ganha `situacaoLT`, `larTemporario { id, nomeTutor }` e `emTratamento`;
+  - filtros `lt` (com `EM_LT_SEM_VINCULO`) e `tratamento=1`;
+  - `lt` vindo de acolhedor responde 400.
+- Dashboard: `animalsInTreatment` e, só para ONG, `animalsSeekingFoster` e
+  `animalsInFosterUnregistered`.
+
+**Validação (2026-10-14):**
+- todos os testes novos foram escritos antes e vistos **vermelhos** antes da implementação;
+- `npm test`: **419/420**. A falha é a mesma de antes (`organization-search-seed.test.ts`), agora
+  explicada na seção 5;
+- `tsc` OK no backend e no frontend;
+- build do frontend OK; `routeTree.gen.ts` inalterado.
 
 ## 3. Decisões que não se reabrem
 
@@ -57,6 +92,15 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
   (`DISPONIVEL → EM_CUIDADOS` e `EM_PROCESSO_ADOCAO → EM_CUIDADOS`), para não virar transição nula. No
   `owner-animals.test.ts`, a troca para `EM_CUIDADOS` garante que o 400 continue vindo do
   `organizacaoId` recusado, e não de um status inválido.
+- `createAnimal` passa a gravar `situacaoLT`/`larTemporarioId` resolvidos, iguais ao default do
+  banco quando ausentes. Os dois testes que comparavam o `data` exato do create foram atualizados.
+- O teste de allowlist do DTO de gestão (`owner-animals.test.ts`) ganhou os 3 campos novos. A lista
+  de campos proibidos (`telefone`, `endereco`, …) ficou intacta e passa a provar que o telefone e o
+  endereço do **tutor** não saem no DTO do animal: só `id` e `nomeTutor`.
+- `lib/actions/lares-temporarios.ts` **não** é `"use server"`. É chamado só pelas rotas, que já
+  autenticam e validam; sem a diretiva, as funções não viram Server Actions chamáveis do navegador.
+- O filtro `tratamento` entra em `AND: [inTreatmentWhere]`, para não colidir com o filtro `status`
+  da mesma consulta (`inTreatmentWhere` também restringe `status`).
 
 ## 4. O que a spec previa e não foi entregue
 
@@ -64,8 +108,11 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
 
 ## 5. Armadilhas descobertas
 
-- **`npm test` lê o banco do `.env`.** `organization-search-seed.test.ts` usa um `PrismaClient` real.
-  Com o `.env` apontando para a produção, a suíte **lê a produção**. Mais um motivo para o `dev-009`.
+- **`organization-search-seed.test.ts` usa um `PrismaClient` real**, não o mock. O `vitest.config.ts`
+  não carrega `.env`, então o teste só acha `DATABASE_URL` se a variável estiver exportada **no
+  terminal**. Nesse caso ele lê o banco para onde ela aponta, inclusive a produção. Nesta worktree, com
+  `.env` mas sem a variável no terminal, ele falha com "Environment variable not found" tanto antes
+  quanto depois da 009. Não é regressão.
 - **`prisma validate` exige `DATABASE_URL` definida**, mesmo sem conectar.
 - **Rede lenta no `npm ci`:** cada consulta ao registro levou de 11 a 13 minutos para revalidar o
   cache. A raiz foi copiada localmente do checkout principal (lockfile idêntico), e o frontend

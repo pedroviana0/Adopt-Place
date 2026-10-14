@@ -153,7 +153,7 @@ dashboard. Todas as mudanças de contrato são **aditivas**: o frontend antigo c
 - [X] T047 No `GET` de `app/api/animais/gerenciados/route.ts`, responder 400 `VALIDATION_ERROR` quando `filters.data.lt` vier de um contexto `ACOLHEDOR`. T041 fica verde (RF-018; CA-07).
 - [X] T048 Em `lib/queries/operational-dashboard.ts`, criar os 3 indicadores com `prisma.animal.count`: `ownerWhere` + `inTreatmentWhere`; `situacaoLT: PROCURANDO`; `situacaoLT: EM_LT, larTemporarioId: null`. Os dois de LT ficam só para ONG. T042 fica verde (RF-017, RF-019; CA-01, CA-06, CA-08).
 - [X] T049 Rodar o portão completo e confirmar que nenhum teste pré-existente mudou de sentido (CA-09).
-- [ ] T050 Commit da Fase 2 (`feat: regra de lar temporario, api de LT e indicadores de tratamento`) (CA-03 a CA-08).
+- [X] T050 Commit da Fase 2 (`feat: regra de lar temporario, api de LT e indicadores de tratamento`) (CA-03 a CA-08).
 
 **Checkpoint:** a API completa existe e está testada. O frontend antigo continua funcionando, porque todos os campos novos são opcionais ou aditivos.
 
