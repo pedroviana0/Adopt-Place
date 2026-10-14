@@ -14,6 +14,7 @@ import { AsyncState } from "@/components/app/AsyncState";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Archive } from "lucide-react";
+import { formatarData } from "@/lib/date";
 
 interface ConversationListPageProps {
   audience: "adopter" | "responsible";
@@ -128,7 +129,7 @@ function ConversationLink({ conversation, to }: ConversationLinkProps) {
       </div>
       <div className="flex shrink-0 items-center justify-between gap-3 sm:flex-col sm:items-end sm:gap-1">
         <span className="text-xs text-muted-foreground">
-          {new Date(conversation.updatedAt).toLocaleDateString("pt-BR")}
+          {formatarData(conversation.updatedAt)}
         </span>
         {conversation.unreadCount > 0 && (
           <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">

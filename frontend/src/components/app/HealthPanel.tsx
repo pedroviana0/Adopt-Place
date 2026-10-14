@@ -14,18 +14,10 @@ import {
   type NovoRegistroSaude,
 } from "@/lib/data/saude";
 import { ResultadoTeste } from "@/lib/domain/enums";
+import { dataInputParaIso, formatarData, hojeLocal } from "@/lib/date";
 
 interface Props {
   animalId: string;
-}
-
-// The date input yields "YYYY-MM-DD"; the contract expects ISO datetime + offset.
-function toIso(date: string): string {
-  return new Date(date).toISOString();
-}
-
-function fmt(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
 }
 
 export function HealthPanel({ animalId }: Props) {
@@ -74,7 +66,7 @@ export function HealthPanel({ animalId }: Props) {
             items={vacinas.map((r) => ({
               id: r.id,
               titulo: r.nomeVacina ?? "—",
-              subtitulo: `Aplicada em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Aplicada em ${formatarData(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + formatarData(r.dataProxima) : ""}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -87,7 +79,7 @@ export function HealthPanel({ animalId }: Props) {
             items={parasitas.map((r) => ({
               id: r.id,
               titulo: r.tipoMedicamento ?? "—",
-              subtitulo: `Aplicada em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Aplicada em ${formatarData(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + formatarData(r.dataProxima) : ""}`,
               extra: `${r.frequencia ?? ""} · Responsável: ${r.responsavelRegistro}`.trim(),
             }))}
           />
@@ -100,7 +92,7 @@ export function HealthPanel({ animalId }: Props) {
             items={testes.map((r) => ({
               id: r.id,
               titulo: r.nomeDoenca ?? "—",
-              subtitulo: `Testado em ${fmt(r.dataAplicacao)} · Resultado: ${r.resultado ?? "—"}`,
+              subtitulo: `Testado em ${formatarData(r.dataAplicacao)} · Resultado: ${r.resultado ?? "—"}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -159,7 +151,7 @@ function RegistroList({
 }
 
 function useBaseState() {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeLocal();
   const [dataAplicacao, setDataAplicacao] = useState(hoje);
   const [dataProxima, setDataProxima] = useState("");
   const [saving, setSaving] = useState(false);
@@ -183,8 +175,8 @@ function VacinaForm({ animalId, onSaved }: { animalId: string; onSaved: () => vo
     const input: NovoRegistroSaude = {
       tipoRegistro: "VACINA",
       nomeCustom: nome.trim(),
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProximaDose: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProximaDose: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -247,8 +239,8 @@ function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => 
       tipoRegistro: "CONTROLE_PARASITAS",
       tipoMedicacao: medicamento.trim(),
       frequencia: frequencia.trim(),
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -324,8 +316,8 @@ function TesteForm({ animalId, onSaved }: { animalId: string; onSaved: () => voi
       tipoRegistro: "TESTE_DOENCA",
       nomeCustom: nome.trim(),
       resultado,
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -405,7 +397,7 @@ function DateFields({
         <Input
           id={`${prefix}-data`}
           type="date"
-          max={new Date().toISOString().slice(0, 10)}
+          max={hojeLocal()}
           value={base.dataAplicacao}
           onChange={(e) => base.setDataAplicacao(e.target.value)}
         />

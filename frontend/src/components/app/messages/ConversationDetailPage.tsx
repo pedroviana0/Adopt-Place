@@ -13,6 +13,7 @@ import {
   marcarConversaLida,
   MAX_MESSAGE_LENGTH,
 } from "@/lib/data/mensagens";
+import { formatarDataHora } from "@/lib/date";
 
 interface ConversationDetailPageProps {
   audience: "adopter" | "responsible";
@@ -152,7 +153,7 @@ export function ConversationDetailPage({ audience, conversationId }: Conversatio
                     message.authorIsMe ? "text-primary-foreground/70" : "text-muted-foreground"
                   }`}
                 >
-                  {new Date(message.sentAt).toLocaleString("pt-BR")}
+                  {formatarDataHora(message.sentAt)}
                 </p>
               </div>
             </div>
