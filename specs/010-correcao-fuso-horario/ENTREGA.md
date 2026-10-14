@@ -4,8 +4,8 @@
 |---|---|
 | **Período** | 2026-10-14 |
 | **Branch** | `010-correcao-fuso-horario` (aberta a partir de `008-correcoes-upload-triagem`, `f52d99c`) |
-| **PRs** | (ver abaixo) |
-| **Status** | **ENTREGUE** — homologação manual (CA-01 a CA-03) e decisão sobre CA-03 pendentes |
+| **PRs** | #135 (merge `69475b7`) |
+| **Status** | **ENTREGUE** — homologado pelo mantenedor em 2026-10-14 |
 | **Spec** | [`spec.md`](spec.md) |
 
 ## 1. O que a spec promete
@@ -17,7 +17,7 @@
 | R3 — conferência do backend | Feito; nada a corrigir no fuso (ver §3 e §4) |
 | R4 — sem schema, migration ou mudança de contrato | Respeitado (a API continua recebendo ISO) |
 | R5 — testes unitários do utilitário | Feito: `__tests__/frontend/date.test.ts`, 9 testes |
-| CA-01 a CA-03 — homologação manual | Pendente (mantenedor) |
+| CA-01 a CA-03 — homologação manual | Homologado pelo mantenedor (2026-10-14); CA-03 com a redação revista |
 | CA-04 — `npm test`, `tsc`, lint | Ver §2 |
 
 ## 2. O que foi entregue
@@ -67,22 +67,26 @@
   `lib/schemas/common.ts`), reaplicado pelo `registroSaudeHttpSchema`. Meio-dia faria a vacina de
   "hoje" registrada de manhã voltar com "A data nao pode ser futura". Meia-noite local é sempre
   `<= agora` no próprio dia e, como exibição e classificação usam o mesmo fuso, não muda de dia.
+- **"Atrasado" continua contado por dia, como na spec 002** (decisão do mantenedor, 2026-10-14).
+  Um cuidado de hoje fica em "Hoje" mesmo depois do horário marcado; só vai para "Atrasadas" no
+  dia seguinte. O CA-03 da `spec.md` foi reescrito para refletir isso. Mudar para "passou do
+  horário" exigiria mexer em `classifyHealthDate` e em `plannedDateWhere`
+  (`lib/queries/health-dashboard.ts`), e é decisão nova, não correção.
 - **O contrato continua `toISOString()` (sufixo `Z`).** O backend aceita `datetime({ offset: true })`;
   o instante é o mesmo, então não houve motivo para trocar o formato.
 
 ## 4. O que a spec previa e não foi entregue / divergências
 
-- **CA-03 diverge da regra da spec 002.** A 002 define atrasado como "venceu antes da data atual
-  da aplicação" (granularidade de **dia**), e é isso que `classifyHealthDate` faz com
-  `APPLICATION_TIME_ZONE`. Um cuidado de hoje às 20h, visto às 21h, fica em **"Hoje"**, não em
-  "Atrasadas". Só cai em "Atrasadas" um cuidado de um dia anterior. Não mudei a regra: é decisão
-  de produto, a ser tomada pelo mantenedor. Se a escolha for "atrasado = passou do horário", a
-  mudança é em `classifyHealthDate` e em `plannedDateWhere` (`lib/queries/health-dashboard.ts`).
+- **CA-03 divergia da spec 002** ("vencido há 1h" em "Atrasadas"). Resolvido a favor da 002; ver §3.
 - **Dados já gravados errados** continuam aparecendo um dia antes (fora de escopo, por decisão).
 - `frontend/src/lib/schemas/registroSaude.ts` ainda faz `new Date(v.dataRegistro)`, mas o schema
   **não é importado em lugar nenhum** (código morto). Não foi alterado.
 
 ## 5. Armadilhas descobertas
+
+- O preview da Vercel do PR #135 falhou por um bloqueio de dependência, não pelo código: a Vercel
+  recusa instalar TanStack Start com a CVE-2026-102989. O log só aparece logado na Vercel. O
+  bloqueio saiu com o PR #134, e o deploy da `main` voltou a passar.
 
 - `new Date("AAAA-MM-DD")` é UTC; `new Date("AAAA-MM-DDTHH:mm")` é **hora local do navegador**.
   O segundo parecia certo só porque a máquina de teste estava em Brasília.
