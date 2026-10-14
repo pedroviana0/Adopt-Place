@@ -211,7 +211,7 @@ formulário de tratamento.
 - [X] T075 Criar `TratamentoForm` em `frontend/src/components/app/HealthPanel.tsx`, no molde do `ParasitaForm`, com o campo "Próxima dose" e a dica "Informe a próxima dose para o animal aparecer como em tratamento" (RF-008, C9; CA-01, CA-08).
 - [X] T076 No `CompletionForm` de `frontend/src/routes/_authenticated.dashboard.saude.index.tsx`, acrescentar "Próxima dose (opcional)" quando `item.tipo === "MEDICAMENTO_TRATAMENTO"`, enviado como `dataProxima` (RF-008; CA-08).
 - [X] T077 Rodar o portão completo. **Commitar** `frontend/src/routeTree.gen.ts`, regenerado pelas rotas novas (CA-09).
-- [ ] T078 Commit da Fase 3 (`feat: telas de lar temporario, indicadores e tratamento`) (CA-01 a CA-08).
+- [X] T078 Commit da Fase 3 (`feat: telas de lar temporario, indicadores e tratamento`) (CA-01 a CA-08).
 
 **Checkpoint:** sistema completo em código. Falta provar contra banco real.
 

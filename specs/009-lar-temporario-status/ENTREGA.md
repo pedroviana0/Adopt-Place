@@ -16,7 +16,7 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
 |---|---|---|
 | 1 | Migration e remoção de `RESGATADO` | Concluída (`fd8f99c`); migrations aplicadas no `dev-009` pelo Pedro |
 | 2 | Backend (regra de LT, API de LT, tratamento, dashboard) | Concluída (`e708562`) |
-| 3 | Frontend | Não iniciada |
+| 3 | Frontend | Concluída em código (`213854c`); homologação visual na Fase 4 |
 | 4 | Testes, seed e homologação | Não iniciada |
 | 5 | Documentação, PR e virada | Não iniciada |
 
@@ -83,6 +83,47 @@ migration em T097, isso também confirma que o `.env` não aponta para a produç
 - `tsc` OK no backend e no frontend;
 - build do frontend OK; `routeTree.gen.ts` inalterado.
 
+### Fase 3 — frontend (commit `213854c`)
+
+- `AnimalForm`:
+  - ajuda dinâmica sob o Status (`statusAnimalHelp`);
+  - para organização e status diferente de `ADOTADO`, os selects "Lar temporário (LT)" e "Vinculado
+    a" (LTs da ONG + "Ainda não registrado");
+  - aviso "O vínculo com <tutor> será removido ao salvar";
+  - os campos de LT são omitidos em `ADOTADO` e para acolhedor, e `larTemporarioId` vai `null` sempre
+    que a situação não é `EM_LT` (correção U1 da análise).
+- `components/app/AnimalIndicators.tsx`: badges "Em tratamento", "Procurando LT", "Em LT · <tutor>"
+  e "Em LT · sem registro", com pares de token `*-muted`/`*-muted-foreground` e texto sempre visível.
+- "Meus animais" (`_authenticated.dashboard.animais.index.tsx`):
+  - `validateSearch` com `status`, `lt` e `tratamento`; valor inválido na URL vira "sem filtro";
+  - o filtro de LT aparece só para ONG, e o checkbox "Só em tratamento" para todos;
+  - badges em cada linha.
+- Detalhe do animal: `StatusBadge` + `AnimalIndicators` no cabeçalho.
+- Painel: cards "Em tratamento", "Procurando LT" e "Em LT sem registro". Os dois de LT aparecem só
+  quando vêm no JSON, ou seja, só para ONG.
+- Aba "Lares temporários":
+  - menu só para ONG;
+  - rotas `lares-temporarios.tsx`, `.index.tsx` e `.$larId.tsx`;
+  - componente `LarTemporarioForm.tsx`, usado no cadastro e na edição;
+  - busca por nome no cliente, sem acento;
+  - diálogos de cadastro (com a autorização obrigatória), edição, vincular (só candidatos `EM_LT`
+    sem vínculo), desvincular e excluir (lista os animais que ficam "Em LT · sem registro");
+  - acolhedor vê uma explicação, sem redirect.
+- Saúde:
+  - aba "Tratamentos" no `HealthPanel`, com `TratamentoForm` (próxima dose + dica do RF-008)
+    validado pelo `registroSaudeSchema` do cliente;
+  - no `CompletionForm` da agenda, "Próxima dose (opcional)" para `MEDICAMENTO_TRATAMENTO`;
+  - as duas telas invalidam lista, detalhe e painel, para o badge refletir a mudança.
+- `routeTree.gen.ts`: regenerado e commitado. O diff tem só as 79 linhas adicionadas das rotas novas,
+  nenhuma removida.
+
+**Validação (2026-10-14):**
+- build do frontend OK;
+- `tsc` do frontend OK;
+- o backend não mudou nesta fase (`npm test` da Fase 2 vale).
+
+**A interface ainda não foi vista rodando.** A homologação visual e funcional (H1–H13) é da Fase 4.
+
 ## 3. Decisões que não se reabrem
 
 - As migrations foram geradas contra `HEAD:prisma/schema.prisma`, **não** contra `main:`. A `main`
@@ -101,6 +142,17 @@ migration em T097, isso também confirma que o `.env` não aponta para a produç
   autenticam e validam; sem a diretiva, as funções não viram Server Actions chamáveis do navegador.
 - O filtro `tratamento` entra em `AND: [inTreatmentWhere]`, para não colidir com o filtro `status`
   da mesma consulta (`inTreatmentWhere` também restringe `status`).
+- **Divergências do `tasks.md` na Fase 3, resolvidas pelo código real:**
+  - **T052:** os campos novos do animal gerenciado ficaram em `lib/data/animais.ts`
+    (`OwnedAnimalSummary`), onde o DTO de gestão já vivia, e não em `domain/types.ts`. Os tipos de LT
+    ficaram em `lib/data/lares-temporarios.ts`.
+  - **T054:** o schema de cliente do LT virou `larTemporarioFormSchema(mode)`, com `autorizacaoTutor`
+    booleano e exigido só no cadastro. Um `z.literal(true)` não aceita o checkbox desmarcado como
+    estado inicial do formulário. O contrato HTTP continua enviando `autorizacaoTutor: true`.
+  - **T069:** a lista de LT **não** usa `page-canvas`. Nenhuma página do painel usa, porque o fundo é
+    do layout, e repetir dentro dele cria o "fundo por seção" proibido no §8 do `CLAUDE.md`.
+  - **T073:** `lib/data/cuidados.ts` já aceitava `dataProxima` em `MEDICAMENTO_TRATAMENTO`; só o
+    `saude.ts` mudou.
 
 ## 4. O que a spec previa e não foi entregue
 
