@@ -47,5 +47,7 @@ Dados já gravados errados no banco de validação (são poucos; se necessário,
 
 - CA-01. Registrar uma vacina com data de hoje às 22h → aparece com a data de hoje no histórico e no painel.
 - CA-02. Agendar um cuidado para hoje 23h30, às 22h → o campo aceita; o painel mostra 23h30.
-- CA-03. Cuidado vencido há 1h aparece em "Atrasadas"; um para amanhã cedo, em "Próximos 7 dias", não em "Hoje".
+- CA-03. Cuidado de um dia anterior aparece em "Atrasadas"; um para amanhã cedo, em "Próximos 7 dias", não em "Hoje".
+  _(Redação revista em 2026-10-14: o texto original, "vencido há 1h", contrariava a regra da spec 002,
+  em que atrasado é contado por dia. O mantenedor decidiu manter a regra da 002; ver `ENTREGA.md` §3.)_
 - CA-04. `npm test`, `tsc` e lint passam.

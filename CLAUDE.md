@@ -253,12 +253,17 @@ commit: **sem hash não é registro, é lembrança.**
 
 ---
 
-## 10. Estado atual (handoff) — atualizado 2026-08-14
+## 10. Estado atual (handoff) — atualizado 2026-10-14
 
-**`main` = `5074b4b`.** A spec 007 e a 006 já estão mergeadas. A correção abaixo foi validada com
+**`main` ≥ `4070d56`** (specs 006, 007, 008 e 010 mergeadas; TanStack Start corrigido no #134). A 008 foi validada com
 **367 testes**, Prisma, typecheck dos dois aplicativos e build do frontend.
 
-> **Entrega atual:** branch **`008-correcoes-upload-triagem`**. Catálogo de gestão completo,
+> **Última entrega:** spec **010** (fuso horário), PR #135, homologada. Toda data que sai de input
+> ou vai para a tela no frontend passa por `frontend/src/lib/date.ts` (fuso `America/Sao_Paulo`);
+> não use `toISOString().slice`, `new Date("AAAA-MM-DD")` nem `toLocaleDateString` sem `timeZone`.
+> "Atrasado" na Central de Saúde é contado por **dia** (spec 002, reafirmado na 010).
+>
+> **Entrega anterior:** branch **`008-correcoes-upload-triagem`**. Catálogo de gestão completo,
 > contratos de erro de upload e confirmação de veracidade da triagem estão concluídos. Para os
 > uploads funcionarem no deploy, ainda é necessário substituir `UPLOADTHING_TOKEN` no backend da
 > Vercel pelo token V7 completo e redeployar; o diagnóstico está em
