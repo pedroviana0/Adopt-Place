@@ -26,6 +26,7 @@ teal e âmbar.
 | 006 | [Perfis públicos e busca por nome](006-perfis-publicos/spec.md) | **Em andamento** | [ENTREGA](006-perfis-publicos/ENTREGA.md) · [HANDOFF](006-perfis-publicos/HANDOFF.md) |
 | 007 | [Validação integral de formulários](007-validacao-formularios/spec.md) | Entregue parcialmente (2026-08-14), homologação ampliada pendente | [ENTREGA](007-validacao-formularios/ENTREGA.md) · [INVENTÁRIO](007-validacao-formularios/INVENTARIO.md) |
 | 008 | [Correções de upload, raças e confirmação da triagem](008-correcoes-upload-triagem/spec.md) | Entregue com pendência externa (2026-08-14) | [ENTREGA](008-correcoes-upload-triagem/ENTREGA.md) |
+| 009 | [Lar temporário e reforma do status](009-lar-temporario-status/spec.md) | Em especificação | [ENTREGA](009-lar-temporario-status/ENTREGA.md) · [BRIEF](009-lar-temporario-status/GRILLING-BRIEF.md) |
 
 **Para retomar o projeto numa sessão de IA nova** — inclusive de outro sistema — use
 [`PROMPT-CONTINUIDADE.md`](PROMPT-CONTINUIDADE.md): traz um modelo reutilizável para qualquer spec
