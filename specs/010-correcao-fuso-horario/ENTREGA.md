@@ -4,8 +4,8 @@
 |---|---|
 | **Período** | 2026-10-14 |
 | **Branch** | `010-correcao-fuso-horario` (aberta a partir de `008-correcoes-upload-triagem`, `f52d99c`) |
-| **PRs** | — (ainda sem commit) |
-| **Status** | **EM ANDAMENTO** — código e testes prontos; falta homologação manual (CA-01 a CA-03) e commit |
+| **PRs** | (ver abaixo) |
+| **Status** | **ENTREGUE** — homologação manual (CA-01 a CA-03) e decisão sobre CA-03 pendentes |
 | **Spec** | [`spec.md`](spec.md) |
 
 ## 1. O que a spec promete
@@ -53,7 +53,12 @@
   abre um `PrismaClient` real (não usa o mock) e falha com `PrismaClientInitializationError` quando
   não há banco acessível.
 - `npx tsc --noEmit`: backend e frontend aprovados.
-- Lint e build do frontend: ver o resumo da sessão / commit.
+- Build do frontend aprovado; `routeTree.gen.ts` intacto. ESLint limpo no teste novo; os avisos de
+  Prettier restantes nos arquivos tocados são anteriores à 010.
+
+## Registro de implementação
+
+- Commit: `3b81ebf` (`fix: ancora datas do painel no fuso de Brasília (spec 010)`).
 
 ## 3. Decisões que não se reabrem
 
