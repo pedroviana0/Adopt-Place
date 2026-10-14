@@ -72,7 +72,7 @@ fixtures atualizadas.
 - [X] T014 [P] Trocar a fixture `RESGATADO` em `__tests__/api/owner-animals.test.ts` (linha ~174) (RF-003; CA-09).
 - [X] T015 [P] Criar `scripts/verify-009-migration.ts`, read-only com Prisma Client, no padrão de `scripts/verify-razao-social-normalizada.ts`. Ele imprime a contagem por `status` e por `situacaoLT`, o total de `LarTemporario` e as violações de I1–I4 de `data-model.md` §2.3, e sai com código ≠ 0 se houver violação (RF-002, RF-010, RF-011; CA-02).
 - [X] T016 Rodar o portão completo e confirmar que não sobrou uso de `RESGATADO` com `git grep -n RESGATADO -- . ":!legacy" ":!specs" ":!prisma/migrations" ":!contextospecs_v2.md"`. A saída esperada é **vazia**: as migrations e o `contextospecs_v2.md` (documento histórico da raiz) ficam fora da busca de propósito (RF-001, RF-003; CA-02, CA-09).
-- [ ] T017 Commit da Fase 1 (`feat: remove status RESGATADO e cria lar temporario no schema`) com schema, as duas migrations, o verificador, os ajustes de backend e frontend e as fixtures (CA-02, CA-09).
+- [X] T017 Commit da Fase 1 (`feat: remove status RESGATADO e cria lar temporario no schema`) com schema, as duas migrations, o verificador, os ajustes de backend e frontend e as fixtures (CA-02, CA-09).
 
 **Checkpoint:** schema e migrations prontos e aplicados **só no `dev-009`**. A produção não foi tocada; o ensaio sobre cópia fresca da produção é a Fase 4, e a produção só recebe as migrations em T097.
 
