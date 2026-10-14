@@ -26,7 +26,7 @@ const baseAnimalInput: AnimalInput = {
   cor: "Caramelo",
   castrado: true,
   descricao: "Docil e brincalhona",
-  status: "RESGATADO",
+  status: "EM_CUIDADOS",
 };
 
 function session(overrides: Partial<Session["user"]> = {}): Session {
@@ -226,7 +226,7 @@ describe("animal actions", () => {
       findAnimal.mockResolvedValue({
         organizacaoId: otherOrganizacaoId,
         acolhedorId: null,
-        status: StatusAnimal.RESGATADO,
+        status: StatusAnimal.EM_CUIDADOS,
       } as never);
 
       const result = await updateAnimal(animalId, baseAnimalInput);
@@ -240,7 +240,7 @@ describe("animal actions", () => {
       findAnimal.mockResolvedValue({
         organizacaoId,
         acolhedorId: null,
-        status: StatusAnimal.RESGATADO,
+        status: StatusAnimal.EM_CUIDADOS,
       } as never);
 
       const result = await updateAnimal(animalId, {
@@ -257,7 +257,7 @@ describe("animal actions", () => {
       findAnimal.mockResolvedValue({
         organizacaoId,
         acolhedorId: null,
-        status: StatusAnimal.RESGATADO,
+        status: StatusAnimal.EM_CUIDADOS,
       } as never);
       vi.mocked(prisma.raca.findUnique).mockResolvedValue({
         especieId: "cm00000000000000000000009",
@@ -280,7 +280,7 @@ describe("animal actions", () => {
       findAnimal.mockResolvedValue({
         organizacaoId,
         acolhedorId: null,
-        status: StatusAnimal.RESGATADO,
+        status: StatusAnimal.DISPONIVEL,
       } as never);
       updateAnimalMock.mockResolvedValue({ id: animalId } as never);
 
@@ -303,7 +303,7 @@ describe("animal actions", () => {
       findAnimal.mockResolvedValue({
         organizacaoId: otherOrganizacaoId,
         acolhedorId: null,
-        status: StatusAnimal.RESGATADO,
+        status: StatusAnimal.EM_CUIDADOS,
       } as never);
 
       const result = await deleteAnimal(animalId);

@@ -55,11 +55,16 @@ enum Sexo {
 }
 
 enum StatusAnimal {
-  RESGATADO
   EM_CUIDADOS
   DISPONIVEL
   EM_PROCESSO_ADOCAO
   ADOTADO
+}
+
+enum SituacaoLT {
+  NAO_SE_APLICA
+  PROCURANDO
+  EM_LT
 }
 
 enum StatusSolicitacao {
@@ -214,6 +219,7 @@ model Organizacao {
   responsavelNome        String
   capacidadeMaxima       Int?
   animais                Animal[]
+  laresTemporarios       LarTemporario[]
 
   // Recorte geografico do feed: o banco reduz por faixa de lat/lng antes de o
   // servidor calcular a distancia exata.
@@ -275,7 +281,11 @@ model Animal {
   idadeEstimada      String?
   castrado           Boolean                @default(false)
   descricao          String?
-  status             StatusAnimal           @default(RESGATADO)
+  status             StatusAnimal           @default(EM_CUIDADOS)
+  // Lar temporario (spec 009): independente do status; so animal de organizacao.
+  situacaoLT         SituacaoLT             @default(NAO_SE_APLICA)
+  larTemporarioId    String?
+  larTemporario      LarTemporario?         @relation(fields: [larTemporarioId], references: [id], onDelete: SetNull)
   organizacaoId      String?
   organizacao        Organizacao?           @relation(fields: [organizacaoId], references: [id])
   acolhedorId        String?
@@ -296,6 +306,25 @@ model Animal {
   @@index([sexo], map: "idx_animal_sexo")
   @@index([organizacaoId], map: "idx_animal_organizacao_id")
   @@index([acolhedorId], map: "idx_animal_acolhedor_id")
+  @@index([larTemporarioId], map: "idx_animal_lar_temporario_id")
+}
+
+// Tutor temporario cadastrado pela organizacao (spec 009). Dado pessoal de quem
+// nao tem conta: so a organizacao dona le e escreve.
+model LarTemporario {
+  id            String      @id @default(cuid())
+  organizacaoId String
+  organizacao   Organizacao @relation(fields: [organizacaoId], references: [id], onDelete: Cascade)
+  nomeTutor     String
+  telefone      String
+  endereco      String
+  cidade        String
+  observacoes   String?
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime    @default(now()) @updatedAt
+  animais       Animal[]
+
+  @@index([organizacaoId], map: "idx_lar_temporario_organizacao_id")
 }
 
 model AnimalRelacionado {

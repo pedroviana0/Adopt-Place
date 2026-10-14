@@ -47,7 +47,6 @@ type RecentActivity = {
 };
 
 const statusInitial: Record<StatusAnimal, number> = {
-  RESGATADO: 0,
   EM_CUIDADOS: 0,
   DISPONIVEL: 0,
   EM_PROCESSO_ADOCAO: 0,

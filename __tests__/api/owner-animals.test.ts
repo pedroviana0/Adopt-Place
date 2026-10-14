@@ -171,7 +171,7 @@ describe("owner animal HTTP contracts", () => {
           sexo: "F",
           cor: "Caramelo",
           castrado: true,
-          status: "RESGATADO",
+          status: "EM_CUIDADOS",
           organizacaoId,
         }),
       }),

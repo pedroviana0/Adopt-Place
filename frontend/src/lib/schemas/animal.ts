@@ -12,7 +12,6 @@ export const animalSchema = z.object({
   castrado: z.boolean(),
   descricao: z.string().trim().max(2000, "A descrição deve ter no máximo 2.000 caracteres.").optional().nullable(),
   status: z.enum([
-    StatusAnimal.RESGATADO,
     StatusAnimal.EM_CUIDADOS,
     StatusAnimal.DISPONIVEL,
     StatusAnimal.EM_PROCESSO_ADOCAO,

@@ -13,7 +13,6 @@ export const Sexo = { M: "M", F: "F" } as const;
 export type Sexo = (typeof Sexo)[keyof typeof Sexo];
 
 export const StatusAnimal = {
-  RESGATADO: "RESGATADO",
   EM_CUIDADOS: "EM_CUIDADOS",
   DISPONIVEL: "DISPONIVEL",
   EM_PROCESSO_ADOCAO: "EM_PROCESSO_ADOCAO",
@@ -94,7 +93,6 @@ export type StatusConversaAdocao = (typeof StatusConversaAdocao)[keyof typeof St
 export const porteLabel: Record<Porte, string> = { P: "Pequeno", M: "Médio", G: "Grande" };
 export const sexoLabel: Record<Sexo, string> = { M: "Macho", F: "Fêmea" };
 export const statusAnimalLabel: Record<StatusAnimal, string> = {
-  RESGATADO: "Resgatado",
   EM_CUIDADOS: "Em cuidados",
   DISPONIVEL: "Disponível",
   EM_PROCESSO_ADOCAO: "Em processo de adoção",
