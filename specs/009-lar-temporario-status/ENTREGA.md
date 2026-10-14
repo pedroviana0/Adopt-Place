@@ -17,7 +17,7 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
 | 1 | Migration e remoção de `RESGATADO` | Concluída (`fd8f99c`); migrations aplicadas no `dev-009` pelo Pedro |
 | 2 | Backend (regra de LT, API de LT, tratamento, dashboard) | Concluída (`e708562`) |
 | 3 | Frontend | Concluída em código (`213854c`); homologação visual na Fase 4 |
-| 4 | Testes, seed e homologação | Não iniciada |
+| 4 | Testes, seed e homologação | Código pronto (`18f9297`); faltam seed no `seed-009`, ensaio no `validacao-009` e H1–H13 |
 | 5 | Documentação, PR e virada | Não iniciada |
 
 ## 2. O que foi entregue
@@ -123,6 +123,31 @@ migration em T097, isso também confirma que o `.env` não aponta para a produç
 - o backend não mudou nesta fase (`npm test` da Fase 2 vale).
 
 **A interface ainda não foi vista rodando.** A homologação visual e funcional (H1–H13) é da Fase 4.
+
+### Fase 4 — privacidade e seed (commit `18f9297`; ensaio e homologação pendentes)
+
+- `__tests__/queries/lt-privacy.test.ts`, com 20 casos em duas camadas:
+  - **estática:** os 8 arquivos de query pública ou de adotante não citam `situacaoLT`,
+    `larTemporario`, `larTemporarioId` nem `emTratamento`, não usam `include:` e não selecionam
+    `animal: true`;
+  - **execução:** detalhe público, favoritos, solicitações e painel do adotante enviam ao Prisma só
+    `select` sem esses campos.
+
+  O vermelho foi demonstrado trocando o `select` de `public-animal.ts` por `include`: 2 casos
+  falharam. Depois o arquivo foi revertido com `git checkout`.
+- `prisma/seed.ts`:
+  - `larTemporario.deleteMany()` no `clearTestData`;
+  - 2 LTs fictícios da `organizacao.teste`, achada pelo e-mail;
+  - `situacaoLT` por `i % 3` nos animais de ONG; nos `EM_LT` da `organizacao.teste` (i = 2, 17, 32,
+    35), o vínculo roda LT1 → LT2 → sem registro → LT1;
+  - a Seninha (gata, `DISPONIVEL`, `PROCURANDO`, registro de antibiótico de hoje e cuidado
+    `PENDENTE` daqui a 2 dias, no mesmo formato que a interface gera).
+
+**Validação (2026-10-14):**
+- `tsc` OK no backend (o seed entra na checagem) e no frontend;
+- `npm test`: **439/440**. A falha é a mesma de sempre, o seed test sem `DATABASE_URL` no processo.
+
+**O seed ainda não foi executado:** ele roda só no `seed-009` (T084/T085), que depende do Pedro.
 
 ## 3. Decisões que não se reabrem
 
