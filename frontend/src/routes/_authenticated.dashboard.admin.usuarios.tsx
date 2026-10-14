@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CheckCircle2, CircleOff } from "lucide-react";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
+import { formatarData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/dashboard/admin/usuarios")({
   component: Page,
@@ -80,8 +81,7 @@ function Page() {
                 <div className="min-w-0">
                   <p className="truncate font-medium">{u.email}</p>
                   <p className="text-xs text-muted-foreground">
-                    {perfilLabel[u.tipoPerfil] ?? u.tipoPerfil} · desde{" "}
-                    {new Date(u.criadoEm).toLocaleDateString("pt-BR")}
+                    {perfilLabel[u.tipoPerfil] ?? u.tipoPerfil} · desde {formatarData(u.criadoEm)}
                   </p>
                 </div>
                 <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end">

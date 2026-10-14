@@ -6,6 +6,7 @@ import { StatusSolicitacaoBadge } from "@/components/app/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { AsyncState } from "@/components/app/AsyncState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatarData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/minhas-solicitacoes")({
   head: () => ({
@@ -70,7 +71,7 @@ function Page() {
                   {s.animal.nome}
                 </Link>
                 <p className="text-xs text-muted-foreground">
-                  Enviada em {new Date(s.dataSolicitacao).toLocaleDateString("pt-BR")}
+                  Enviada em {formatarData(s.dataSolicitacao)}
                 </p>
                 {s.observacoes && (
                   <p className="mt-1 break-words text-xs text-muted-foreground">{s.observacoes}</p>

@@ -23,6 +23,7 @@ import { fetchAnimaisGerenciados } from "@/lib/data/animais";
 import { TipoDocumentoSaude, tipoDocumentoSaudeLabel } from "@/lib/domain/enums";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
+import { formatarData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/dashboard/documentos/")({
   head: () => ({
@@ -144,7 +145,7 @@ function DocumentRow({ doc, onDeleted }: { doc: HealthDocument; onDeleted: () =>
             >
               {doc.animal.nome}
             </Link>{" "}
-            · {fmtSize(doc.tamanhoBytes)} · {new Date(doc.criadoEm).toLocaleDateString("pt-BR")}
+            · {fmtSize(doc.tamanhoBytes)} · {formatarData(doc.criadoEm)}
           </p>
         </div>
       </div>

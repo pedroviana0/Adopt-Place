@@ -14,6 +14,7 @@ import { StatusSolicitacaoBadge } from "@/components/app/StatusBadge";
 import { TriagemReadOnly } from "@/components/app/TriagemReadOnly";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
+import { formatarData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/dashboard/solicitacoes/$solicitacaoId")({
   head: () => ({
@@ -112,7 +113,7 @@ function Page() {
             → {solic.animal.nome}
           </p>
           <p className="text-xs text-muted-foreground">
-            Enviada em {new Date(solic.dataSolicitacao).toLocaleDateString("pt-BR")}
+            Enviada em {formatarData(solic.dataSolicitacao)}
           </p>
         </div>
         <StatusSolicitacaoBadge status={solic.status} />

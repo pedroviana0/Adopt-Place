@@ -3,19 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { HeartHandshake } from "lucide-react";
 import { fetchSolicitacoesGerenciadas } from "@/lib/data/solicitacoes";
 import { AsyncState } from "@/components/app/AsyncState";
+import { formatarDataExtenso } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/dashboard/adotados")({
   head: () => ({ meta: [{ title: "Adoções concluídas — AdoptPlace" }] }),
   component: AdotadosPage,
 });
-
-function formatarData(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 function AdotadosPage() {
   const query = useQuery({
@@ -69,7 +62,7 @@ function AdotadosPage() {
                 </div>
               </div>
               <span className="text-sm text-muted-foreground">
-                Concluída em {formatarData(item.dataAtualizacao)}
+                Concluída em {formatarDataExtenso(item.dataAtualizacao)}
               </span>
             </li>
           ))}

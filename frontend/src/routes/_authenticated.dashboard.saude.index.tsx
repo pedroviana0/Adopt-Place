@@ -27,6 +27,14 @@ import {
 } from "@/lib/data/cuidados";
 import { fetchAnimaisGerenciados } from "@/lib/data/animais";
 import { tipoCuidadoPlanejadoLabel } from "@/lib/domain/enums";
+import {
+  agoraLocal,
+  dataHoraInputParaIso,
+  dataInputParaIso,
+  formatarData,
+  formatarDataHora,
+  hojeLocal,
+} from "@/lib/date";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
@@ -49,16 +57,6 @@ const SITUACOES: { value: AgendaSituacaoFilter | "TODAS"; label: string }[] = [
   { value: "CONCLUIDO", label: "Concluídas" },
   { value: "CANCELADO", label: "Canceladas" },
 ];
-
-function toIsoDate(date: string): string {
-  return new Date(date).toISOString();
-}
-function toIsoDateTime(value: string): string {
-  return new Date(value).toISOString();
-}
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
-}
 
 function Page() {
   const queryClient = useQueryClient();
@@ -120,7 +118,7 @@ function Page() {
                   {t.animalNome}
                 </Link>
                 <span className="text-muted-foreground">
-                  {t.disease} · {fmtDate(t.recordedAt)}
+                  {t.disease} · {formatarData(t.recordedAt)}
                 </span>
               </li>
             ))}
@@ -245,7 +243,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
       await registrarConsulta({
         animalId,
         titulo: titulo.trim(),
-        dataHoraPlanejada: toIsoDateTime(data),
+        dataHoraPlanejada: dataHoraInputParaIso(data),
         ...(local.trim() ? { localProfissional: local.trim() } : {}),
       });
       onSaved();
@@ -308,7 +306,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
           <Input
             id="c-data"
             type="datetime-local"
-            min={new Date().toISOString().slice(0, 16)}
+            min={agoraLocal()}
             value={data}
             onChange={(e) => setData(e.target.value)}
           />
@@ -391,7 +389,7 @@ function AgendaRow({ item, onChanged }: { item: HealthAgendaItem; onChanged: () 
             >
               {item.animal.nome}
             </Link>{" "}
-            · {fmtDate(item.dataHoraPlanejada)} · {situacaoLabel[item.situacao]}
+            · {formatarDataHora(item.dataHoraPlanejada)} · {situacaoLabel[item.situacao]}
           </p>
         </div>
         {pending && (
@@ -467,7 +465,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
     }
     setBusy(true);
     try {
-      await reagendarCuidado(item.id, toIsoDateTime(data));
+      await reagendarCuidado(item.id, dataHoraInputParaIso(data));
       toast.success("Reagendado");
       onDone();
     } catch (e) {
@@ -485,7 +483,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Input
           id={`r-${item.id}`}
           type="datetime-local"
-          min={new Date().toISOString().slice(0, 16)}
+          min={agoraLocal()}
           value={data}
           onChange={(e) => setData(e.target.value)}
         />
@@ -498,7 +496,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
 }
 
 function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () => void }) {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeLocal();
   const [dataAplicacao, setDataAplicacao] = useState(hoje);
   const [nome, setNome] = useState("");
   const [freq, setFreq] = useState("");
@@ -508,7 +506,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     let payload: ConclusaoCuidado;
-    const base = { dataAplicacao: toIsoDate(dataAplicacao) };
+    const base = { dataAplicacao: dataInputParaIso(dataAplicacao) };
     try {
       if (item.tipo === "VACINA") {
         if (!nome.trim()) return toast.error("Informe o nome da vacina");
@@ -614,7 +612,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Input
           id={`c-data-${item.id}`}
           type="date"
-          max={new Date().toISOString().slice(0, 10)}
+          max={hojeLocal()}
           value={dataAplicacao}
           onChange={(e) => setDataAplicacao(e.target.value)}
         />
