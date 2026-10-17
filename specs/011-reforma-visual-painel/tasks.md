@@ -202,7 +202,7 @@ visual**, protegido por um teste de não regressão.
 - [x] T041 Homologar H10 (teclado) e H11 (contraste na página real depois de `document.getAnimations()` esvaziar, com o critério da C14; se a borda `destructive` no escuro medir < 3:1, trocar por `border-destructive-muted-foreground` em `tone.ts` e remedir) no `ENTREGA.md`
 - [x] T042 H12: tirar os prints finais do painel da `organizacao.teste` (claro e escuro, desktop) e salvá-los em `specs/011-reforma-visual-painel/prints/` para a v21 e os slides (feito como referência a 709 px; prints finais com o Pedro)
 - [x] T043 Fechar a documentação: preencher `specs/011-reforma-visual-painel/ENTREGA.md` (ondas com hash, decisões, não entregue, armadilhas, onde o código vive), status `Entregue` no índice de `specs/README.md` e a §10 do `CLAUDE.md` (última entrega = 011)
-- [ ] T044 Push da branch e PR para `main` com o resumo, as SC e os prints; registrar o número do PR no `ENTREGA.md`; merge normal (sem migration, sem virada especial)
+- [x] T044 Push da branch e PR para `main` com o resumo, as SC e os prints; registrar o número do PR no `ENTREGA.md`; merge normal (sem migration, sem virada especial)
 
 ---
 

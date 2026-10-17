@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | 2026-10-17 → 2026-10-17 |
 | **Branch** | `011-reforma-visual-painel` |
-| **PRs** | (preenchido ao abrir o PR) |
+| **PRs** | [#139](https://github.com/pedroviana0/Adopt-Place/pull/139) (aberto em 2026-10-17; merge com o Pedro) |
 | **Status** | ENTREGUE em código e homologado (2026-10-17). Falta o merge do PR (Pedro) e os prints finais para a v21 e os slides |
 | **Spec** | [`spec.md`](spec.md) |
 
