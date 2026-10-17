@@ -3,7 +3,7 @@ import type {
   LarTemporarioCreateInput,
   LarTemporarioUpdateInput,
 } from "../schemas/larTemporario";
-import { apiRequest } from "./api";
+import { apiRequest, type ApiError } from "./api";
 
 // Spec 009: gestao de lares temporarios sobre /api/lares-temporarios. So
 // organizacao acessa; o backend escopa tudo pela organizacao da sessao.
@@ -39,12 +39,19 @@ export async function fetchLaresTemporarios(): Promise<LarTemporarioDTO[]> {
   return data.laresTemporarios;
 }
 
-export async function fetchLarTemporario(id: string): Promise<LarTemporarioDetailDTO> {
-  const data = await apiRequest<{ larTemporario: LarTemporarioDetailDTO }>(
-    `/api/lares-temporarios/${id}`,
-    { method: "GET" },
-  );
-  return data.larTemporario;
+// 404 (inexistente ou de outra ONG) vira null: a tela mostra "nao encontrado"
+// na hora, sem os retries do React Query (H12).
+export async function fetchLarTemporario(id: string): Promise<LarTemporarioDetailDTO | null> {
+  try {
+    const data = await apiRequest<{ larTemporario: LarTemporarioDetailDTO }>(
+      `/api/lares-temporarios/${id}`,
+      { method: "GET" },
+    );
+    return data.larTemporario;
+  } catch (e) {
+    if ((e as ApiError).code === "NOT_FOUND") return null;
+    throw e;
+  }
 }
 
 export async function criarLarTemporario(input: LarTemporarioCreateInput): Promise<string> {

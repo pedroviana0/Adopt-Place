@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link2, Pencil, Trash2, Unlink } from "lucide-react";
@@ -15,8 +15,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useSessao } from "@/lib/data/hooks";
+import { formatarTelefone } from "@/lib/telefone";
 import {
   atualizarLarTemporario,
   desvincularAnimalLT,
@@ -131,9 +133,40 @@ function Page() {
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-serif text-3xl font-semibold">{lt.nomeTutor}</h1>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditando(true)}>
-            <Pencil className="h-4 w-4" aria-hidden="true" /> Editar
-          </Button>
+          {/* Dialogs com DialogTrigger: ao fechar, o foco volta ao botao (H13). */}
+          <Dialog open={editando} onOpenChange={setEditando}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Pencil className="h-4 w-4" aria-hidden="true" /> Editar
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[90dvh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Editar lar temporário</DialogTitle>
+                <DialogDescription>
+                  Os dados ficam visíveis só para a sua organização.
+                </DialogDescription>
+              </DialogHeader>
+              <LarTemporarioForm
+                mode="edit"
+                defaultValues={{
+                  nomeTutor: lt.nomeTutor,
+                  telefone: lt.telefone,
+                  endereco: lt.endereco,
+                  cidade: lt.cidade,
+                  observacoes: lt.observacoes ?? "",
+                }}
+                submitLabel="Salvar alterações"
+                onCancel={() => setEditando(false)}
+                onSubmit={async (values) => {
+                  await atualizarLarTemporario(lt.id, values);
+                  await invalidar();
+                  toast.success("Lar temporário atualizado");
+                  setEditando(false);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
           <ConfirmDestructiveAction
             title="Excluir este lar temporário?"
             item={lt.nomeTutor}
@@ -154,7 +187,7 @@ function Page() {
       </div>
 
       <dl className="mt-6 grid gap-4 rounded-xl border bg-card p-4 sm:grid-cols-2">
-        <Dado rotulo="Telefone" valor={lt.telefone} />
+        <Dado rotulo="Telefone" valor={formatarTelefone(lt.telefone)} />
         <Dado rotulo="Cidade" valor={lt.cidade} />
         <Dado rotulo="Endereço" valor={lt.endereco} className="sm:col-span-2" />
         {lt.observacoes && (
@@ -167,9 +200,26 @@ function Page() {
           <h2 id="lt-animais-titulo" className="font-serif text-xl font-semibold">
             Animais neste LT
           </h2>
-          <Button size="sm" className="gap-2" onClick={() => setVinculando(true)}>
-            <Link2 className="h-4 w-4" aria-hidden="true" /> Vincular animal
-          </Button>
+          <VincularDialog
+            open={vinculando}
+            onOpenChange={setVinculando}
+            trigger={
+              <Button size="sm" className="gap-2">
+                <Link2 className="h-4 w-4" aria-hidden="true" /> Vincular animal
+              </Button>
+            }
+            onVincular={async (animal) => {
+              try {
+                await vincularAnimalLT(lt.id, animal.id);
+                await invalidar();
+                toast.success(`${animal.nome} vinculado a ${lt.nomeTutor}`);
+                setVinculando(false);
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Erro ao vincular");
+                await invalidar();
+              }
+            }}
+          />
         </div>
         {lt.animais.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">Nenhum animal vinculado.</p>
@@ -209,48 +259,6 @@ function Page() {
         )}
       </section>
 
-      <Dialog open={editando} onOpenChange={setEditando}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar lar temporário</DialogTitle>
-            <DialogDescription>Os dados ficam visíveis só para a sua organização.</DialogDescription>
-          </DialogHeader>
-          <LarTemporarioForm
-            mode="edit"
-            defaultValues={{
-              nomeTutor: lt.nomeTutor,
-              telefone: lt.telefone,
-              endereco: lt.endereco,
-              cidade: lt.cidade,
-              observacoes: lt.observacoes ?? "",
-            }}
-            submitLabel="Salvar alterações"
-            onCancel={() => setEditando(false)}
-            onSubmit={async (values) => {
-              await atualizarLarTemporario(lt.id, values);
-              await invalidar();
-              toast.success("Lar temporário atualizado");
-              setEditando(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <VincularDialog
-        open={vinculando}
-        onOpenChange={setVinculando}
-        onVincular={async (animal) => {
-          try {
-            await vincularAnimalLT(lt.id, animal.id);
-            await invalidar();
-            toast.success(`${animal.nome} vinculado a ${lt.nomeTutor}`);
-            setVinculando(false);
-          } catch (e) {
-            toast.error(e instanceof Error ? e.message : "Erro ao vincular");
-            await invalidar();
-          }
-        }}
-      />
     </div>
   );
 }
@@ -259,10 +267,12 @@ function Page() {
 function VincularDialog({
   open,
   onOpenChange,
+  trigger,
   onVincular,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  trigger: ReactNode;
   onVincular: (animal: AnimalVinculadoDTO) => Promise<void>;
 }) {
   const [pendente, setPendente] = useState<string | null>(null);
@@ -274,6 +284,7 @@ function VincularDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !pendente && onOpenChange(next)}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Vincular animal</DialogTitle>

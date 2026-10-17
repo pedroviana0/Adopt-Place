@@ -12,11 +12,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessao } from "@/lib/data/hooks";
 import { criarLarTemporario, fetchLaresTemporarios } from "@/lib/data/lares-temporarios";
+import { formatarTelefone } from "@/lib/telefone";
 
 export const Route = createFileRoute("/_authenticated/dashboard/lares-temporarios/")({
   head: () => ({
@@ -31,14 +33,6 @@ export const Route = createFileRoute("/_authenticated/dashboard/lares-temporario
 // Busca sem acento e sem caixa (§10 do CLAUDE.md): "jose" encontra "José".
 function normalizar(texto: string): string {
   return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
-function formatarTelefone(digitos: string): string {
-  return digitos.length === 11
-    ? `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`
-    : digitos.length === 10
-      ? `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`
-      : digitos;
 }
 
 function Page() {
@@ -87,9 +81,34 @@ function Page() {
             organização.
           </p>
         </div>
-        <Button size="sm" onClick={() => setNovoAberto(true)}>
-          <Plus className="mr-1 h-4 w-4" aria-hidden="true" /> Novo LT
-        </Button>
+        <Dialog open={novoAberto} onOpenChange={setNovoAberto}>
+          {/* Trigger do Radix: ao fechar, o foco volta ao botão (H13). */}
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="mr-1 h-4 w-4" aria-hidden="true" /> Novo LT
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[90dvh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Novo lar temporário</DialogTitle>
+              <DialogDescription>
+                Os dados ficam visíveis só para a sua organização.
+              </DialogDescription>
+            </DialogHeader>
+            <LarTemporarioForm
+              mode="create"
+              submitLabel="Cadastrar LT"
+              onCancel={() => setNovoAberto(false)}
+              onSubmit={async (values) => {
+                const id = await criarLarTemporario({ ...values, autorizacaoTutor: true });
+                await queryClient.invalidateQueries({ queryKey: ["lares-temporarios"] });
+                toast.success("Lar temporário cadastrado");
+                setNovoAberto(false);
+                navigate({ to: "/dashboard/lares-temporarios/$larId", params: { larId: id } });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <label htmlFor="lt-busca" className="mt-4 grid max-w-sm gap-1.5 text-sm font-medium">
@@ -143,28 +162,6 @@ function Page() {
         </ul>
       </AsyncState>
 
-      <Dialog open={novoAberto} onOpenChange={setNovoAberto}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Novo lar temporário</DialogTitle>
-            <DialogDescription>
-              Os dados ficam visíveis só para a sua organização.
-            </DialogDescription>
-          </DialogHeader>
-          <LarTemporarioForm
-            mode="create"
-            submitLabel="Cadastrar LT"
-            onCancel={() => setNovoAberto(false)}
-            onSubmit={async (values) => {
-              const id = await criarLarTemporario({ ...values, autorizacaoTutor: true });
-              await queryClient.invalidateQueries({ queryKey: ["lares-temporarios"] });
-              toast.success("Lar temporário cadastrado");
-              setNovoAberto(false);
-              navigate({ to: "/dashboard/lares-temporarios/$larId", params: { larId: id } });
-            }}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
