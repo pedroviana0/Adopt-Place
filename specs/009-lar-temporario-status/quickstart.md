@@ -124,18 +124,24 @@ A migration 2 vai sem edição manual. Não commite `.tmp-009/`.
 `scripts/verify-razao-social-normalizada.ts`. Ele imprime contagens e sai com código ≠ 0 se alguma
 invariante falhar.
 
-## 3. Homologação local contra o branch
+## 3. Homologação local no `seed-009`
 
-Dois terminais na raiz, com `DATABASE_URL` apontando para `validacao-009`:
+> **Mudança de plano (2026-10-14, decisão do Pedro):** a homologação H1–H13 roda no **`seed-009`**,
+> com as contas e os dados de teste do seed (§5). O `validacao-009` fica **só** para o ensaio da
+> migration com dados reais (§2), seguido de um teste rápido do painel (§3.1). Motivo: no
+> `seed-009` há contas de teste com papéis conhecidos (duas ONGs, acolhedor, adotante) e animais
+> preparados para cada roteiro, sem criar dados de teste numa cópia da produção.
+
+Dois terminais na raiz, com `DATABASE_URL` apontando para `seed-009`:
 
 ```powershell
 npm run dev                      # backend :3000 — espere responder antes do próximo
 npm --prefix frontend run dev    # front   :8080
 ```
 
-Os dados de homologação são **criados pela interface** no branch. O seed **não** roda contra um
-branch derivado da produção (§6 do `CLAUDE.md`). Para testar com o seed, use o branch descartável
-`seed-009` (§5). As contas da produção valem no branch; as de teste existem só onde o seed rodou.
+Os dados partem do seed (§5). Durante a homologação, **nada é alterado no banco fora da interface
+do sistema**. O H1 usa um animal "Em cuidados" criado pela interface, já que o seed nunca teve
+`RESGATADO`; a conversão real de `RESGATADO` é provada no ensaio do §2.
 
 | # | Roteiro | Critério |
 |---|---|---|
@@ -153,8 +159,20 @@ branch derivado da produção (§6 do `CLAUDE.md`). Para testar com o seed, use 
 | H12 | Logar como outra ONG: a lista de LT não mostra os da primeira; `GET /api/lares-temporarios/<id da outra>` → 404 | CA-07 |
 | H13 | Teclado e zoom 200% na aba nova e nos selects do `AnimalForm`; contraste AA dos badges | §8 do `CLAUDE.md` |
 
-Registre o resultado de cada linha em `ENTREGA.md`, com data. **Depois da homologação, apague o
-branch `validacao-009`** **[Pedro]**: ele contém cópia de dados reais.
+Registre o resultado de cada linha em `ENTREGA.md`, com data e evidência. Depois da homologação,
+**[Pedro]** apague o branch `seed-009` (§5, passo 5).
+
+### 3.1 Teste rápido do painel no `validacao-009` (depois do §2)
+
+Com os servidores apontando para o `validacao-009` (dados reais já migrados), entrar com uma conta
+de ONG real ou de teste existente na produção e conferir, **sem gravar nada**:
+- a vitrine abre e os animais antes `RESGATADO` não aparecem nela;
+- o painel abre com os cards "Em tratamento", "Procurando LT" e "Em LT sem registro" (zerados, porque
+  ninguém tem LT ainda);
+- "Meus animais" mostra esses animais como "Em cuidados";
+- a aba "Lares temporários" abre vazia.
+
+Depois, **[Pedro]** apague o branch `validacao-009`: ele contém cópia de dados reais.
 
 ## 4. Virada em produção (ordem obrigatória)
 
@@ -204,5 +222,5 @@ na produção: só num branch vazio, criado para isso e apagado em seguida.
    - a Seninha `DISPONIVEL` + `PROCURANDO` + em tratamento, com os badges e cards no painel.
 
    O seed desloga a sessão do navegador (§10 do `CLAUDE.md`).
-5. **[Pedro]** Encerre os servidores, rode `Remove-Item Env:DATABASE_URL` e apague o branch `seed-009`
-   no console.
+5. **[Pedro]** Use este mesmo terminal para a homologação do §3. Ao terminar, encerre os
+   servidores, rode `Remove-Item Env:DATABASE_URL` e apague o branch `seed-009` no console.
