@@ -264,7 +264,13 @@ commit: **sem hash não é registro, é lembrança.**
 **`main` ≥ `4070d56`** (specs 006, 007, 008 e 010 mergeadas; TanStack Start corrigido no #134). A 008 foi validada com
 **367 testes**, Prisma, typecheck dos dois aplicativos e build do frontend.
 
-> **Última entrega:** spec **009** (lar temporário e status sem `RESGATADO`), PR #137, virada em
+> **Última entrega:** spec **011** (reforma visual do painel `/dashboard`), branch
+> `011-reforma-visual-painel`, homologada em 2026-10-17 no branch Neon `dev`; merge do PR com o Pedro.
+> Só frontend: view-model em `frontend/src/lib/dashboard-visual.ts`, seções em
+> `frontend/src/components/app/dashboard/`, cor de estado por `tone.ts` (classes por extenso) e os pares
+> `--primary-muted`, `--destructive-muted`, `--brand-muted`. Ver `specs/011-reforma-visual-painel/ENTREGA.md`.
+>
+> **Entrega anterior:** spec **009** (lar temporário e status sem `RESGATADO`), PR #137, virada em
 > produção em 2026-10-17 (migration antes do merge). Ver `specs/009-lar-temporario-status/ENTREGA.md`.
 >
 > **Entrega anterior:** spec **010** (fuso horário), PR #135, homologada. Toda data que sai de input
