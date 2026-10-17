@@ -10,6 +10,7 @@ import {
 } from "@/lib/data/dashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { statusAnimalLabel } from "@/lib/domain/enums";
+import { formatarData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashIndex,
@@ -125,7 +126,7 @@ function Dashboard({ data }: { data: OperationalDashboard }) {
                   </span>
                   {item.dueAt && (
                     <span className="text-xs text-muted-foreground">
-                      {new Date(item.dueAt).toLocaleDateString("pt-BR")}
+                      {formatarData(item.dueAt)}
                     </span>
                   )}
                 </a>
@@ -168,9 +169,7 @@ function Dashboard({ data }: { data: OperationalDashboard }) {
                 className="flex justify-between gap-2 p-3"
               >
                 <span>{activity.label}</span>
-                <span className="text-muted-foreground">
-                  {new Date(activity.occurredAt).toLocaleDateString("pt-BR")}
-                </span>
+                <span className="text-muted-foreground">{formatarData(activity.occurredAt)}</span>
               </li>
             ))}
           </ul>

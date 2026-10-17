@@ -26,8 +26,15 @@ import {
   type ConclusaoCuidado,
 } from "@/lib/data/cuidados";
 import { fetchAnimaisGerenciados } from "@/lib/data/animais";
-import { dataLocalParaIso, hojeLocal } from "@/lib/data-local";
 import { tipoCuidadoPlanejadoLabel } from "@/lib/domain/enums";
+import {
+  agoraLocal,
+  dataHoraInputParaIso,
+  dataInputParaIso,
+  formatarData,
+  formatarDataHora,
+  hojeLocal,
+} from "@/lib/date";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 
@@ -50,15 +57,6 @@ const SITUACOES: { value: AgendaSituacaoFilter | "TODAS"; label: string }[] = [
   { value: "CONCLUIDO", label: "Concluídas" },
   { value: "CANCELADO", label: "Canceladas" },
 ];
-
-// Data sem hora ("AAAA-MM-DD") convertida em horario local: lida como UTC, ela voltava
-// um dia em UTC-3 (lib/data-local).
-function toIsoDateTime(value: string): string {
-  return new Date(value).toISOString();
-}
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
-}
 
 function Page() {
   const queryClient = useQueryClient();
@@ -124,7 +122,7 @@ function Page() {
                   {t.animalNome}
                 </Link>
                 <span className="text-muted-foreground">
-                  {t.disease} · {fmtDate(t.recordedAt)}
+                  {t.disease} · {formatarData(t.recordedAt)}
                 </span>
               </li>
             ))}
@@ -249,7 +247,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
       await registrarConsulta({
         animalId,
         titulo: titulo.trim(),
-        dataHoraPlanejada: toIsoDateTime(data),
+        dataHoraPlanejada: dataHoraInputParaIso(data),
         ...(local.trim() ? { localProfissional: local.trim() } : {}),
       });
       onSaved();
@@ -312,7 +310,7 @@ function ConsultaForm({ onSaved }: { onSaved: () => void }) {
           <Input
             id="c-data"
             type="datetime-local"
-            min={new Date().toISOString().slice(0, 16)}
+            min={agoraLocal()}
             value={data}
             onChange={(e) => setData(e.target.value)}
           />
@@ -395,7 +393,7 @@ function AgendaRow({ item, onChanged }: { item: HealthAgendaItem; onChanged: () 
             >
               {item.animal.nome}
             </Link>{" "}
-            · {fmtDate(item.dataHoraPlanejada)} · {situacaoLabel[item.situacao]}
+            · {formatarDataHora(item.dataHoraPlanejada)} · {situacaoLabel[item.situacao]}
           </p>
         </div>
         {pending && (
@@ -471,7 +469,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
     }
     setBusy(true);
     try {
-      await reagendarCuidado(item.id, toIsoDateTime(data));
+      await reagendarCuidado(item.id, dataHoraInputParaIso(data));
       toast.success("Reagendado");
       onDone();
     } catch (e) {
@@ -489,7 +487,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Input
           id={`r-${item.id}`}
           type="datetime-local"
-          min={new Date().toISOString().slice(0, 16)}
+          min={agoraLocal()}
           value={data}
           onChange={(e) => setData(e.target.value)}
         />
@@ -513,7 +511,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     let payload: ConclusaoCuidado;
-    const base = { dataAplicacao: dataLocalParaIso(dataAplicacao, { ateAgora: true }) };
+    const base = { dataAplicacao: dataInputParaIso(dataAplicacao) };
     try {
       if (item.tipo === "VACINA") {
         if (!nome.trim()) return toast.error("Informe o nome da vacina");
@@ -542,7 +540,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
           tipoRegistro: "MEDICAMENTO_TRATAMENTO",
           medicamentoTratamento: nome.trim(),
           ...base,
-          ...(proximaDose ? { dataProxima: dataLocalParaIso(proximaDose) } : {}),
+          ...(proximaDose ? { dataProxima: dataInputParaIso(proximaDose) } : {}),
         };
       } else if (item.tipo === "PROCEDIMENTO") {
         if (!nome.trim()) return toast.error("Informe o procedimento");

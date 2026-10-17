@@ -15,17 +15,10 @@ import {
 } from "@/lib/data/saude";
 import { ResultadoTeste, TipoRegistroSaude } from "@/lib/domain/enums";
 import { registroSaudeSchema } from "@/lib/schemas/registroSaude";
-import { dataLocalParaIso, hojeLocal } from "@/lib/data-local";
+import { dataInputParaIso, formatarData, hojeLocal } from "@/lib/date";
 
 interface Props {
   animalId: string;
-}
-
-// The date input yields "YYYY-MM-DD"; the contract expects ISO datetime + offset.
-// The conversion happens in local time (lib/data-local): parsing the bare date as
-// UTC shifted every record one day back in UTC-3.
-function fmt(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
 }
 
 export function HealthPanel({ animalId }: Props) {
@@ -84,7 +77,7 @@ export function HealthPanel({ animalId }: Props) {
             items={vacinas.map((r) => ({
               id: r.id,
               titulo: r.nomeVacina ?? "—",
-              subtitulo: `Aplicada em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Aplicada em ${formatarData(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + formatarData(r.dataProxima) : ""}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -97,7 +90,7 @@ export function HealthPanel({ animalId }: Props) {
             items={parasitas.map((r) => ({
               id: r.id,
               titulo: r.tipoMedicamento ?? "—",
-              subtitulo: `Aplicada em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Aplicada em ${formatarData(r.dataAplicacao)}${r.dataProxima ? " · próxima em " + formatarData(r.dataProxima) : ""}`,
               extra: `${r.frequencia ?? ""} · Responsável: ${r.responsavelRegistro}`.trim(),
             }))}
           />
@@ -110,7 +103,7 @@ export function HealthPanel({ animalId }: Props) {
             items={testes.map((r) => ({
               id: r.id,
               titulo: r.nomeDoenca ?? "—",
-              subtitulo: `Testado em ${fmt(r.dataAplicacao)} · Resultado: ${r.resultado ?? "—"}`,
+              subtitulo: `Testado em ${formatarData(r.dataAplicacao)} · Resultado: ${r.resultado ?? "—"}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -123,7 +116,7 @@ export function HealthPanel({ animalId }: Props) {
             items={tratamentos.map((r) => ({
               id: r.id,
               titulo: r.medicamentoTratamento ?? "—",
-              subtitulo: `Iniciado em ${fmt(r.dataAplicacao)}${r.dataProxima ? " · próxima dose em " + fmt(r.dataProxima) : ""}`,
+              subtitulo: `Iniciado em ${formatarData(r.dataAplicacao)}${r.dataProxima ? " · próxima dose em " + formatarData(r.dataProxima) : ""}`,
               extra: `Responsável: ${r.responsavelRegistro}`,
             }))}
           />
@@ -206,8 +199,8 @@ function VacinaForm({ animalId, onSaved }: { animalId: string; onSaved: () => vo
     const input: NovoRegistroSaude = {
       tipoRegistro: "VACINA",
       nomeCustom: nome.trim(),
-      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
-      ...(base.dataProxima ? { dataProximaDose: dataLocalParaIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProximaDose: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -270,8 +263,8 @@ function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => 
       tipoRegistro: "CONTROLE_PARASITAS",
       tipoMedicacao: medicamento.trim(),
       frequencia: frequencia.trim(),
-      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
-      ...(base.dataProxima ? { dataProxima: dataLocalParaIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -349,8 +342,8 @@ function TratamentoForm({ animalId, onSaved }: { animalId: string; onSaved: () =
     const input: NovoRegistroSaude = {
       tipoRegistro: "MEDICAMENTO_TRATAMENTO",
       medicamentoTratamento: tratamento.trim(),
-      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
-      ...(base.dataProxima ? { dataProxima: dataLocalParaIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -416,8 +409,8 @@ function TesteForm({ animalId, onSaved }: { animalId: string; onSaved: () => voi
       tipoRegistro: "TESTE_DOENCA",
       nomeCustom: nome.trim(),
       resultado,
-      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
-      ...(base.dataProxima ? { dataProxima: dataLocalParaIso(base.dataProxima) } : {}),
+      dataAplicacao: dataInputParaIso(base.dataAplicacao),
+      ...(base.dataProxima ? { dataProxima: dataInputParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {

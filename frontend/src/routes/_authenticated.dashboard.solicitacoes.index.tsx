@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
 import { toast } from "sonner";
+import { formatarData } from "@/lib/date";
 
 export const Route = createFileRoute("/_authenticated/dashboard/solicitacoes/")({
   head: () => ({
@@ -98,7 +99,7 @@ function Page() {
                       </Link>
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Enviada em {new Date(s.dataSolicitacao).toLocaleDateString("pt-BR")}
+                      Enviada em {formatarData(s.dataSolicitacao)}
                     </p>
                   </div>
                   <StatusSolicitacaoBadge status={s.status} />
