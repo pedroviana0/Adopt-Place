@@ -14,7 +14,7 @@ Execução: Pedro, sozinho (D10). Só frontend, sem migration (D3).
 
 | Onda | Conteúdo | Estado |
 |---|---|---|
-| 0 | Sabatina, `spec.md`, este `ENTREGA.md` e linha no índice | Concluída (commit desta abertura) |
+| 0 | Sabatina, `spec.md`, este `ENTREGA.md` e linha no índice | Concluída (`260f8ba`) |
 | 1 | Spec-Kit (`plan.md`, `tasks.md`) | Em aberto |
 | 2 | Testes vermelhos (`dashboard-visual`, `dashboard-render`) e tokens `-muted` novos | Em aberto |
 | 3 | Extração do `Dashboard` e redesenho por seção (pendências, indicadores, status, funil, atividade, carregando/erro) | Em aberto |
@@ -23,7 +23,7 @@ Execução: Pedro, sozinho (D10). Só frontend, sem migration (D3).
 
 ## 2. O que foi entregue
 
-### Onda 0 — abertura (2026-10-17)
+### Onda 0 — abertura (2026-10-17, commit `260f8ba`)
 
 - Sabatina das 13 questões abertas do [`GRILLING-BRIEF.md`](GRILLING-BRIEF.md), registradas como
   C1–C13 na `spec.md`.
