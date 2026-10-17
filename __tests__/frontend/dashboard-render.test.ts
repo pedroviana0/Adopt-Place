@@ -117,9 +117,10 @@ describe("atividade (US5)", () => {
     expect(textOf(html)).toContain("Atividade recente");
     for (const activity of organizacaoCheia.recentActivity) {
       expect(textOf(html)).toContain(activity.label);
-      if (activity.href) expect(html).toContain(`href="${activity.href}"`);
+      if (activity.href) expect(html).toContain(`href="${resolveHref(activity.href)}"`);
     }
     expect(count(html, 'data-activity-link=""')).toBe(4);
+    expect(html).not.toContain("/saude\"");
   });
 
   it("vazio: seção some", () => {

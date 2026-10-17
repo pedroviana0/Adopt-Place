@@ -64,8 +64,12 @@ export const FUNNEL_MIN_WIDTH = 4;
 
 // The backend derives drill-down hrefs assuming a dedicated agenda route; the
 // current health surface lives at /dashboard/saude, so normalize that prefix.
+// Spec 011: a atividade recente virou link e expôs outro caminho que não existe,
+// /dashboard/animais/<id>/saude; a saúde do animal é uma aba do detalhe.
 export function resolveHref(href: string): string {
-  return href.replace("/dashboard/saude/agenda", "/dashboard/saude");
+  return href
+    .replace("/dashboard/saude/agenda", "/dashboard/saude")
+    .replace(/^(\/dashboard\/animais\/[^/?#]+)\/saude(?=$|[?#])/, "$1");
 }
 
 // Re-exportados para os componentes não importarem de dois lugares.

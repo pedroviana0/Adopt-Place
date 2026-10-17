@@ -1,7 +1,7 @@
 import { Heart, Inbox, PawPrint, Stethoscope, ThumbsUp, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActivityKind, DashboardActivity } from "@/lib/data/dashboard";
-import { activityKindTone } from "@/lib/dashboard-visual";
+import { activityKindTone, resolveHref } from "@/lib/dashboard-visual";
 import { formatarData } from "@/lib/date";
 import { toneChipClass } from "./tone";
 
@@ -45,7 +45,7 @@ export function RecentActivity({ items }: { items: DashboardActivity[] }) {
             <li key={`${activity.kind}-${activity.id}`}>
               {activity.href ? (
                 <a
-                  href={activity.href}
+                  href={resolveHref(activity.href)}
                   data-activity-link=""
                   className={cn(
                     rowClass,

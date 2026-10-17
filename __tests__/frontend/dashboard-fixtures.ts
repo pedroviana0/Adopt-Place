@@ -29,7 +29,7 @@ export const organizacaoCheia: OperationalDashboard = {
   animalStatusCounts: { EM_CUIDADOS: 4, DISPONIVEL: 12, EM_PROCESSO_ADOCAO: 2, ADOTADO: 2 },
   recentActivity: [
     { id: "r1", kind: "ANIMAL_CADASTRADO", label: "Animal cadastrado: Cacau", occurredAt: iso(16), href: "/dashboard/animais/a9" },
-    { id: "r2", kind: "SAUDE_REGISTRADA", label: "Saude registrada: Seninha", occurredAt: iso(16), href: "/dashboard/animais/a3" },
+    { id: "r2", kind: "SAUDE_REGISTRADA", label: "Saude registrada: Seninha", occurredAt: iso(16), href: "/dashboard/animais/a3/saude" },
     { id: "r3", kind: "SOLICITACAO_RECEBIDA", label: "Solicitacao recebida: Bela", occurredAt: iso(15), href: "/dashboard/solicitacoes/s1" },
     { id: "r4", kind: "SOLICITACAO_APROVADA", label: "Solicitacao aprovada: Otto", occurredAt: iso(14), href: "/dashboard/solicitacoes/s4" },
     { id: "r5", kind: "ADOCAO_CONCLUIDA", label: "Adocao concluida: Mel", occurredAt: iso(13) },

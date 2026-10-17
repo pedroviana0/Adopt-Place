@@ -6,6 +6,7 @@ import {
   buildIndicatorGroups,
   funnelRows,
   priorityKindMeta,
+  resolveHref,
   requiresAction,
   statusSlices,
   visiblePriorities,
@@ -22,6 +23,21 @@ const items = (n: number): DashboardPriorityItem[] =>
     subtitle: "Thor",
     href: `/x/${i}`,
   }));
+
+describe("resolveHref (D8)", () => {
+  it("normaliza a agenda de saúde, como antes", () => {
+    expect(resolveHref("/dashboard/saude/agenda?situacao=ATRASADO")).toBe("/dashboard/saude?situacao=ATRASADO");
+  });
+
+  it("leva a saúde do animal ao detalhe, que tem a aba Saúde (rota /saude não existe)", () => {
+    expect(resolveHref("/dashboard/animais/abc123/saude")).toBe("/dashboard/animais/abc123");
+  });
+
+  it("não mexe nos demais caminhos", () => {
+    expect(resolveHref("/dashboard/animais?status=DISPONIVEL")).toBe("/dashboard/animais?status=DISPONIVEL");
+    expect(resolveHref("/dashboard/solicitacoes/s1")).toBe("/dashboard/solicitacoes/s1");
+  });
+});
 
 describe("visiblePriorities (US1, RF-PEN-01)", () => {
   it("mostra os 5 primeiros na ordem recebida e conta o resto", () => {
