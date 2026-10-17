@@ -145,7 +145,7 @@ visual**, protegido por um teste de não regressão.
 
 ### Implementation for User Story 4
 
-- [ ] T026 [US4] Implementar `funnelRows` em `frontend/src/lib/dashboard-visual.ts` até T024 passar (contribuição do Pedro no modo Learning: o cálculo de `widthPercent`)
+- [x] T026 [US4] Implementar `funnelRows` em `frontend/src/lib/dashboard-visual.ts` até T024 passar
 - [x] T027 [US4] Criar `frontend/src/components/app/dashboard/AdoptionFunnel.tsx`: `h2` "Funil de adoção (30 dias)"; `ul` com uma linha por `FunnelRow`: rótulo à esquerda, número `tabular-nums` à direita, trilho `bg-muted h-2 rounded-full` com barra `aria-hidden` (`toneFillClass`, largura inline `widthPercent%`); tudo zero → trilhos vazios + "Nenhuma solicitação nos últimos 30 dias."; não clicável
 - [x] T028 [US4] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção antiga do funil por `<AdoptionFunnel funnel={data.adoptionFunnel} />` no contêiner de T023 e apagar o componente `Mini`, até T025 passar
 
@@ -194,7 +194,7 @@ visual**, protegido por um teste de não regressão.
 ## Phase 9: Polish, portão e homologação
 
 - [x] T035 Revisar `frontend/src/components/app/dashboard/*.tsx` contra RF-A11Y: hierarquia `h1` → `h2` por seção → `h3` por grupo; todos os ícones com `aria-hidden`; foco visível em cards, itens, legenda, "Mostrar todas" e "Tentar de novo"; `motion-reduce:transition-none` nas transições; `git grep -nE "#[0-9a-fA-F]{3,6}\b|rgb\(|text-destructive\b|/[0-9]{2}\b" -- frontend/src/components/app/dashboard` sem ocorrência indevida
-- [ ] T036 Portão (quickstart §3): `npx tsc --noEmit` na raiz; `npm test` (placar = linha de base de T001 + testes novos, mesma falha esperada); em `frontend/`, `npx tsc --noEmit` e `npm run build` com dev server parado; `git status --short frontend/src/routeTree.gen.ts` vazio; `git diff --stat main...HEAD -- app lib prisma package.json package-lock.json frontend/package.json frontend/package-lock.json vitest.config.ts` vazio (SC-02, SC-04)
+- [x] T036 Portão (quickstart §3): `npx tsc --noEmit` na raiz; `npm test` (placar = linha de base de T001 + testes novos, mesma falha esperada); em `frontend/`, `npx tsc --noEmit` e `npm run build` com dev server parado; `git status --short frontend/src/routeTree.gen.ts` vazio; `git diff --stat main...HEAD -- app lib prisma package.json package-lock.json frontend/package.json frontend/package-lock.json vitest.config.ts` vazio (SC-02, SC-04)
 - [ ] T037 Conferir que o `.env` não aponta para a produção (`npx prisma migrate status` e host do `DATABASE_URL`) e subir `npm run dev` (esperar responder) e `npm --prefix frontend run dev` (quickstart §4)
 - [ ] T038 Homologar H1, H2, H4, H6 no navegador embutido com `organizacao.teste` e `acolhedor.teste` (todos os cards e itens da legenda clicados), registrando o resultado na tabela H do `specs/011-reforma-visual-painel/ENTREGA.md`
 - [ ] T039 Homologar H3 (ONG nova cadastrada pela interface em `localhost:8080`; registrar o e-mail, não a senha) e H5 (criar cuidados atrasados no local se houver ≤ 5 pendências) no `ENTREGA.md`
@@ -292,6 +292,6 @@ US6 são acabamento. Prazo: tudo até 01/11/2026 (SC-06).
 - `tasks.md` em UTF-8 sem BOM; conferir caracteres nulos ao marcar, contando os bytes `0x00` com Python (`git grep`/`grep` com
   `$'\x00'` vira padrão vazio e casa toda linha — falso positivo).
 - Marcar `[x]` a cada tarefa concluída, com o hash do commit no `ENTREGA.md` ao fim de cada história.
-- Modo Learning: em T026 o cálculo de `widthPercent` fica como `TODO(human)` para o Pedro escrever.
+- T026 foi implementada pela IA a pedido do Pedro (não escreve código; ver memória do projeto).
 - Se uma tarefa contradisser o código real, o código manda: registrar a divergência no `ENTREGA.md` §3
   (como a 009 fez com T052/T054/T069/T073) e seguir.

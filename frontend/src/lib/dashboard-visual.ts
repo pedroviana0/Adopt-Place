@@ -193,12 +193,11 @@ const FUNNEL_META: { key: FunnelKey; label: FunnelRow["label"]; tone: FunnelRow[
 ];
 
 // Largura da barra do funil, em % do trilho. `max` é o maior dos três valores.
+// C7: proporção ao maior; valor > 0 nunca some (mínimo aplicado depois da
+// proporção); zero é zero, o que também cobre max = 0 (sem 0/0 = NaN).
 function funnelWidth(value: number, max: number): number {
-  // TODO(human): devolver a largura conforme a C7 (escala relativa ao maior,
-  // mínimo de FUNNEL_MIN_WIDTH para valor > 0, zero quando não há nada).
-  void value;
-  void max;
-  return 0;
+  if (value <= 0 || max <= 0) return 0;
+  return Math.max(FUNNEL_MIN_WIDTH, (value / max) * 100);
 }
 
 export function funnelRows(funnel: OperationalDashboard["adoptionFunnel"]): FunnelRow[] {
