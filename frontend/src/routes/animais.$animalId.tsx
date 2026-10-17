@@ -33,6 +33,8 @@ const HEALTH_LABEL: Record<string, string> = {
   VACINA: "Vacinação",
   CONTROLE_PARASITAS: "Controle de parasitas",
   TESTE_DOENCA: "Teste de doença",
+  PROCEDIMENTO: "Procedimento",
+  // MEDICAMENTO_TRATAMENTO nao chega aqui: o backend o tira do resumo publico (spec 009).
 };
 
 function AnimalDetail() {

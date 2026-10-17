@@ -4,6 +4,7 @@ import {
   StatusAnimal,
   StatusCuidadoPlanejado,
   TipoCuidadoPlanejado,
+  TipoRegistroSaude,
 } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
@@ -35,6 +36,14 @@ export const inTreatmentWhere = {
   status: { not: StatusAnimal.ADOTADO },
   cuidadosPlanejados: { some: pendingTreatmentCareWhere },
 } satisfies Prisma.AnimalWhereInput;
+
+// O resumo publico de saude mostra so as categorias; tratamento fica de fora,
+// senao o visitante descobre que o animal esta em tratamento (D4, CA-01).
+// Achado na homologacao: antes da 009 nao havia como registrar tratamento
+// pela interface, entao o vazamento nunca tinha aparecido.
+export const publicHealthRecordWhere = {
+  tipo: { not: TipoRegistroSaude.MEDICAMENTO_TRATAMENTO },
+} satisfies Prisma.RegistroSaudeWhereInput;
 
 type FosterCurrent = {
   status: StatusAnimal;

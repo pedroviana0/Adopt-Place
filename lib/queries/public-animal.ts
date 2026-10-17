@@ -1,3 +1,4 @@
+import { publicHealthRecordWhere } from "@/lib/lar-temporario";
 import { prisma } from "@/lib/prisma";
 
 export async function getPublicAnimalById(id: string) {
@@ -26,7 +27,9 @@ export async function getPublicAnimalById(id: string) {
       // resultado (disease test result), titulo, procedimento,
       // medicamentoTratamento, dataProxima — are NOT selected, so private
       // diagnoses/results never cross the public boundary.
+      // Spec 009: registros de tratamento nao entram no resumo publico.
       registrosSaude: {
+        where: publicHealthRecordWhere,
         orderBy: { dataRegistro: "desc" },
         select: {
           id: true,
@@ -54,7 +57,7 @@ export async function getPublicAnimalById(id: string) {
               },
               especie: { select: { nome: true } },
               raca: { select: { nome: true } },
-              registrosSaude: { select: { tipo: true } },
+              registrosSaude: { where: publicHealthRecordWhere, select: { tipo: true } },
               organizacao: { select: { id: true, razaoSocial: true, cidade: true } },
               acolhedor: { select: { id: true, nomeCompleto: true, cidade: true } },
             },

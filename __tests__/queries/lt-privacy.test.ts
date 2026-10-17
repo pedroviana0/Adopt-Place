@@ -70,6 +70,29 @@ describe("privacidade de LT nas consultas publicas e de adotante (spec 009)", ()
     expectNoFosterData(JSON.stringify(args));
   });
 
+  // Achado da homologacao (H4): o resumo publico de saude listava o tipo
+  // MEDICAMENTO_TRATAMENTO, o que mostrava ao visitante que o animal esta em
+  // tratamento (CA-01, D4). Vacina, parasitas e testes continuam publicos.
+  it("resumo publico de saude exclui registros de tratamento", async () => {
+    vi.mocked(prisma.animal.findUnique).mockResolvedValue(null);
+
+    await getPublicAnimalById("cm00000000000000000000001");
+
+    const args = vi.mocked(prisma.animal.findUnique).mock.calls[0]?.[0] as {
+      select: {
+        registrosSaude: { where?: unknown };
+        relacionadosA: {
+          select: { animalRelacionado: { select: { registrosSaude: { where?: unknown } } } };
+        };
+      };
+    };
+    const semTratamento = { tipo: { not: "MEDICAMENTO_TRATAMENTO" } };
+    expect(args.select.registrosSaude.where).toEqual(semTratamento);
+    expect(
+      args.select.relacionadosA.select.animalRelacionado.select.registrosSaude.where,
+    ).toEqual(semTratamento);
+  });
+
   it("favoritos do adotante pedem so campos selecionados do animal", async () => {
     vi.mocked(prisma.favorito.findMany).mockResolvedValue([]);
 
