@@ -231,12 +231,12 @@ H1 a H13 aprovado.
 - [X] T084 [Pedro] Criar no console do Neon o branch descartável **`seed-009`** com a opção **"Schema only"** (sem dados) e apontar `$env:DATABASE_URL` **só no terminal** para ele, sem mexer no `.env`. Conferir o host, que não pode ser o da produção nem o do `dev-009`, conforme `quickstart.md` §5. O seed **nunca** roda no `dev-009` nem na produção (RF-027; CA-01, CA-09).
 - [X] T085 No terminal apontado para o `seed-009`, rodar `npx prisma migrate reset --force`, que recria o schema pelas migrations e executa o seed. Subir o app nesse terminal e conferir 37 animais, 2 LTs e a Seninha com os badges e cards corretos no painel da `organizacao.teste`. O `seed-009` **fica de pé** para a homologação (T089–T091) e é apagado em T092 (RF-027; CA-01).
 - [X] T086 Rodar o portão completo e fazer o commit da Fase 4 (`test: privacidade de LT e seed da spec 009`) (CA-01, CA-09).
-- [ ] T087 [Pedro] No console do Neon, criar o branch `validacao-009` a partir da produção, apontar `$env:DATABASE_URL` para ele no próprio terminal e anotar `SELECT status, count(*) FROM "Animal" GROUP BY status;` (RF-002, C10; CA-02).
-- [ ] T088 No branch, rodar `npx prisma migrate deploy`, `npx prisma migrate status`, `npx prisma migrate diff --from-url "$env:DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code` (deve dar 0) e `npx tsx scripts/verify-009-migration.ts`. Comparar com a contagem de T087. Em seguida, com os servidores apontando para o `validacao-009`, fazer o **teste rápido do painel** do `quickstart.md` §3.1, sem gravar nada (RF-002, RF-009; CA-02).
+- [X] T087 [Pedro] No console do Neon, criar o branch `validacao-009` a partir da produção, apontar `$env:DATABASE_URL` para ele no próprio terminal e anotar `SELECT status, count(*) FROM "Animal" GROUP BY status;` (RF-002, C10; CA-02).
+- [X] T088 No branch, rodar `npx prisma migrate deploy`, `npx prisma migrate status`, `npx prisma migrate diff --from-url "$env:DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code` (deve dar 0) e `npx tsx scripts/verify-009-migration.ts`. Comparar com a contagem de T087. Em seguida, com os servidores apontando para o `validacao-009`, fazer o **teste rápido do painel** do `quickstart.md` §3.1, sem gravar nada (RF-002, RF-009; CA-02).
 - [X] T089 Homologar H1 a H4 do `quickstart.md` §3 no **`seed-009`** (mudança de plano de 2026-10-14: a homologação usa as contas e os dados do seed; o `validacao-009` fica só para o ensaio): status sem "Resgatado", cadastro de LT, preparação da Seninha e ausência de LT e tratamento em todo JSON público e de adotante (RF-003, RF-004, RF-008, RF-015, RF-022; CA-01, CA-02, CA-07).
 - [X] T090 Homologar H5 a H8 no `seed-009`: badges, cards e filtros; vínculo pela aba e pelo formulário; saída de `EM_LT`; exclusão de LT (RF-012, RF-016 a RF-019, RF-023 a RF-025; CA-01, CA-04, CA-05, CA-06).
 - [X] T091 Homologar H9 a H13 no `seed-009`: próxima dose na agenda, `ADOTADO` pelos dois caminhos da interface, acolhedor, outra ONG, teclado, zoom 200% e contraste AA (RF-008, RF-013, RF-018, RF-020, RF-026; CA-03, CA-07, CA-08).
-- [ ] T092 [Pedro] Apagar o branch `seed-009` depois da homologação (T089–T091) e o `validacao-009` depois do ensaio e do teste rápido do painel (T088). O `validacao-009` contém cópia de dados reais (C2, LGPD; CA-07).
+- [X] T092 [Pedro] Apagar o branch `seed-009` depois da homologação (T089–T091) e o `validacao-009` depois do ensaio e do teste rápido do painel (T088). O `validacao-009` contém cópia de dados reais (C2, LGPD; CA-07).
 
 **Checkpoint:** pronto para PR e virada.
 
@@ -247,12 +247,12 @@ H1 a H13 aprovado.
 **Objetivo:** registro factual, PR e produção na ordem obrigatória.
 
 - [X] T093 [P] Preencher `specs/009-lar-temporario-status/ENTREGA.md` no modelo de `specs/README.md`: promessa × estado, entregas por fase **com hash**, decisões que não se reabrem, o que não foi entregue, armadilhas (terceiro caminho até `ADOTADO`, cards que não filtravam, enum no PostgreSQL), onde o código vive e o resultado de H1 a H13 (CA-09).
-- [ ] T094 [P] Em `specs/README.md`, atualizar a linha 009 para "Em homologação" e depois para "Entregue (data)" (D9; CA-09).
+- [X] T094 [P] Em `specs/README.md`, atualizar a linha 009 para "Em homologação" e depois para "Entregue (data)" (D9; CA-09).
 - [X] T095 [P] Atualizar o §10 do `CLAUDE.md` com quatro pontos: status sem `RESGATADO` e `EM_CUIDADOS` = "não anunciado"; LT só na gestão da ONG; seed com 37 animais e 2 LTs; migrations antes do merge. Acrescentar a armadilha "três caminhos gravam `Animal.status`" ao §9.1 (D1, D9, C7; CA-09).
 - [X] T096 Abrir o PR da branch `009-lar-temporario-status` para a `main`, **sem merge**. A descrição traz o resumo, os CAs, o resultado da homologação e a **ordem de virada** do `quickstart.md` §4, com o rodapé do Claude Code (Clarification 2; CA-09).
-- [ ] T097 [Pedro] Criar o branch de backup `pre-009` no Neon e, com a `DATABASE_URL` de produção, rodar `npx prisma migrate deploy` e depois `npx tsx scripts/verify-009-migration.ts` (Clarification 2, C10; CA-02).
-- [ ] T098 [Pedro] Com o verificador verde, fazer o merge do PR e fazer o smoke em produção: a vitrine abre, a ONG vê os cards novos, a aba de LT abre. Em falha, usar o rollback do `quickstart.md` §4 (Clarification 2; CA-01, CA-02).
-- [ ] T099 Registrar no `ENTREGA.md` o número do PR, o hash do merge, a data da virada e o estado "Entregue" (CA-09).
+- [X] T097 [Pedro] Criar o branch de backup `pre-009` no Neon e, com a `DATABASE_URL` de produção, rodar `npx prisma migrate deploy` e depois `npx tsx scripts/verify-009-migration.ts` (Clarification 2, C10; CA-02).
+- [X] T098 [Pedro] Com o verificador verde, fazer o merge do PR e fazer o smoke em produção: a vitrine abre, a ONG vê os cards novos, a aba de LT abre. Em falha, usar o rollback do `quickstart.md` §4 (Clarification 2; CA-01, CA-02).
+- [X] T099 Registrar no `ENTREGA.md` o número do PR, o hash do merge, a data da virada e o estado "Entregue" (CA-09).
 - [ ] T100 [Pedro, fora do repo] Atualizar o DER, o diagrama de classes, os casos de uso e a doc v21 do TCC com `LarTemporario`, `SituacaoLT` e o enum novo, antes do congelamento para a banca de 02/12/2026 (D9).
 - [ ] T101 [Pedro] **7 dias depois da virada** (T098), sem incidente, apagar no console do Neon o branch de backup `pre-009`. No mesmo momento, apagar o `dev-009` e voltar o `DATABASE_URL` do `.env` local para o branch de trabalho habitual. Os dois branches contêm cópia de dados reais (C2, LGPD; CA-07).
 

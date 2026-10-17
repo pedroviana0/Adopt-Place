@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Período** | 2026-10-14 → — |
+| **Período** | 2026-10-14 → 2026-10-17 |
 | **Branch** | `009-lar-temporario-status` |
-| **PRs** | [#137](https://github.com/pedroviana0/Adopt-Place/pull/137) (aberto, **sem merge** até a migration em produção) |
-| **Status** | EM HOMOLOGAÇÃO: código, homologação H1–H13 e PR prontos; faltam o ensaio no `validacao-009` e a virada (tarefas do Pedro) |
+| **PRs** | [#137](https://github.com/pedroviana0/Adopt-Place/pull/137), mergeado em 2026-10-17 (merge `c5b8f19`) depois da migration em produção |
+| **Status** | ENTREGUE (2026-10-17). Pendentes fora do código: T100 (documentação do TCC) e o restante do T101 |
 | **Spec** | [`spec.md`](spec.md) |
 
 Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026-10-14.
@@ -17,8 +17,8 @@ Execução: Pedro, sozinho, com acordo do Arthur (mantenedor) registrado em 2026
 | 1 | Migration e remoção de `RESGATADO` | Concluída (`fd8f99c`); migrations aplicadas no `dev-009` pelo Pedro |
 | 2 | Backend (regra de LT, API de LT, tratamento, dashboard) | Concluída (`e708562`) |
 | 3 | Frontend | Concluída em código (`213854c`); homologação visual na Fase 4 |
-| 4 | Testes, seed e homologação | Concluída, menos o ensaio no `validacao-009` (T087/T088) e a limpeza dos branches Neon (T092). Seed no `seed-009`; H1–H13 aprovados com 5 correções (`3602799`, `79d5fc7`, `b809180`, `a2c7553`, merge `ca1dd32`) |
-| 5 | Documentação, PR e virada | Documentação e PR feitos; virada (T097/T098) e T099–T101 com o Pedro |
+| 4 | Testes, seed e homologação | Concluída. Seed no `seed-009`; H1–H13 aprovados com 5 correções (`3602799`, `79d5fc7`, `b809180`, `a2c7553`, merge `ca1dd32`); ensaio no `validacao-009` (T087/T088) feito pelo Pedro |
+| 5 | Documentação, PR e virada | Concluída: virada em 2026-10-17 (merge `c5b8f19`). Faltam T100 e o restante do T101 |
 
 ## 2. O que foi entregue
 
@@ -124,7 +124,7 @@ migration em T097, isso também confirma que o `.env` não aponta para a produç
 
 **A interface ainda não foi vista rodando.** A homologação visual e funcional (H1–H13) é da Fase 4.
 
-### Fase 4 — privacidade e seed (commit `18f9297`; ensaio e homologação pendentes)
+### Fase 4 — privacidade e seed (commit `18f9297`)
 
 - `__tests__/queries/lt-privacy.test.ts`, com 20 casos em duas camadas:
   - **estática:** os 8 arquivos de query pública ou de adotante não citam `situacaoLT`,
@@ -200,6 +200,22 @@ achado no H3, com `frontend/src/lib/date.ts`. Os conflitos em `HealthPanel.tsx`,
 tratamento, próxima dose da agenda, subtítulo do tratamento) passou a usar `dataInputParaIso` e
 `formatarData`. A `main` não trouxe migration nem mudança de schema.
 
+### Virada em produção (T097–T099, 2026-10-17)
+
+Feita pelo Pedro, na ordem do `quickstart.md` §4:
+
+1. Ensaio no `validacao-009` e teste rápido do painel (T087/T088).
+2. Backup `pre-009` criado a partir da produção.
+3. `npx prisma migrate deploy` na produção e `npx tsx scripts/verify-009-migration.ts`: **verde**,
+   com 37 animais e zero violações.
+4. Só então, merge do [#137](https://github.com/pedroviana0/Adopt-Place/pull/137) na `main`
+   (`c5b8f19`, 2026-10-17 15:07 -03:00).
+5. Teste rápido em produção aprovado: a vitrine abre, o painel da ONG mostra os cards novos e a aba
+   de LT abre.
+
+**Limpeza dos branches Neon (T092):** `seed-009` apagado. `validacao-009` e `pre-009` foram criados
+com expiração automática e somem sozinhos. Os dois contêm cópia de dados reais (C2, LGPD).
+
 ## 3. Decisões que não se reabrem
 
 - As migrations foram geradas contra `HEAD:prisma/schema.prisma`, **não** contra `main:`. A `main`
@@ -232,14 +248,11 @@ tratamento, próxima dose da agenda, subtítulo do tratamento) passou a usar `da
 
 ## 4. O que a spec previa e não foi entregue
 
-Pendente, todas tarefas do Pedro, porque mexem no Neon ou na produção:
-- **T087/T088:** ensaio da migration no `validacao-009` (cópia da produção) e teste rápido do painel
-  (`quickstart.md` §2 e §3.1);
-- **T092:** apagar os branches `seed-009` e `validacao-009`;
-- **T097/T098:** backup `pre-009`, `migrate deploy` na produção, verificador, merge do PR e smoke;
-- **T099:** registrar PR, hash do merge e data da virada aqui;
-- **T100:** DER, diagrama de classes, casos de uso e doc v21 do TCC;
-- **T101:** apagar `pre-009` e `dev-009` 7 dias depois da virada.
+No código, nada. Pendentes fora do repositório:
+- **T100:** DER, diagrama de classes, casos de uso e doc v21 do TCC com `LarTemporario`, `SituacaoLT`
+  e o enum novo, antes do congelamento para a banca de 02/12/2026;
+- **T101 (restante):** o `pre-009` expira sozinho; falta apagar o `dev-009` e voltar o `DATABASE_URL`
+  do `.env` local para o branch de trabalho habitual, a partir de 2026-10-24 (7 dias sem incidente).
 
 ## 5. Armadilhas descobertas
 
