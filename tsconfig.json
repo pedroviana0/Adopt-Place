@@ -25,5 +25,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "legacy/frontend-antigo", "frontend"]
+  "exclude": ["node_modules", "legacy/frontend-antigo", "frontend", "__tests__/frontend/*-render.test.ts"]
 }

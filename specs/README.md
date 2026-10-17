@@ -28,6 +28,7 @@ teal e âmbar.
 | 008 | [Correções de upload, raças e confirmação da triagem](008-correcoes-upload-triagem/spec.md) | Entregue com pendência externa (2026-08-14) | [ENTREGA](008-correcoes-upload-triagem/ENTREGA.md) |
 | 009 | [Lar temporário e reforma do status](009-lar-temporario-status/spec.md) | Entregue (2026-10-17) | [ENTREGA](009-lar-temporario-status/ENTREGA.md) · [BRIEF](009-lar-temporario-status/GRILLING-BRIEF.md) |
 | 010 | [Correção de fuso horário nas datas de saúde](010-correcao-fuso-horario/spec.md) | Entregue (2026-10-14) | [ENTREGA](010-correcao-fuso-horario/ENTREGA.md) |
+| 011 | [Reforma visual do painel de gestão](011-reforma-visual-painel/spec.md) | Entregue em código e homologada (2026-10-17), merge pendente | [ENTREGA](011-reforma-visual-painel/ENTREGA.md) · [BRIEF](011-reforma-visual-painel/GRILLING-BRIEF.md) |
 
 **Para retomar o projeto numa sessão de IA nova** — inclusive de outro sistema — use
 [`PROMPT-CONTINUIDADE.md`](PROMPT-CONTINUIDADE.md): traz um modelo reutilizável para qualquer spec
