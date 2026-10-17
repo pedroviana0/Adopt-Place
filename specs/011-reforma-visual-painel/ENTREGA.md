@@ -4,8 +4,8 @@
 |---|---|
 | **Período** | 2026-10-17 → 2026-10-17 |
 | **Branch** | `011-reforma-visual-painel` |
-| **PRs** | [#139](https://github.com/pedroviana0/Adopt-Place/pull/139) (aberto em 2026-10-17; merge com o Pedro) |
-| **Status** | ENTREGUE em código e homologado (2026-10-17). Falta o merge do PR (Pedro) e os prints finais para a v21 e os slides |
+| **PRs** | [#139](https://github.com/pedroviana0/Adopt-Place/pull/139) mergeado em 2026-10-17 (merge `2f0b35a`), com os 5 checks da Vercel verdes |
+| **Status** | ENTREGUE (2026-10-17), merge `2f0b35a`. Pendente fora do código: prints finais para a v21 e os slides |
 | **Spec** | [`spec.md`](spec.md) |
 
 Execução: Pedro, sozinho (D10), com a IA implementando tudo a pedido dele. Só frontend, sem migration
@@ -20,7 +20,7 @@ Execução: Pedro, sozinho (D10), com a IA implementando tudo a pedido dele. Só
 | 2 | Testes vermelhos e tokens `-muted` novos | Concluída (`d6affc3`, `24aa1b5`) |
 | 3 | Extração do `Dashboard` e redesenho por seção | Concluída (`24aa1b5`, `ed8c50a`) |
 | 4 | Portão (SC-04) e homologação H1–H12 | Concluída; correção achada na H1 em `8f8d531` |
-| 5 | PR, merge e prints para a v21 e os slides | PR aberto pela IA; merge e prints finais com o Pedro |
+| 5 | PR, merge e prints para a v21 e os slides | PR #139 mergeado (`2f0b35a`); homologação dada como concluída pelo Pedro; prints finais com ele |
 
 ## 2. O que foi entregue
 
@@ -101,7 +101,7 @@ OK; build do frontend OK; `routeTree.gen.ts` inalterado; `git diff main...HEAD` 
 ## 4. O que a spec previa e não foi entregue
 
 - **Prints finais (H12):** ficam com o Pedro, na resolução da tela dele.
-- **Merge do PR:** é do Pedro. Como a `main` faz deploy automático, o merge põe a 011 no ar.
+- No código, nada. O PR #139 entrou na `main` em 2026-10-17 (`2f0b35a`) e o deploy automático pôs a 011 no ar.
 
 ## 5. Armadilhas descobertas
 
