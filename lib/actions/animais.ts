@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma, StatusAnimal, TipoPerfil } from "@prisma/client";
+import { Prisma, SituacaoLT, StatusAnimal, TipoPerfil } from "@prisma/client";
 import type { ZodError } from "zod";
 
 import {
@@ -19,6 +19,10 @@ import {
   getResponsibleContext,
   ownsAnimal,
 } from "@/lib/api/responsible-context";
+import {
+  FOSTER_RESET_ON_ADOPTION,
+  resolveFosterState,
+} from "@/lib/lar-temporario";
 import { prisma } from "@/lib/prisma";
 import {
   animalInputSchema,
@@ -31,6 +35,8 @@ type OwnedAnimal = {
   organizacaoId: string | null;
   acolhedorId: string | null;
   status: StatusAnimal;
+  situacaoLT?: SituacaoLT;
+  larTemporarioId?: string | null;
 };
 
 export type AnimalActionResult = {
@@ -51,6 +57,8 @@ async function findAnimalById(id: string): Promise<OwnedAnimal | null> {
       organizacaoId: true,
       acolhedorId: true,
       status: true,
+      situacaoLT: true,
+      larTemporarioId: true,
     },
   });
 }
@@ -129,9 +137,19 @@ export async function createAnimal(
       ? { organizacaoId: context.responsavelId, acolhedorId: null }
       : { organizacaoId: null, acolhedorId: context.responsavelId };
 
+  const foster = await resolveFosterState({
+    current: null,
+    input: parsed.data,
+    organizacaoId: owner.organizacaoId,
+  });
+  if ("error" in foster) {
+    return foster;
+  }
+
   const animal = await prisma.animal.create({
     data: {
       ...parsed.data,
+      ...foster.data,
       ...owner,
     },
     select: { id: true },
@@ -190,9 +208,19 @@ export async function updateAnimal(
     return taxonomyError;
   }
 
+  // Campos de LT ausentes mantem o valor atual; ADOTADO zera (spec 009).
+  const foster = await resolveFosterState({
+    current: animal,
+    input: parsed.data,
+    organizacaoId: animal.organizacaoId,
+  });
+  if ("error" in foster) {
+    return foster;
+  }
+
   await prisma.animal.update({
     where: { id: parsedId.data },
-    data: parsed.data,
+    data: { ...parsed.data, ...foster.data },
   });
 
   return { success: true };
@@ -237,7 +265,10 @@ export async function updateAnimalStatus(
 
   await prisma.animal.update({
     where: { id: parsedId.data },
-    data: { status: parsedStatus.data },
+    data:
+      parsedStatus.data === StatusAnimal.ADOTADO
+        ? { status: parsedStatus.data, ...FOSTER_RESET_ON_ADOPTION }
+        : { status: parsedStatus.data },
   });
 
   return { success: true };

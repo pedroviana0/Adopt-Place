@@ -1,3 +1,4 @@
+import { TipoPerfil } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { createAnimal } from "@/lib/actions/animais";
@@ -26,6 +27,12 @@ export async function GET(request: Request) {
       "Filtros invalidos",
       filters.error.flatten().fieldErrors,
     );
+  }
+  // Lar temporario e so de organizacao (spec 009, D6).
+  if (filters.data.lt && current.context.tipoPerfil !== TipoPerfil.ORGANIZACAO) {
+    return responsibleApiError(400, "VALIDATION_ERROR", "Filtros invalidos", {
+      lt: ["Filtro de lar temporario disponivel so para organizacoes."],
+    });
   }
 
   const animals = await getOwnedAnimals(

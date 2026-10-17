@@ -81,6 +81,14 @@ function Dashboard({ data }: { data: OperationalDashboard }) {
     { label: "Solicitações aguardando análise", value: ind.requestsWaitingReview },
     { label: "Cuidados atrasados", value: ind.overdueHealthCare },
     { label: "Cuidados nos próximos 7 dias", value: ind.next7DaysHealthCare },
+    // Spec 009: os dois de LT so chegam no JSON para organizacao.
+    { label: "Em tratamento", value: ind.animalsInTreatment },
+    ...(ind.animalsSeekingFoster
+      ? [{ label: "Procurando LT", value: ind.animalsSeekingFoster }]
+      : []),
+    ...(ind.animalsInFosterUnregistered
+      ? [{ label: "Em LT sem registro", value: ind.animalsInFosterUnregistered }]
+      : []),
   ];
 
   return (

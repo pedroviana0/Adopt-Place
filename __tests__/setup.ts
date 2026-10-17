@@ -136,6 +136,14 @@ vi.mock("@/lib/prisma", () => ({
       count: vi.fn(),
       update: vi.fn(),
     },
+    larTemporario: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      updateMany: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn(),
+    },
     // Support both the array form `$transaction([p1, p2])` (public queries) and
     // the callback form `$transaction(async (tx) => ...)` used elsewhere.
     $transaction: vi.fn((arg) => (Array.isArray(arg) ? Promise.all(arg) : arg())),

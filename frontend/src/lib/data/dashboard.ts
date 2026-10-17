@@ -47,6 +47,10 @@ export interface OperationalDashboard {
     requestsWaitingReview: DashboardIndicator;
     overdueHealthCare: DashboardIndicator;
     next7DaysHealthCare: DashboardIndicator;
+    // Spec 009: tratamento para todos; os dois de LT so chegam para organizacao.
+    animalsInTreatment: DashboardIndicator;
+    animalsSeekingFoster?: DashboardIndicator;
+    animalsInFosterUnregistered?: DashboardIndicator;
   };
   priorityItems: DashboardPriorityItem[];
   adoptionFunnel: {

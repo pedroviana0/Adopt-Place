@@ -1,4 +1,4 @@
-import type { Porte, Sexo, StatusAnimal } from "../domain/enums";
+import type { Porte, Sexo, SituacaoLT, StatusAnimal } from "../domain/enums";
 import { apiRequest } from "./api";
 
 // --- Public showcase (Issue #27 / T040): real HTTP consumption ---
@@ -121,6 +121,10 @@ export interface OwnedAnimalSummary {
   raca: { id: string; nome: string } | null;
   fotoPrincipal: OwnedFoto | null;
   solicitacoesEmAnalise: number;
+  // Spec 009: so a gestao recebe estes campos; nenhum contrato publico os tem.
+  situacaoLT: SituacaoLT;
+  larTemporario: { id: string; nomeTutor: string } | null;
+  emTratamento: boolean;
 }
 
 export interface OwnedAnimalDetail extends OwnedAnimalSummary {
@@ -140,7 +144,12 @@ export interface AnimalInputDTO {
   castrado: boolean;
   descricao: string | null;
   status: StatusAnimal;
+  // Opcionais: o backend mantem o valor atual quando ausentes (RF-013a).
+  situacaoLT?: SituacaoLT;
+  larTemporarioId?: string | null;
 }
+
+export type FiltroLT = SituacaoLT | "EM_LT_SEM_VINCULO";
 
 export interface OwnedAnimalFilters {
   q?: string;
@@ -149,6 +158,8 @@ export interface OwnedAnimalFilters {
   racaId?: string;
   porte?: string;
   sexo?: string;
+  lt?: FiltroLT;
+  tratamento?: "1";
 }
 
 export async function fetchAnimaisGerenciados(

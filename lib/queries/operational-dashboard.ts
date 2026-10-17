@@ -1,12 +1,19 @@
-import { Prisma, StatusAnimal, TipoPerfil } from "@prisma/client";
+import { Prisma, SituacaoLT, StatusAnimal, TipoPerfil } from "@prisma/client";
 
 import { requireResponsible } from "@/lib/actions/auth-guards";
 import type { ResponsibleContext } from "@/lib/api/responsible-context";
 import { classifyHealthDate, getUpcomingRange } from "@/lib/date-utils";
+import { inTreatmentWhere } from "@/lib/lar-temporario";
 import { prisma } from "@/lib/prisma";
 
 type ResponsibleSession = Awaited<ReturnType<typeof requireResponsible>>;
 type ResponsibleOwner = ResponsibleSession | ResponsibleContext;
+
+function isOrganizationOwner(owner: ResponsibleOwner): boolean {
+  return "user" in owner
+    ? owner.user.tipoPerfil === TipoPerfil.ORGANIZACAO
+    : owner.tipoPerfil === TipoPerfil.ORGANIZACAO;
+}
 
 function ownerWhere(owner: ResponsibleOwner): Prisma.AnimalWhereInput {
   if ("user" in owner) {
@@ -47,7 +54,6 @@ type RecentActivity = {
 };
 
 const statusInitial: Record<StatusAnimal, number> = {
-  RESGATADO: 0,
   EM_CUIDADOS: 0,
   DISPONIVEL: 0,
   EM_PROCESSO_ADOCAO: 0,
@@ -64,7 +70,16 @@ export async function getOperationalDashboard(
   const periodStart = new Date(reference);
   periodStart.setUTCDate(periodStart.getUTCDate() - 30);
 
-  const [animals, requests, care, healthRecords] = await Promise.all([
+  const isOrganization = isOrganizationOwner(owner);
+  const [
+    animals,
+    requests,
+    care,
+    healthRecords,
+    inTreatmentCount,
+    seekingFosterCount,
+    fosterUnregisteredCount,
+  ] = await Promise.all([
     prisma.animal.findMany({
       where: animalOwner,
       select: { id: true, nome: true, status: true, criadoEm: true },
@@ -104,6 +119,24 @@ export async function getOperationalDashboard(
         animal: { select: { id: true, nome: true } },
       },
     }),
+    // Spec 009: mesma regra do badge e do filtro "em tratamento".
+    prisma.animal.count({ where: { ...animalOwner, ...inTreatmentWhere } }),
+    // Indicadores de LT so existem para organizacao (D6). Adotado nunca conta:
+    // todo caminho ate ADOTADO grava NAO_SE_APLICA.
+    isOrganization
+      ? prisma.animal.count({
+          where: { ...animalOwner, situacaoLT: SituacaoLT.PROCURANDO },
+        })
+      : null,
+    isOrganization
+      ? prisma.animal.count({
+          where: {
+            ...animalOwner,
+            situacaoLT: SituacaoLT.EM_LT,
+            larTemporarioId: null,
+          },
+        })
+      : null,
   ]);
 
   const animalStatusCounts = animals.reduce<Record<StatusAnimal, number>>(
@@ -200,6 +233,13 @@ export async function getOperationalDashboard(
       requestsWaitingReview: { count: inAnalysis.length, href: "/dashboard/solicitacoes?status=EM_ANALISE" },
       overdueHealthCare: { count: overdue.length, href: "/dashboard/saude/agenda?situacao=ATRASADO" },
       next7DaysHealthCare: { count: upcoming7.length, href: "/dashboard/saude/agenda?situacao=PROXIMOS_7_DIAS" },
+      animalsInTreatment: { count: inTreatmentCount, href: "/dashboard/animais?tratamento=1" },
+      ...(seekingFosterCount !== null && fosterUnregisteredCount !== null
+        ? {
+            animalsSeekingFoster: { count: seekingFosterCount, href: "/dashboard/animais?lt=PROCURANDO" },
+            animalsInFosterUnregistered: { count: fosterUnregisteredCount, href: "/dashboard/animais?lt=EM_LT_SEM_VINCULO" },
+          }
+        : {}),
     },
     priorityItems,
     adoptionFunnel: {

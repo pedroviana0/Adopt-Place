@@ -27,7 +27,7 @@ const baseAnimalInput: AnimalInput = {
   cor: "Caramelo",
   castrado: true,
   descricao: "Docil e brincalhona",
-  status: "RESGATADO",
+  status: "EM_CUIDADOS",
 };
 
 function session(): Session {
@@ -163,7 +163,7 @@ describe("regra de anuncio: minimo de duas fotos", () => {
   describe("updateAnimalStatus", () => {
     it("recusa publicar sem foto nenhuma", async () => {
       mockActiveOrganization();
-      ownedAnimal(StatusAnimal.RESGATADO);
+      ownedAnimal(StatusAnimal.EM_CUIDADOS);
       photoCount(0);
 
       const result = await updateAnimalStatus(
@@ -177,7 +177,7 @@ describe("regra de anuncio: minimo de duas fotos", () => {
 
     it("nao conta fotos ao mudar para um status que nao e anuncio", async () => {
       mockActiveOrganization();
-      ownedAnimal(StatusAnimal.RESGATADO);
+      ownedAnimal(StatusAnimal.EM_PROCESSO_ADOCAO);
       vi.mocked(prisma.animal.update).mockResolvedValue({
         id: animalId,
       } as never);

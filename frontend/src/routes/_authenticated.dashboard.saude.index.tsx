@@ -74,6 +74,10 @@ function Page() {
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ["health-overview"] });
     await queryClient.invalidateQueries({ queryKey: ["health-agenda"] });
+    // Concluir dose de tratamento pode ligar ou desligar "Em tratamento" (spec 009).
+    await queryClient.invalidateQueries({ queryKey: ["animais-gerenciados"] });
+    await queryClient.invalidateQueries({ queryKey: ["animal-gerenciado"] });
+    await queryClient.invalidateQueries({ queryKey: ["operational-dashboard"] });
   };
 
   return (
@@ -501,6 +505,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
   const [nome, setNome] = useState("");
   const [freq, setFreq] = useState("");
   const [resultado, setResultado] = useState<"POSITIVO" | "NEGATIVO" | "">("");
+  const [proximaDose, setProximaDose] = useState("");
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -527,10 +532,15 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         payload = { tipoRegistro: "TESTE_DOENCA", nomeCustom: nome.trim(), resultado, ...base };
       } else if (item.tipo === "MEDICAMENTO_TRATAMENTO") {
         if (!nome.trim()) return toast.error("Informe o medicamento/tratamento");
+        if (proximaDose && proximaDose <= dataAplicacao)
+          return toast.error("A próxima dose deve ser depois da data da realização");
+        // Com proxima dose, o tratamento continua e o animal segue "em
+        // tratamento"; sem ela, esta e a ultima dose (spec 009, RF-008).
         payload = {
           tipoRegistro: "MEDICAMENTO_TRATAMENTO",
           medicamentoTratamento: nome.trim(),
           ...base,
+          ...(proximaDose ? { dataProxima: dataInputParaIso(proximaDose) } : {}),
         };
       } else if (item.tipo === "PROCEDIMENTO") {
         if (!nome.trim()) return toast.error("Informe o procedimento");
@@ -617,6 +627,24 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
           onChange={(e) => setDataAplicacao(e.target.value)}
         />
       </div>
+      {item.tipo === "MEDICAMENTO_TRATAMENTO" && (
+        <div>
+          <Label htmlFor={`c-prox-${item.id}`} className="mb-1 block text-xs">
+            Próxima dose (opcional)
+          </Label>
+          <Input
+            id={`c-prox-${item.id}`}
+            type="date"
+            min={dataAplicacao || undefined}
+            value={proximaDose}
+            onChange={(e) => setProximaDose(e.target.value)}
+            aria-describedby={`c-prox-hint-${item.id}`}
+          />
+          <p id={`c-prox-hint-${item.id}`} className="mt-1 text-xs text-muted-foreground">
+            Sem próxima dose, o tratamento é encerrado.
+          </p>
+        </div>
+      )}
       <div className="sm:col-span-2">
         <Button type="submit" size="sm" disabled={busy}>
           {busy ? "Concluindo…" : "Concluir e registrar"}

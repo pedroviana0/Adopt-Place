@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Porte, Sexo, StatusAnimal } from "../domain/enums";
+import { Porte, Sexo, SituacaoLT, StatusAnimal } from "../domain/enums";
 
 export const animalSchema = z.object({
   nome: z.string().trim().min(1, "Informe o nome do animal.").max(80, "O nome deve ter no máximo 80 caracteres."),
@@ -12,11 +12,14 @@ export const animalSchema = z.object({
   castrado: z.boolean(),
   descricao: z.string().trim().max(2000, "A descrição deve ter no máximo 2.000 caracteres.").optional().nullable(),
   status: z.enum([
-    StatusAnimal.RESGATADO,
     StatusAnimal.EM_CUIDADOS,
     StatusAnimal.DISPONIVEL,
     StatusAnimal.EM_PROCESSO_ADOCAO,
     StatusAnimal.ADOTADO,
   ]),
+  situacaoLT: z
+    .enum([SituacaoLT.NAO_SE_APLICA, SituacaoLT.PROCURANDO, SituacaoLT.EM_LT])
+    .optional(),
+  larTemporarioId: z.string().nullable().optional(),
 });
 export type AnimalInput = z.infer<typeof animalSchema>;

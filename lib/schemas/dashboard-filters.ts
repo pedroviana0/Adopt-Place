@@ -41,6 +41,12 @@ export const ownedAnimalFilterSchema = z
     ),
     porte: optionalEnumParam(z.nativeEnum(Porte)),
     sexo: optionalEnumParam(z.nativeEnum(Sexo)),
+    // Spec 009: `lt` so para organizacao (a rota recusa acolhedor);
+    // EM_LT_SEM_VINCULO = EM_LT sem lar temporario registrado.
+    lt: optionalEnumParam(
+      z.enum(["NAO_SE_APLICA", "PROCURANDO", "EM_LT", "EM_LT_SEM_VINCULO"]),
+    ),
+    tratamento: optionalEnumParam(z.literal("1")),
   })
   .strict();
 

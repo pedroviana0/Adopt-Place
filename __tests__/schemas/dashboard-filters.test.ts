@@ -37,4 +37,17 @@ describe("dashboard URL filters", () => {
       false,
     );
   });
+
+  it("aceita os filtros de LT e tratamento da spec 009", () => {
+    for (const lt of ["NAO_SE_APLICA", "PROCURANDO", "EM_LT", "EM_LT_SEM_VINCULO"]) {
+      expect(ownedAnimalFilterSchema.safeParse({ lt }).success).toBe(true);
+    }
+    expect(ownedAnimalFilterSchema.safeParse({ tratamento: "1" }).success).toBe(true);
+  });
+
+  it("rejeita valores de LT e tratamento fora do contrato", () => {
+    expect(ownedAnimalFilterSchema.safeParse({ lt: "EM_LAR" }).success).toBe(false);
+    expect(ownedAnimalFilterSchema.safeParse({ tratamento: "sim" }).success).toBe(false);
+    expect(ownedAnimalFilterSchema.safeParse({ tratamento: "0" }).success).toBe(false);
+  });
 });

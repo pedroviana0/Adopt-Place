@@ -47,6 +47,47 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+describe("filtro de lar temporario (spec 009)", () => {
+  it("responde 400 ao acolhedor que filtra por LT", async () => {
+    vi.mocked(getServerSession).mockResolvedValue({
+      ...session(),
+      user: {
+        ...session().user,
+        tipoPerfil: TipoPerfil.ACOLHEDOR,
+        organizacaoId: null,
+        acolhedorId: "cm00000000000000000000009",
+      },
+    });
+    vi.mocked(prisma.usuario.findUnique).mockResolvedValue({
+      ativo: true,
+      tipoPerfil: TipoPerfil.ACOLHEDOR,
+      organizacao: null,
+      acolhedor: { id: "cm00000000000000000000009" },
+    } as never);
+
+    const response = await getOwnedAnimals(
+      new Request("http://localhost/api/animais/gerenciados?lt=EM_LT"),
+    );
+    const json = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(prisma.animal.findMany).not.toHaveBeenCalled();
+  });
+
+  it("aceita o filtro de LT para organizacao", async () => {
+    activeOrganization();
+    vi.mocked(prisma.animal.findMany).mockResolvedValue([]);
+
+    const response = await getOwnedAnimals(
+      new Request("http://localhost/api/animais/gerenciados?lt=EM_LT"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(prisma.animal.findMany).toHaveBeenCalled();
+  });
+});
+
 describe("owner animal HTTP contracts", () => {
   it("returns 401 without querying animals when there is no session", async () => {
     vi.mocked(getServerSession).mockResolvedValue(null);
@@ -115,10 +156,12 @@ describe("owner animal HTTP contracts", () => {
         cor: "Caramelo",
         idadeEstimada: "2 anos",
         castrado: true,
+        situacaoLT: "EM_LT",
+        larTemporario: { id: "cm00000000000000000000010", nomeTutor: "Maria Souza" },
         especie: { id: especieId, nome: "Cachorro" },
         raca: { id: racaId, nome: "Sem raca definida" },
         fotos: [],
-        _count: { solicitacoes: 0 },
+        _count: { solicitacoes: 0, cuidadosPlanejados: 1 },
       },
     ] as never);
 
@@ -142,6 +185,9 @@ describe("owner animal HTTP contracts", () => {
       raca: { id: racaId, nome: "Sem raca definida" },
       fotoPrincipal: null,
       solicitacoesEmAnalise: 0,
+      situacaoLT: "EM_LT",
+      larTemporario: { id: "cm00000000000000000000010", nomeTutor: "Maria Souza" },
+      emTratamento: true,
     });
     for (const forbidden of [
       "organizacaoId",
@@ -171,7 +217,7 @@ describe("owner animal HTTP contracts", () => {
           sexo: "F",
           cor: "Caramelo",
           castrado: true,
-          status: "RESGATADO",
+          status: "EM_CUIDADOS",
           organizacaoId,
         }),
       }),

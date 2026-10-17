@@ -1,4 +1,4 @@
-import { StatusAnimal, StatusSolicitacao, TipoPerfil } from "@prisma/client";
+import { SituacaoLT, StatusAnimal, StatusSolicitacao, TipoPerfil } from "@prisma/client";
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -475,6 +475,27 @@ describe("chat lifecycle in adoption transaction", () => {
     expect(tx.conversaAdocao.updateMany).toHaveBeenCalledWith({
       where: { solicitacaoId },
       data: { status: "ARQUIVADA", arquivadaEm: expect.any(Date) },
+    });
+  });
+
+  it("zera a situacao de LT no mesmo comando que leva o animal a ADOTADO (spec 009)", async () => {
+    const tx = decisionTransactionClient();
+    mockedGetServerSession.mockResolvedValue(session({ tipoPerfil: TipoPerfil.ORGANIZACAO, adotanteId: null, organizacaoId }));
+    findSolicitacaoById.mockResolvedValue({
+      ...decisionRequest(),
+      status: StatusSolicitacao.APROVADA,
+    });
+    mockDecisionTransaction(tx);
+
+    await expect(completeAdoption(solicitacaoId)).resolves.toEqual({ success: true });
+    expect(tx.animal.updateMany).toHaveBeenCalledTimes(1);
+    expect(tx.animal.updateMany).toHaveBeenCalledWith({
+      where: { id: animalId, status: StatusAnimal.EM_PROCESSO_ADOCAO },
+      data: {
+        status: StatusAnimal.ADOTADO,
+        situacaoLT: SituacaoLT.NAO_SE_APLICA,
+        larTemporarioId: null,
+      },
     });
   });
 

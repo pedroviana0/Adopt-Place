@@ -1,3 +1,4 @@
+import { TipoPerfil } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import {
@@ -37,6 +38,25 @@ export async function requireActiveResponsible(): Promise<
     };
   }
   return result;
+}
+
+// Lar temporario e so de organizacao (spec 009, D6): acolhedor tambem e
+// responsavel, mas recebe 403 aqui.
+export async function requireActiveOrganization(): Promise<
+  { context: ResponsibleContext } | { response: NextResponse }
+> {
+  const current = await requireActiveResponsible();
+  if ("response" in current) return current;
+  if (current.context.tipoPerfil !== TipoPerfil.ORGANIZACAO) {
+    return {
+      response: responsibleApiError(
+        403,
+        "FORBIDDEN",
+        "Apenas organizacoes podem gerenciar lares temporarios",
+      ),
+    };
+  }
+  return current;
 }
 
 export function actionErrorResponse(result: {

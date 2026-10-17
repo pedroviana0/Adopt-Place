@@ -3,7 +3,11 @@ import {
   TipoPerfil,
   Porte,
   Sexo,
+  SituacaoLT,
   StatusAnimal,
+  StatusCuidadoPlanejado,
+  TipoCuidadoPlanejado,
+  TipoRegistroSaude,
   PrecisaoCoordenada,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -27,6 +31,7 @@ async function clearTestData(): Promise<void> {
     prisma.registroSaude.deleteMany(),
     prisma.fotoAnimal.deleteMany(),
     prisma.animal.deleteMany(),
+    prisma.larTemporario.deleteMany(),
     prisma.raca.deleteMany(),
     prisma.especie.deleteMany(),
     prisma.vacinaCatalogo.deleteMany(),
@@ -278,7 +283,44 @@ const DESCRICOES = [
   "Resgatado com muito cuidado, pronto para um lar.",
 ];
 
-async function createDemoAnimals(): Promise<void> {
+// Spec 009: dois lares temporarios ficticios da organizacao de teste,
+// localizada pelo e-mail (nao pela ordem de CNPJ, que pode mudar).
+type LaresDemo = { organizacaoId: string; ids: string[] } | null;
+
+async function createDemoLaresTemporarios(): Promise<LaresDemo> {
+  const organizacao = await prisma.organizacao.findFirst({
+    where: { usuario: { email: "organizacao.teste@example.com" } },
+    select: { id: true },
+  });
+  if (!organizacao) return null;
+
+  const lares = await Promise.all(
+    [
+      {
+        nomeTutor: "Maria Aparecida Souza",
+        telefone: "24999990001",
+        endereco: "Rua Trinta e Três, 120, Vila Santa Cecília",
+        cidade: "Volta Redonda",
+        observacoes: "Prefere gatos. Tem quintal telado.",
+      },
+      {
+        nomeTutor: "João Batista Lima",
+        telefone: "24999990002",
+        endereco: "Avenida Joaquim Leite, 45, Centro",
+        cidade: "Barra Mansa",
+        observacoes: null,
+      },
+    ].map((dados) =>
+      prisma.larTemporario.create({
+        data: { ...dados, organizacaoId: organizacao.id },
+        select: { id: true },
+      }),
+    ),
+  );
+  return { organizacaoId: organizacao.id, ids: lares.map((lar) => lar.id) };
+}
+
+async function createDemoAnimals(lares: LaresDemo): Promise<void> {
   // Distribuir entre responsaveis de cidades diferentes e o que faz a
   // ordenacao por distancia aparecer: com todos na mesma cidade, todo cartao
   // mostraria a mesma distancia.
@@ -299,6 +341,13 @@ async function createDemoAnimals(): Promise<void> {
 
   const TOTAL = 36;
   const contadores = new Map<string, number>();
+  // Spec 009: situacao de LT em ciclo de periodo 3, que nao se alinha com
+  // especie (2), sexo (4) nem responsavel (16). Os EM_LT da organizacao de
+  // teste rodam entre LT1, LT2 e "sem registro", para os tres badges e o card
+  // "Em LT sem registro" terem dado.
+  const SITUACOES_LT = [SituacaoLT.NAO_SE_APLICA, SituacaoLT.PROCURANDO, SituacaoLT.EM_LT];
+  const vinculos = [...(lares?.ids ?? []), null];
+  let proximoVinculo = 0;
 
   for (let i = 0; i < TOTAL; i++) {
     // Tres eixos independentes, por periodos que nao se alinham: especie troca
@@ -318,8 +367,23 @@ async function createDemoAnimals(): Promise<void> {
     contadores.set(chaveBalde, idx + 1);
     const fotos = isDog ? DOG_PHOTOS : CAT_PHOTOS;
 
+    // Acolhedor nao tem LT (D6).
+    const situacaoLT = responsavel.organizacaoId
+      ? SITUACOES_LT[i % SITUACOES_LT.length]
+      : SituacaoLT.NAO_SE_APLICA;
+    let larTemporarioId: string | null = null;
+    if (
+      situacaoLT === SituacaoLT.EM_LT &&
+      responsavel.organizacaoId === lares?.organizacaoId
+    ) {
+      larTemporarioId = vinculos[proximoVinculo % vinculos.length];
+      proximoVinculo += 1;
+    }
+
     await prisma.animal.create({
       data: {
+        situacaoLT,
+        larTemporarioId,
         nome: nomes[idx % nomes.length],
         especieId: isDog ? cachorro.id : gato.id,
         porte: isDog ? PORTES[i % 3] : i % 4 === 0 ? Porte.M : Porte.P,
@@ -341,6 +405,65 @@ async function createDemoAnimals(): Promise<void> {
       },
     });
   }
+
+  if (lares) await createSeninha(lares.organizacaoId, gato.id);
+}
+
+// Caso que originou a spec 009: anunciada (DISPONIVEL), em tratamento com
+// antibiotico e procurando LT. Na vitrine aparece como qualquer disponivel; no
+// painel, com os badges "Em tratamento" e "Procurando LT" (CA-01).
+async function createSeninha(organizacaoId: string, gatoId: string): Promise<void> {
+  const hoje = new Date();
+  const proximaDose = new Date(hoje);
+  proximaDose.setDate(proximaDose.getDate() + 2);
+
+  const seninha = await prisma.animal.create({
+    data: {
+      nome: "Seninha",
+      especieId: gatoId,
+      porte: Porte.P,
+      sexo: Sexo.F,
+      cor: "Tricolor",
+      idadeEstimada: "2 anos",
+      castrado: true,
+      descricao:
+        "Está terminando um antibiótico, que pode continuar em casa. Já pode ser adotada.",
+      status: StatusAnimal.DISPONIVEL,
+      situacaoLT: SituacaoLT.PROCURANDO,
+      organizacaoId,
+      fotos: {
+        create: [
+          { urlFoto: CAT_PHOTOS[0], principal: true, ordem: 0 },
+          { urlFoto: CAT_PHOTOS[1 % CAT_PHOTOS.length], principal: false, ordem: 1 },
+        ],
+      },
+    },
+    select: { id: true },
+  });
+
+  // Mesmo formato que o registro de saude gera pela interface: o cuidado
+  // pendente nasce do registro com proxima dose.
+  const registro = await prisma.registroSaude.create({
+    data: {
+      animalId: seninha.id,
+      tipo: TipoRegistroSaude.MEDICAMENTO_TRATAMENTO,
+      dataRegistro: hoje,
+      dataProxima: proximaDose,
+      responsavelRegistro: "Sistema",
+      medicamentoTratamento: "Antibiótico (amoxicilina)",
+    },
+    select: { id: true },
+  });
+  await prisma.cuidadoPlanejado.create({
+    data: {
+      animalId: seninha.id,
+      tipo: TipoCuidadoPlanejado.MEDICAMENTO_TRATAMENTO,
+      status: StatusCuidadoPlanejado.PENDENTE,
+      dataHoraPlanejada: proximaDose,
+      titulo: "Antibiótico (amoxicilina)",
+      origemRegistroSaudeId: registro.id,
+    },
+  });
 }
 
 async function main(): Promise<void> {
@@ -349,7 +472,8 @@ async function main(): Promise<void> {
   await seedMunicipios(prisma);
   await clearTestData();
   await createDemoUsers();
-  await createDemoAnimals();
+  const lares = await createDemoLaresTemporarios();
+  await createDemoAnimals(lares);
 }
 
 main()

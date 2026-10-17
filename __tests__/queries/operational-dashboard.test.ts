@@ -91,6 +91,53 @@ describe("getOperationalDashboard", () => {
     expect(after.recentActivity[0]?.id).toBe("h2");
   });
 
+  it("conta tratamento e LT para organizacao com links filtrados (spec 009)", async () => {
+    vi.mocked(prisma.animal.count).mockImplementation((async (args: { where: unknown }) => {
+      const where = JSON.stringify(args.where);
+      if (where.includes("cuidadosPlanejados")) return 1;
+      if (where.includes("PROCURANDO")) return 2;
+      if (where.includes("EM_LT")) return 3;
+      return 0;
+    }) as never);
+
+    const result = await getOperationalDashboard(reference);
+
+    expect(result.indicators.animalsInTreatment).toEqual({
+      count: 1,
+      href: "/dashboard/animais?tratamento=1",
+    });
+    expect(result.indicators.animalsSeekingFoster).toEqual({
+      count: 2,
+      href: "/dashboard/animais?lt=PROCURANDO",
+    });
+    expect(result.indicators.animalsInFosterUnregistered).toEqual({
+      count: 3,
+      href: "/dashboard/animais?lt=EM_LT_SEM_VINCULO",
+    });
+    for (const [args] of vi.mocked(prisma.animal.count).mock.calls) {
+      expect(JSON.stringify(args)).toContain(organizationId);
+    }
+  });
+
+  it("acolhedor ve tratamento, mas nao os indicadores de LT (spec 009)", async () => {
+    vi.mocked(prisma.animal.count).mockResolvedValue(4);
+
+    const result = await getOperationalDashboard(reference, {
+      userId: "cm00000000000000000000703",
+      tipoPerfil: TipoPerfil.ACOLHEDOR,
+      responsavelId: "cm00000000000000000000704",
+      organizacaoId: null,
+      acolhedorId: "cm00000000000000000000704",
+    });
+
+    expect(result.indicators.animalsInTreatment.count).toBe(4);
+    expect(result.indicators).not.toHaveProperty("animalsSeekingFoster");
+    expect(result.indicators).not.toHaveProperty("animalsInFosterUnregistered");
+    for (const [args] of vi.mocked(prisma.animal.count).mock.calls) {
+      expect(JSON.stringify(args)).not.toContain("situacaoLT");
+    }
+  });
+
   it("scopes every aggregate source by the current responsible", async () => {
     await getOperationalDashboard(reference);
 

@@ -139,7 +139,7 @@ Stack alvo, tudo em plano grátis:
 - **Rodar o stack completo local (SEM Docker):** o banco é o Neon (nuvem), então bastam 2 terminais:
   `npm run dev` (backend :3000) e `npm --prefix frontend run dev` (front :8080). O `.env` (git-ignored)
   guarda `DATABASE_URL` do Neon + `NEXTAUTH_SECRET`. Setup do banco (uma vez): `npm run prisma:generate`
-  → `npx prisma migrate deploy` → `npm run prisma:seed` (cria as 7 contas de teste **e** 36 animais com 2 fotos).
+  → `npx prisma migrate deploy` → `npm run prisma:seed` (cria as 7 contas de teste, 37 animais com 2 fotos e, desde a 009, 2 lares temporários).
 - **A IA não cria contas nem cola segredos.** Fluxo: a IA prepara config + runbook; o mantenedor
   cria as contas grátis, define `DATABASE_URL`/`NEXTAUTH_SECRET`/`NEXTAUTH_URL`/`UPLOADTHING_TOKEN`
   e dispara o deploy. `NEXTAUTH_SECRET`: `openssl rand -base64 32`.
@@ -201,6 +201,12 @@ reimplementa `createAdoptionRequest` em vez de chamá-la. Ao adicionar efeito co
 (notificação, log, etc.), **instrumente a rota HTTP** — ou os dois — e **valide E2E**;
 só mexer na action pode não ter efeito nenhum em produção.
 
+**Três caminhos gravam `Animal.status` (spec 009).** `completeAdoption` (rota de solicitações, ao
+concluir a adoção), `updateAnimal` (rota de gestão: formulário e select de status) e
+`updateAnimalStatus` (action sem rota HTTP hoje) levam o animal a `ADOTADO` por caminhos diferentes.
+Regra que dependa do status, como zerar o lar temporário na adoção, precisa estar **nos três** (`FOSTER_RESET_ON_ADOPTION` em `lib/lar-temporario.ts`). Um quarto caminho
+precisa dela também.
+
 ---
 
 ## 9.2 Regra de continuidade entre specs (OBRIGATÓRIA)
@@ -253,11 +259,15 @@ commit: **sem hash não é registro, é lembrança.**
 
 ---
 
-## 10. Estado atual (handoff) — atualizado 2026-10-14
+## 10. Estado atual (handoff) — atualizado 2026-10-17
 
 **`main` ≥ `4070d56`** (specs 006, 007, 008 e 010 mergeadas; TanStack Start corrigido no #134). A 008 foi validada com
 **367 testes**, Prisma, typecheck dos dois aplicativos e build do frontend.
 
+> **Em homologação:** spec **009** (lar temporário e status sem `RESGATADO`), branch
+> `009-lar-temporario-status`. Código e H1–H13 prontos; a virada exige migration **antes** do merge
+> (ver abaixo e `specs/009-lar-temporario-status/ENTREGA.md`).
+>
 > **Última entrega:** spec **010** (fuso horário), PR #135, homologada. Toda data que sai de input
 > ou vai para a tela no frontend passa por `frontend/src/lib/date.ts` (fuso `America/Sao_Paulo`);
 > não use `toISOString().slice`, `new Date("AAAA-MM-DD")` nem `toLocaleDateString` sem `timeZone`.
@@ -295,9 +305,23 @@ commit: **sem hash não é registro, é lembrança.**
   perfil aceitam `cep` (+ `municipioId` só quando o provedor está fora do ar).
 - **Regra de publicação:** animal só vai para `DISPONIVEL` com **no mínimo 2 fotos**. Imposta na
   transição, e a exclusão de foto é barrada enquanto o animal está anunciado.
+- **Status sem `RESGATADO` (spec 009):** `StatusAnimal` = `EM_CUIDADOS`, `DISPONIVEL`,
+  `EM_PROCESSO_ADOCAO`, `ADOTADO`. `EM_CUIDADOS` significa **"não anunciado"** (fora da vitrine), e
+  é o default. A migration converte `RESGATADO` → `EM_CUIDADOS`.
+- **Lar temporário (spec 009):** model `LarTemporario` + `Animal.situacaoLT`/`larTemporarioId`,
+  aba `/dashboard/lares-temporarios`, badges e cards no painel. **LT existe só na gestão da ONG:**
+  nenhuma query pública ou de adotante seleciona LT ou tratamento (garantido por
+  `__tests__/queries/lt-privacy.test.ts`); acolhedor não usa LT; `ADOTADO` zera o LT.
+  "Em tratamento" = cuidado `PENDENTE` originado de `MEDICAMENTO_TRATAMENTO`, regra única em
+  `inTreatmentWhere`.
+- **Migration antes do merge (spec 009):** a 009 traz migration que remove valor de enum. Na
+  virada, `migrate deploy` e `scripts/verify-009-migration.ts` rodam na produção **antes** do merge
+  do PR (`specs/009-lar-temporario-status/quickstart.md` §4). Com deploy automático a partir da
+  `main`, a ordem inversa põe no ar código que lê colunas que ainda não existem.
 
 ### Ambiente (roda sem Docker)
-Banco **Neon** (nuvem) — hoje com **7 contas de teste e 36 animais** DISPONIVEL, espalhados por
+Banco **Neon** (nuvem) — hoje com **7 contas de teste e 36 animais** DISPONIVEL (o seed da 009
+cria **37 animais e 2 LTs** da `organizacao.teste`, mais a Seninha em tratamento), espalhados por
 Volta Redonda, Barra Mansa, Resende e Angra dos Reis (0, 8, 37 e 58 km do adotante de teste), com
 2 fotos cada. Dois terminais na raiz — **PowerShell usa `;`, não `&&`**:
 
