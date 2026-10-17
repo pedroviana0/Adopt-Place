@@ -264,11 +264,10 @@ commit: **sem hash não é registro, é lembrança.**
 **`main` ≥ `4070d56`** (specs 006, 007, 008 e 010 mergeadas; TanStack Start corrigido no #134). A 008 foi validada com
 **367 testes**, Prisma, typecheck dos dois aplicativos e build do frontend.
 
-> **Em homologação:** spec **009** (lar temporário e status sem `RESGATADO`), branch
-> `009-lar-temporario-status`. Código e H1–H13 prontos; a virada exige migration **antes** do merge
-> (ver abaixo e `specs/009-lar-temporario-status/ENTREGA.md`).
+> **Última entrega:** spec **009** (lar temporário e status sem `RESGATADO`), PR #137, virada em
+> produção em 2026-10-17 (migration antes do merge). Ver `specs/009-lar-temporario-status/ENTREGA.md`.
 >
-> **Última entrega:** spec **010** (fuso horário), PR #135, homologada. Toda data que sai de input
+> **Entrega anterior:** spec **010** (fuso horário), PR #135, homologada. Toda data que sai de input
 > ou vai para a tela no frontend passa por `frontend/src/lib/date.ts` (fuso `America/Sao_Paulo`);
 > não use `toISOString().slice`, `new Date("AAAA-MM-DD")` nem `toLocaleDateString` sem `timeZone`.
 > "Atrasado" na Central de Saúde é contado por **dia** (spec 002, reafirmado na 010).
