@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useSessao } from "@/lib/data/hooks";
 import { fetchOperationalDashboard } from "@/lib/data/dashboard";
+import { CircleAlert } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { DashboardSkeleton } from "@/components/app/dashboard/DashboardSkeleton";
 import { OperationalDashboard } from "@/components/app/dashboard/OperationalDashboard";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
@@ -45,13 +48,29 @@ function DashIndex() {
       <p className="text-sm text-muted-foreground">Olá, {s.nome}!</p>
 
       {dashboardQuery.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Carregando painel…</p>
+        <DashboardSkeleton />
       ) : dashboardQuery.isError ? (
-        <p className="mt-6 text-sm text-destructive">
-          {dashboardQuery.error instanceof Error
-            ? dashboardQuery.error.message
-            : "Não foi possível carregar o painel."}
-        </p>
+        // Spec 011 (C8): par destructive-muted, porque o --destructive direto
+        // dá 3,1:1 no tema escuro (research R3).
+        <Alert className="mt-6 border-transparent bg-destructive-muted text-destructive-muted-foreground [&>svg]:text-destructive-muted-foreground">
+          <CircleAlert className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {dashboardQuery.error instanceof Error
+                ? dashboardQuery.error.message
+                : "Não foi possível carregar o painel."}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={dashboardQuery.isFetching}
+              onClick={() => void dashboardQuery.refetch()}
+            >
+              {dashboardQuery.isFetching ? "Tentando…" : "Tentar de novo"}
+            </Button>
+          </AlertDescription>
+        </Alert>
       ) : dashboardQuery.data ? (
         <OperationalDashboard data={dashboardQuery.data} />
       ) : null}

@@ -77,14 +77,14 @@ visual**, protegido por um teste de não regressão.
 
 ### Tests for User Story 1
 
-- [ ] T009 [US1] Em `__tests__/frontend/dashboard-visual.test.ts` (criar), bloco `visiblePriorities`: 7 itens recolhido → 5 visíveis na ordem original e `hiddenCount` 2; expandido → 7 e 0; 5 itens → 5 e 0; 0 itens → 0 e 0; e bloco `priorityKindMeta`: os 4 kinds com o tom e a etiqueta de RF-PEN-03. Rodar e ver **vermelho**
-- [ ] T010 [US1] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "pendências": `organizacaoCheia` → título "O que precisa de atenção" aparece **antes** do primeiro rótulo de indicador no HTML, exatamente 5 itens de pendência, texto "Mostrar todas (7)", as 4 etiquetas; `vazio` → "Nada pendente no momento." e nenhum "🎉". Ver **vermelho**
+- [x] T009 [US1] Em `__tests__/frontend/dashboard-visual.test.ts` (criar), bloco `visiblePriorities`: 7 itens recolhido → 5 visíveis na ordem original e `hiddenCount` 2; expandido → 7 e 0; 5 itens → 5 e 0; 0 itens → 0 e 0; e bloco `priorityKindMeta`: os 4 kinds com o tom e a etiqueta de RF-PEN-03. Rodar e ver **vermelho**
+- [x] T010 [US1] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "pendências": `organizacaoCheia` → título "O que precisa de atenção" aparece **antes** do primeiro rótulo de indicador no HTML, exatamente 5 itens de pendência, texto "Mostrar todas (7)", as 4 etiquetas; `vazio` → "Nada pendente no momento." e nenhum "🎉". Ver **vermelho**
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implementar `visiblePriorities` e `priorityKindMeta` em `frontend/src/lib/dashboard-visual.ts` até T009 passar
-- [ ] T012 [US1] Criar `frontend/src/components/app/dashboard/PriorityList.tsx`: `h2` "O que precisa de atenção"; `ul` com cada item como `<a href={resolveHref(item.href)}>` contendo chip (`toneChipClass`) com ícone `aria-hidden` (`AlertTriangle`, `CalendarClock`, `Inbox`, `HandHeart` de `lucide-react`), etiqueta escrita, título, subtítulo e `formatarData(item.dueAt)` quando houver (no celular a data desce para baixo do subtítulo; em `sm`+ fica à direita); `useState` para expandir, botão `Button variant="ghost"` "Mostrar todas (N)" / "Mostrar menos" com `aria-expanded`; vazio com `CheckCircle2` `aria-hidden` em `text-success` + "Nada pendente no momento."; foco `focus-visible:ring-2 ring-ring ring-offset-2`; `motion-reduce:transition-none`
-- [ ] T013 [US1] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, remover a seção antiga de pendências e renderizar `<PriorityList items={data.priorityItems} />` como **primeira** seção, até T010 passar e T008 continuar verde
+- [x] T011 [US1] Implementar `visiblePriorities` e `priorityKindMeta` em `frontend/src/lib/dashboard-visual.ts` até T009 passar
+- [x] T012 [US1] Criar `frontend/src/components/app/dashboard/PriorityList.tsx`: `h2` "O que precisa de atenção"; `ul` com cada item como `<a href={resolveHref(item.href)}>` contendo chip (`toneChipClass`) com ícone `aria-hidden` (`AlertTriangle`, `CalendarClock`, `Inbox`, `HandHeart` de `lucide-react`), etiqueta escrita, título, subtítulo e `formatarData(item.dueAt)` quando houver (no celular a data desce para baixo do subtítulo; em `sm`+ fica à direita); `useState` para expandir, botão `Button variant="ghost"` "Mostrar todas (N)" / "Mostrar menos" com `aria-expanded`; vazio com `CheckCircle2` `aria-hidden` em `text-success` + "Nada pendente no momento."; foco `focus-visible:ring-2 ring-ring ring-offset-2`; `motion-reduce:transition-none`
+- [x] T013 [US1] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, remover a seção antiga de pendências e renderizar `<PriorityList items={data.priorityItems} />` como **primeira** seção, até T010 passar e T008 continuar verde
 
 **Checkpoint**: MVP — pendências no topo, demais seções como antes.
 
@@ -98,14 +98,14 @@ visual**, protegido por um teste de não regressão.
 
 ### Tests for User Story 2
 
-- [ ] T014 [US2] Em `__tests__/frontend/dashboard-visual.test.ts`, blocos `requiresAction` (true só para `overdueHealthCare`, `requestsWaitingReview`, `animalsInFosterUnregistered` com count > 0; false com 0 e para qualquer outra chave) e `buildIndicatorGroups` (ONG → ids `adocao`,`saude`,`lt` com 4/3/2 cards na ordem da C2 e os tons de RF-IND-03; acolhedor → `adocao`,`saude`; só `animalsSeekingFoster` presente → grupo `lt` com 1 card; `href` já passado por `resolveHref`). Ver **vermelho**
-- [ ] T015 [US2] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "indicadores": `organizacaoCheia` → títulos "Adoção", "Saúde", "Lar temporário", a ajuda "Em cuidados = ainda não anunciado" e "Requer ação" exatamente 3 vezes; `acolhedor` → sem "Lar temporário", "Procurando LT" ou "Em LT"; `vazio` → nenhum "Requer ação". Ver **vermelho**
+- [x] T014 [US2] Em `__tests__/frontend/dashboard-visual.test.ts`, blocos `requiresAction` (true só para `overdueHealthCare`, `requestsWaitingReview`, `animalsInFosterUnregistered` com count > 0; false com 0 e para qualquer outra chave) e `buildIndicatorGroups` (ONG → ids `adocao`,`saude`,`lt` com 4/3/2 cards na ordem da C2 e os tons de RF-IND-03; acolhedor → `adocao`,`saude`; só `animalsSeekingFoster` presente → grupo `lt` com 1 card; `href` já passado por `resolveHref`). Ver **vermelho**
+- [x] T015 [US2] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "indicadores": `organizacaoCheia` → títulos "Adoção", "Saúde", "Lar temporário", a ajuda "Em cuidados = ainda não anunciado" e "Requer ação" exatamente 3 vezes; `acolhedor` → sem "Lar temporário", "Procurando LT" ou "Em LT"; `vazio` → nenhum "Requer ação". Ver **vermelho**
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implementar `requiresAction` e `buildIndicatorGroups` em `frontend/src/lib/dashboard-visual.ts` (rótulos iguais aos de hoje; ordem e tons da C2/RF-IND-03; grupo `lt` só com os opcionais presentes) até T014 passar
-- [ ] T017 [US2] Criar `frontend/src/components/app/dashboard/IndicatorGroups.tsx`: `h2` (pode ser `sr-only`) "Indicadores"; uma `section` por grupo com `h3` + ícone do grupo (`PawPrint`/`HeartPulse`/`House`, `aria-hidden`, `groupIconClass`); no grupo Adoção, a linha de ajuda em `text-muted-foreground`; grade `grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]`; cada card `<a href={card.href}>` com `Card`, chip (`toneChipClass`) com ícone `aria-hidden` de RF-IND-03, rótulo, número `font-serif tabular-nums` (em `text-muted-foreground` quando 0) e, se `requiresAction`, `border-2` + `toneBorderClass` e a etiqueta escrita "Requer ação"; no celular o card é horizontal (chip, rótulo, número à direita), em `sm`+ vertical; foco `focus-visible:ring-2 ring-ring ring-offset-2`; ordem de leitura rótulo → número → "Requer ação", sem `aria-label`
-- [ ] T018 [US2] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a grade antiga de indicadores por `<IndicatorGroups indicators={data.indicators} />` logo depois de `PriorityList`, até T015 passar e T008 continuar verde
+- [x] T016 [US2] Implementar `requiresAction` e `buildIndicatorGroups` em `frontend/src/lib/dashboard-visual.ts` (rótulos iguais aos de hoje; ordem e tons da C2/RF-IND-03; grupo `lt` só com os opcionais presentes) até T014 passar
+- [x] T017 [US2] Criar `frontend/src/components/app/dashboard/IndicatorGroups.tsx`: `h2` (pode ser `sr-only`) "Indicadores"; uma `section` por grupo com `h3` + ícone do grupo (`PawPrint`/`HeartPulse`/`House`, `aria-hidden`, `groupIconClass`); no grupo Adoção, a linha de ajuda em `text-muted-foreground`; grade `grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]`; cada card `<a href={card.href}>` com `Card`, chip (`toneChipClass`) com ícone `aria-hidden` de RF-IND-03, rótulo, número `font-serif tabular-nums` (em `text-muted-foreground` quando 0) e, se `requiresAction`, `border-2` + `toneBorderClass` e a etiqueta escrita "Requer ação"; no celular o card é horizontal (chip, rótulo, número à direita), em `sm`+ vertical; foco `focus-visible:ring-2 ring-ring ring-offset-2`; ordem de leitura rótulo → número → "Requer ação", sem `aria-label`
+- [x] T018 [US2] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a grade antiga de indicadores por `<IndicatorGroups indicators={data.indicators} />` logo depois de `PriorityList`, até T015 passar e T008 continuar verde
 
 **Checkpoint**: pendências + indicadores novos; status, funil e atividade ainda no formato antigo.
 
@@ -119,14 +119,14 @@ visual**, protegido por um teste de não regressão.
 
 ### Tests for User Story 3
 
-- [ ] T019 [US3] Em `__tests__/frontend/dashboard-visual.test.ts`, bloco `statusSlices`: ordem `EM_CUIDADOS`, `DISPONIVEL`, `EM_PROCESSO_ADOCAO`, `ADOTADO`; `fraction` e `percent` (arredondado) corretos para contagens 3/5/1/1; total 0 → todas as `fraction` 0 e nenhum `NaN`; `href` = `/dashboard/animais?status=<STATUS>`; `label` = `statusAnimalLabel`. Ver **vermelho**
-- [ ] T020 [US3] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "status": `organizacaoCheia` → os 4 `href` de status e o texto de porcentagem; `vazio` → "Nenhum animal cadastrado ainda."; o HTML não contém mais `sm:grid-cols-5` (D9). Ver **vermelho**
+- [x] T019 [US3] Em `__tests__/frontend/dashboard-visual.test.ts`, bloco `statusSlices`: ordem `EM_CUIDADOS`, `DISPONIVEL`, `EM_PROCESSO_ADOCAO`, `ADOTADO`; `fraction` e `percent` (arredondado) corretos para contagens 3/5/1/1; total 0 → todas as `fraction` 0 e nenhum `NaN`; `href` = `/dashboard/animais?status=<STATUS>`; `label` = `statusAnimalLabel`. Ver **vermelho**
+- [x] T020 [US3] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "status": `organizacaoCheia` → os 4 `href` de status e o texto de porcentagem; `vazio` → "Nenhum animal cadastrado ainda."; o HTML não contém mais `sm:grid-cols-5` (D9). Ver **vermelho**
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Implementar `statusSlices` em `frontend/src/lib/dashboard-visual.ts` até T019 passar
-- [ ] T022 [US3] Criar `frontend/src/components/app/dashboard/StatusBar.tsx`: `h2` "Meus animais por status"; barra `aria-hidden` `flex gap-0.5 h-3 rounded-full overflow-hidden bg-muted` com um segmento por fatia de count > 0, largura `style={{ width: \`${fraction * 100}%\` }}` (largura inline é dado, não cor) e cor `toneFillClass` (Em cuidados `neutral`, Disponível `primary`, Em processo `accent`→`bg-chart-2`, Adotado `success`); legenda `ul` com os 4 status sempre: bolinha da mesma cor `aria-hidden`, `<a href={slice.href}>` com "Rótulo · N (P%)", foco visível; total 0 → trilho vazio + "Nenhum animal cadastrado ainda."
-- [ ] T023 [US3] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção "Meus animais por status" por `<StatusBar counts={data.animalStatusCounts} />`, dentro de um contêiner `grid gap-6 lg:grid-cols-2` reservado para status + funil (C9), até T020 passar
+- [x] T021 [US3] Implementar `statusSlices` em `frontend/src/lib/dashboard-visual.ts` até T019 passar
+- [x] T022 [US3] Criar `frontend/src/components/app/dashboard/StatusBar.tsx`: `h2` "Meus animais por status"; barra `aria-hidden` `flex gap-0.5 h-3 rounded-full overflow-hidden bg-muted` com um segmento por fatia de count > 0, largura `style={{ width: \`${fraction * 100}%\` }}` (largura inline é dado, não cor) e cor `toneFillClass` (Em cuidados `neutral`, Disponível `primary`, Em processo `accent`→`bg-chart-2`, Adotado `success`); legenda `ul` com os 4 status sempre: bolinha da mesma cor `aria-hidden`, `<a href={slice.href}>` com "Rótulo · N (P%)", foco visível; total 0 → trilho vazio + "Nenhum animal cadastrado ainda."
+- [x] T023 [US3] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção "Meus animais por status" por `<StatusBar counts={data.animalStatusCounts} />`, dentro de um contêiner `grid gap-6 lg:grid-cols-2` reservado para status + funil (C9), até T020 passar
 
 **Checkpoint**: barra de status nova; o funil ainda antigo ocupa a outra metade do contêiner.
 
@@ -140,14 +140,14 @@ visual**, protegido por um teste de não regressão.
 
 ### Tests for User Story 4
 
-- [ ] T024 [US4] Em `__tests__/frontend/dashboard-visual.test.ts`, bloco `funnelRows`: 3/2/1 → `widthPercent` 100, ≈66,67, ≈33,33 e tons `primary`,`primary`,`success`; 50/1/0 → 100, 4 (mínimo), 0; 0/0/0 → 0,0,0 sem `NaN`; 1/5/2 (concluídas maiores que análise é possível) → 20, 100, 40; rótulos de RF-FUN-01. Ver **vermelho**
-- [ ] T025 [US4] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "funil": `organizacaoCheia` → os 3 rótulos e os 3 números; `vazio` → "Nenhuma solicitação nos últimos 30 dias.". Ver **vermelho**
+- [x] T024 [US4] Em `__tests__/frontend/dashboard-visual.test.ts`, bloco `funnelRows`: 3/2/1 → `widthPercent` 100, ≈66,67, ≈33,33 e tons `primary`,`primary`,`success`; 50/1/0 → 100, 4 (mínimo), 0; 0/0/0 → 0,0,0 sem `NaN`; 1/5/2 (concluídas maiores que análise é possível) → 20, 100, 40; rótulos de RF-FUN-01. Ver **vermelho**
+- [x] T025 [US4] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "funil": `organizacaoCheia` → os 3 rótulos e os 3 números; `vazio` → "Nenhuma solicitação nos últimos 30 dias.". Ver **vermelho**
 
 ### Implementation for User Story 4
 
 - [ ] T026 [US4] Implementar `funnelRows` em `frontend/src/lib/dashboard-visual.ts` até T024 passar (contribuição do Pedro no modo Learning: o cálculo de `widthPercent`)
-- [ ] T027 [US4] Criar `frontend/src/components/app/dashboard/AdoptionFunnel.tsx`: `h2` "Funil de adoção (30 dias)"; `ul` com uma linha por `FunnelRow`: rótulo à esquerda, número `tabular-nums` à direita, trilho `bg-muted h-2 rounded-full` com barra `aria-hidden` (`toneFillClass`, largura inline `widthPercent%`); tudo zero → trilhos vazios + "Nenhuma solicitação nos últimos 30 dias."; não clicável
-- [ ] T028 [US4] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção antiga do funil por `<AdoptionFunnel funnel={data.adoptionFunnel} />` no contêiner de T023 e apagar o componente `Mini`, até T025 passar
+- [x] T027 [US4] Criar `frontend/src/components/app/dashboard/AdoptionFunnel.tsx`: `h2` "Funil de adoção (30 dias)"; `ul` com uma linha por `FunnelRow`: rótulo à esquerda, número `tabular-nums` à direita, trilho `bg-muted h-2 rounded-full` com barra `aria-hidden` (`toneFillClass`, largura inline `widthPercent%`); tudo zero → trilhos vazios + "Nenhuma solicitação nos últimos 30 dias."; não clicável
+- [x] T028 [US4] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção antiga do funil por `<AdoptionFunnel funnel={data.adoptionFunnel} />` no contêiner de T023 e apagar o componente `Mini`, até T025 passar
 
 **Checkpoint**: status e funil lado a lado em `lg`, empilhados abaixo.
 
@@ -161,12 +161,12 @@ visual**, protegido por um teste de não regressão.
 
 ### Tests for User Story 5
 
-- [ ] T029 [US5] Em `__tests__/frontend/dashboard-visual.test.ts`, bloco `activityKindTone`: os 5 kinds com os tons de RF-ATV-02. Em `__tests__/frontend/dashboard-render.test.ts`, bloco "atividade": `organizacaoCheia` → título "Atividade recente", os `href` das 4 atividades que têm `href` e o texto da que não tem, sem `href` próprio; `vazio` → sem "Atividade recente". Ver **vermelho**
+- [x] T029 [US5] Em `__tests__/frontend/dashboard-visual.test.ts`, bloco `activityKindTone`: os 5 kinds com os tons de RF-ATV-02. Em `__tests__/frontend/dashboard-render.test.ts`, bloco "atividade": `organizacaoCheia` → título "Atividade recente", os `href` das 4 atividades que têm `href` e o texto da que não tem, sem `href` próprio; `vazio` → sem "Atividade recente". Ver **vermelho**
 
 ### Implementation for User Story 5
 
-- [ ] T030 [US5] Implementar `activityKindTone` em `frontend/src/lib/dashboard-visual.ts` e criar `frontend/src/components/app/dashboard/RecentActivity.tsx` (`h2`; `ul`; chip `toneChipClass` com `PawPrint`/`Stethoscope`/`Inbox`/`ThumbsUp`/`Heart` `aria-hidden`; texto do backend; `formatarData(occurredAt)`; `<a>` com foco visível só quando há `href`; retorna `null` se a lista for vazia)
-- [ ] T031 [US5] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção antiga por `<RecentActivity items={data.recentActivity} />` como última seção, até T029 passar
+- [x] T030 [US5] Implementar `activityKindTone` em `frontend/src/lib/dashboard-visual.ts` e criar `frontend/src/components/app/dashboard/RecentActivity.tsx` (`h2`; `ul`; chip `toneChipClass` com `PawPrint`/`Stethoscope`/`Inbox`/`ThumbsUp`/`Heart` `aria-hidden`; texto do backend; `formatarData(occurredAt)`; `<a>` com foco visível só quando há `href`; retorna `null` se a lista for vazia)
+- [x] T031 [US5] Em `frontend/src/components/app/dashboard/OperationalDashboard.tsx`, trocar a seção antiga por `<RecentActivity items={data.recentActivity} />` como última seção, até T029 passar
 
 **Checkpoint**: todas as seções no formato novo.
 
@@ -180,12 +180,12 @@ visual**, protegido por um teste de não regressão.
 
 ### Tests for User Story 6
 
-- [ ] T032 [US6] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "esqueleto": `renderToStaticMarkup(createElement(DashboardSkeleton))` contém `aria-busy="true"` e "Carregando painel…", e exatamente 2 blocos de grupo (marcar cada bloco com `data-skeleton="grupo"`). Ver **vermelho**
+- [x] T032 [US6] Em `__tests__/frontend/dashboard-render.test.ts`, bloco "esqueleto": `renderToStaticMarkup(createElement(DashboardSkeleton))` contém `aria-busy="true"` e "Carregando painel…", e exatamente 2 blocos de grupo (marcar cada bloco com `data-skeleton="grupo"`). Ver **vermelho**
 
 ### Implementation for User Story 6
 
-- [ ] T033 [US6] Criar `frontend/src/components/app/dashboard/DashboardSkeleton.tsx` com `Skeleton` de `@/components/ui/skeleton`: 3 linhas de pendência, 2 blocos de grupo (`data-skeleton="grupo"`) com 3–4 cards, barra e funil; contêiner com `aria-busy="true"` e `<span className="sr-only">Carregando painel…</span>`, até T032 passar
-- [ ] T034 [US6] Em `frontend/src/routes/_authenticated.dashboard.index.tsx`, trocar o texto de carregando por `<DashboardSkeleton />` e o parágrafo `text-destructive` por `Alert` de `@/components/ui/alert` com classes `bg-destructive-muted text-destructive-muted-foreground border-transparent`, ícone `CircleAlert` `aria-hidden`, a mesma mensagem de hoje e `Button` "Tentar de novo" que chama `dashboardQuery.refetch()`, desabilitado e com texto "Tentando…" enquanto `dashboardQuery.isFetching`; cabeçalho "Painel / Olá, {nome}!" visível nos dois estados; tela do ADMIN intacta
+- [x] T033 [US6] Criar `frontend/src/components/app/dashboard/DashboardSkeleton.tsx` com `Skeleton` de `@/components/ui/skeleton`: 3 linhas de pendência, 2 blocos de grupo (`data-skeleton="grupo"`) com 3–4 cards, barra e funil; contêiner com `aria-busy="true"` e `<span className="sr-only">Carregando painel…</span>`, até T032 passar
+- [x] T034 [US6] Em `frontend/src/routes/_authenticated.dashboard.index.tsx`, trocar o texto de carregando por `<DashboardSkeleton />` e o parágrafo `text-destructive` por `Alert` de `@/components/ui/alert` com classes `bg-destructive-muted text-destructive-muted-foreground border-transparent`, ícone `CircleAlert` `aria-hidden`, a mesma mensagem de hoje e `Button` "Tentar de novo" que chama `dashboardQuery.refetch()`, desabilitado e com texto "Tentando…" enquanto `dashboardQuery.isFetching`; cabeçalho "Painel / Olá, {nome}!" visível nos dois estados; tela do ADMIN intacta
 
 **Checkpoint**: funcionalidade completa.
 
@@ -193,7 +193,7 @@ visual**, protegido por um teste de não regressão.
 
 ## Phase 9: Polish, portão e homologação
 
-- [ ] T035 Revisar `frontend/src/components/app/dashboard/*.tsx` contra RF-A11Y: hierarquia `h1` → `h2` por seção → `h3` por grupo; todos os ícones com `aria-hidden`; foco visível em cards, itens, legenda, "Mostrar todas" e "Tentar de novo"; `motion-reduce:transition-none` nas transições; `git grep -nE "#[0-9a-fA-F]{3,6}\b|rgb\(|text-destructive\b|/[0-9]{2}\b" -- frontend/src/components/app/dashboard` sem ocorrência indevida
+- [x] T035 Revisar `frontend/src/components/app/dashboard/*.tsx` contra RF-A11Y: hierarquia `h1` → `h2` por seção → `h3` por grupo; todos os ícones com `aria-hidden`; foco visível em cards, itens, legenda, "Mostrar todas" e "Tentar de novo"; `motion-reduce:transition-none` nas transições; `git grep -nE "#[0-9a-fA-F]{3,6}\b|rgb\(|text-destructive\b|/[0-9]{2}\b" -- frontend/src/components/app/dashboard` sem ocorrência indevida
 - [ ] T036 Portão (quickstart §3): `npx tsc --noEmit` na raiz; `npm test` (placar = linha de base de T001 + testes novos, mesma falha esperada); em `frontend/`, `npx tsc --noEmit` e `npm run build` com dev server parado; `git status --short frontend/src/routeTree.gen.ts` vazio; `git diff --stat main...HEAD -- app lib prisma package.json package-lock.json frontend/package.json frontend/package-lock.json vitest.config.ts` vazio (SC-02, SC-04)
 - [ ] T037 Conferir que o `.env` não aponta para a produção (`npx prisma migrate status` e host do `DATABASE_URL`) e subir `npm run dev` (esperar responder) e `npm --prefix frontend run dev` (quickstart §4)
 - [ ] T038 Homologar H1, H2, H4, H6 no navegador embutido com `organizacao.teste` e `acolhedor.teste` (todos os cards e itens da legenda clicados), registrando o resultado na tabela H do `specs/011-reforma-visual-painel/ENTREGA.md`
