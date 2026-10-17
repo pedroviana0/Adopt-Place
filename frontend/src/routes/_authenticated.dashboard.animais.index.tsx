@@ -54,7 +54,13 @@ const searchSchema = z.object({
     ])
     .optional()
     .catch(undefined),
-  tratamento: z.literal("1").optional().catch(undefined),
+  // O router converte "1" da URL no numero 1 (e grava texto entre aspas). Guardar o
+  // numero mantem o formato ?tratamento=1 dos cards do painel.
+  tratamento: z
+    .union([z.literal(1), z.literal("1")])
+    .transform(() => 1 as const)
+    .optional()
+    .catch(undefined),
 });
 
 export const Route = createFileRoute("/_authenticated/dashboard/animais/")({
@@ -78,7 +84,7 @@ function Page() {
   // LT e so de organizacao: um `lt` na URL de acolhedor e ignorado, porque o
   // backend recusaria o filtro.
   const lt = isOrganizacao ? search.lt : undefined;
-  const tratamento = search.tratamento;
+  const tratamento = search.tratamento === 1 ? ("1" as const) : undefined;
 
   const setSearch = (next: Partial<z.infer<typeof searchSchema>>) =>
     navigate({ search: (prev) => ({ ...prev, ...next }), replace: true });
@@ -169,7 +175,7 @@ function Page() {
           <Checkbox
             id="filtro-tratamento"
             checked={tratamento === "1"}
-            onCheckedChange={(v) => setSearch({ tratamento: v === true ? "1" : undefined })}
+            onCheckedChange={(v) => setSearch({ tratamento: v === true ? 1 : undefined })}
           />
           <Label htmlFor="filtro-tratamento">Só em tratamento</Label>
         </div>
