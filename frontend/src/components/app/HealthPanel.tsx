@@ -15,16 +15,15 @@ import {
 } from "@/lib/data/saude";
 import { ResultadoTeste, TipoRegistroSaude } from "@/lib/domain/enums";
 import { registroSaudeSchema } from "@/lib/schemas/registroSaude";
+import { dataLocalParaIso, hojeLocal } from "@/lib/data-local";
 
 interface Props {
   animalId: string;
 }
 
 // The date input yields "YYYY-MM-DD"; the contract expects ISO datetime + offset.
-function toIso(date: string): string {
-  return new Date(date).toISOString();
-}
-
+// The conversion happens in local time (lib/data-local): parsing the bare date as
+// UTC shifted every record one day back in UTC-3.
 function fmt(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
@@ -183,7 +182,7 @@ function RegistroList({
 }
 
 function useBaseState() {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeLocal();
   const [dataAplicacao, setDataAplicacao] = useState(hoje);
   const [dataProxima, setDataProxima] = useState("");
   const [saving, setSaving] = useState(false);
@@ -207,8 +206,8 @@ function VacinaForm({ animalId, onSaved }: { animalId: string; onSaved: () => vo
     const input: NovoRegistroSaude = {
       tipoRegistro: "VACINA",
       nomeCustom: nome.trim(),
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProximaDose: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
+      ...(base.dataProxima ? { dataProximaDose: dataLocalParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -271,8 +270,8 @@ function ParasitaForm({ animalId, onSaved }: { animalId: string; onSaved: () => 
       tipoRegistro: "CONTROLE_PARASITAS",
       tipoMedicacao: medicamento.trim(),
       frequencia: frequencia.trim(),
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
+      ...(base.dataProxima ? { dataProxima: dataLocalParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -350,8 +349,8 @@ function TratamentoForm({ animalId, onSaved }: { animalId: string; onSaved: () =
     const input: NovoRegistroSaude = {
       tipoRegistro: "MEDICAMENTO_TRATAMENTO",
       medicamentoTratamento: tratamento.trim(),
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
+      ...(base.dataProxima ? { dataProxima: dataLocalParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -417,8 +416,8 @@ function TesteForm({ animalId, onSaved }: { animalId: string; onSaved: () => voi
       tipoRegistro: "TESTE_DOENCA",
       nomeCustom: nome.trim(),
       resultado,
-      dataAplicacao: toIso(base.dataAplicacao),
-      ...(base.dataProxima ? { dataProxima: toIso(base.dataProxima) } : {}),
+      dataAplicacao: dataLocalParaIso(base.dataAplicacao, { ateAgora: true }),
+      ...(base.dataProxima ? { dataProxima: dataLocalParaIso(base.dataProxima) } : {}),
     };
     base.setSaving(true);
     try {
@@ -498,7 +497,7 @@ function DateFields({
         <Input
           id={`${prefix}-data`}
           type="date"
-          max={new Date().toISOString().slice(0, 10)}
+          max={hojeLocal()}
           value={base.dataAplicacao}
           onChange={(e) => base.setDataAplicacao(e.target.value)}
         />

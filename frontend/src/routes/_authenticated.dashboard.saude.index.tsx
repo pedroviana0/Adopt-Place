@@ -26,6 +26,7 @@ import {
   type ConclusaoCuidado,
 } from "@/lib/data/cuidados";
 import { fetchAnimaisGerenciados } from "@/lib/data/animais";
+import { dataLocalParaIso, hojeLocal } from "@/lib/data-local";
 import { tipoCuidadoPlanejadoLabel } from "@/lib/domain/enums";
 import { AsyncState } from "@/components/app/AsyncState";
 import { ConfirmDestructiveAction } from "@/components/app/ConfirmDestructiveAction";
@@ -50,9 +51,8 @@ const SITUACOES: { value: AgendaSituacaoFilter | "TODAS"; label: string }[] = [
   { value: "CANCELADO", label: "Canceladas" },
 ];
 
-function toIsoDate(date: string): string {
-  return new Date(date).toISOString();
-}
+// Data sem hora ("AAAA-MM-DD") convertida em horario local: lida como UTC, ela voltava
+// um dia em UTC-3 (lib/data-local).
 function toIsoDateTime(value: string): string {
   return new Date(value).toISOString();
 }
@@ -502,7 +502,7 @@ function RescheduleForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
 }
 
 function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () => void }) {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeLocal();
   const [dataAplicacao, setDataAplicacao] = useState(hoje);
   const [nome, setNome] = useState("");
   const [freq, setFreq] = useState("");
@@ -513,7 +513,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     let payload: ConclusaoCuidado;
-    const base = { dataAplicacao: toIsoDate(dataAplicacao) };
+    const base = { dataAplicacao: dataLocalParaIso(dataAplicacao, { ateAgora: true }) };
     try {
       if (item.tipo === "VACINA") {
         if (!nome.trim()) return toast.error("Informe o nome da vacina");
@@ -542,7 +542,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
           tipoRegistro: "MEDICAMENTO_TRATAMENTO",
           medicamentoTratamento: nome.trim(),
           ...base,
-          ...(proximaDose ? { dataProxima: toIsoDate(proximaDose) } : {}),
+          ...(proximaDose ? { dataProxima: dataLocalParaIso(proximaDose) } : {}),
         };
       } else if (item.tipo === "PROCEDIMENTO") {
         if (!nome.trim()) return toast.error("Informe o procedimento");
@@ -624,7 +624,7 @@ function CompletionForm({ item, onDone }: { item: HealthAgendaItem; onDone: () =
         <Input
           id={`c-data-${item.id}`}
           type="date"
-          max={new Date().toISOString().slice(0, 10)}
+          max={hojeLocal()}
           value={dataAplicacao}
           onChange={(e) => setDataAplicacao(e.target.value)}
         />
