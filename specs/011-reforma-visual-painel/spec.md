@@ -68,6 +68,8 @@ slides precisam ser refeitos antes da banca final (02/12/2026).
 - Q: Como testar, se o `frontend/` não tem runner? → A: No padrão de `__tests__/frontend/`, com
   lógica pura em `frontend/src/lib/dashboard-visual.ts` e renderização estática do componente
   extraído para `frontend/src/components/app/dashboard/`.
+- Q: (no `/speckit-plan`) O segmento "Em processo" não alcança 3:1 no tema claro: trocar a cor? → A:
+  Não. O 3:1 vale para borda de "Requer ação" e foco; barras e segmentos têm equivalente em texto.
 
 ## Decisões
 
@@ -103,6 +105,7 @@ slides precisam ser refeitos antes da banca final (02/12/2026).
 | C11 | Testes | Lógica pura em `frontend/src/lib/dashboard-visual.ts` com testes unitários; `Dashboard` extraído da rota para `frontend/src/components/app/dashboard/` (arquivos por seção) e renderizado com `renderToStaticMarkup` em 3 cenários. Testes escritos antes e vistos vermelhos. | Padrão já existente em `__tests__/frontend/`; sem dependência nova (D3). |
 | C12 | Fora de escopo | Lista da seção "Fora de escopo". | — |
 | C13 | Aceitação | SC-01 a SC-06 e roteiro H1–H12. | — |
+| C14 | (no `/speckit-plan`) "Em processo" (`chart-2`) dá 2,14:1 contra o card no tema claro | SC-05 ajustado: 3:1 vale para borda de "Requer ação" e foco; segmentos da barra e barras do funil ficam dispensados, porque são `aria-hidden` e a legenda e os números escritos carregam a informação. Paleta da C6 mantida. | WCAG 1.4.11 cobre gráfico **necessário** para entender o conteúdo; aqui não é. Evita token novo e mantém o âmbar do badge. Medição em `research.md` R3. |
 
 ## Requisitos funcionais
 
@@ -199,8 +202,9 @@ slides precisam ser refeitos antes da banca final (02/12/2026).
 
 ### Acessibilidade (RF-A11Y)
 
-- **RF-A11Y-01** Texto ≥ 4,5:1 nos dois temas; elementos não textuais (segmentos, bordas "Requer ação",
-  barras do funil) ≥ 3:1 contra o fundo (WCAG 1.4.11).
+- **RF-A11Y-01** Texto ≥ 4,5:1 nos dois temas; borda de "Requer ação" e anel de foco ≥ 3:1 contra o
+  fundo (WCAG 1.4.11). Segmentos da barra e barras do funil são dispensados: são `aria-hidden` e a
+  legenda e os números escritos são o equivalente em texto (C14).
 - **RF-A11Y-02** Foco visível (`focus-visible:ring-2 ring-ring ring-offset-2`) em cards, itens de
   pendência e atividade, links da legenda, "Mostrar todas" e "Tentar de novo".
 - **RF-A11Y-03** Nome acessível pelo texto visível, em ordem de leitura (rótulo, número, "Requer
@@ -243,7 +247,8 @@ slides precisam ser refeitos antes da banca final (02/12/2026).
 - **SC-03** Nenhuma cor hardcoded no componente; só tokens, inclusive os 3 pares novos.
 - **SC-04** Portão verde: `tsc` dos dois apps, `npm test` (com os testes novos vistos vermelhos antes) e
   build do frontend; `routeTree.gen.ts` inalterado.
-- **SC-05** Contraste medido: texto ≥ 4,5:1, não texto ≥ 3:1, nos dois temas.
+- **SC-05** Contraste medido nos dois temas: texto ≥ 4,5:1; borda de "Requer ação" e foco ≥ 3:1;
+  segmentos e barras dispensados por terem equivalente em texto (C14).
 - **SC-06** Entregue antes de 01/11/2026.
 
 ### Roteiro de homologação
