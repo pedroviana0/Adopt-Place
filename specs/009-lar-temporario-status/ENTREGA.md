@@ -4,7 +4,7 @@
 |---|---|
 | **Período** | 2026-10-14 → — |
 | **Branch** | `009-lar-temporario-status` |
-| **PRs** | — |
+| **PRs** | [#137](https://github.com/pedroviana0/Adopt-Place/pull/137) (aberto, **sem merge** até a migration em produção) |
 | **Status** | EM HOMOLOGAÇÃO: código, homologação H1–H13 e PR prontos; faltam o ensaio no `validacao-009` e a virada (tarefas do Pedro) |
 | **Spec** | [`spec.md`](spec.md) |
 
