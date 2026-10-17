@@ -189,7 +189,7 @@ interface; leituras de conferência por `fetch` GET no navegador.
 **Validação final (2026-10-17, depois do merge `ca1dd32`):**
 - `npm test`: **449/450**. A falha é a de sempre (`organization-search-seed`, sem `DATABASE_URL`);
 - `tsc` OK no backend e no frontend;
-- build do frontend: ver o PR (rodado por último, porque derruba o `vite dev`).
+- build do frontend OK, com as dependências do lockfile pós-merge (`@tanstack/react-start@1.169.1`); `routeTree.gen.ts` inalterado.
 
 ### Integração com a `main` (merge `ca1dd32`)
 
