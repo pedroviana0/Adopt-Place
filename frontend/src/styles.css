@@ -81,6 +81,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-muted: var(--primary-muted);
+  --color-primary-muted-foreground: var(--primary-muted-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -89,9 +91,13 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-muted-foreground: var(--brand-muted-foreground);
   --color-navbar-glass: var(--navbar-glass);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-destructive-muted-foreground: var(--destructive-muted-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-success-muted: var(--success-muted);
@@ -142,6 +148,9 @@
   --popover-foreground: oklch(0.25 0.03 190);
   --primary: oklch(0.511 0.086 186.4);
   --primary-foreground: oklch(0.986 0.005 197);
+  /* Spec 011: pares -muted que faltavam (chips do painel). Mesmo padrão dos success/warning/information. */
+  --primary-muted: oklch(0.94 0.03 186);
+  --primary-muted-foreground: oklch(0.32 0.06 186);
   --secondary: oklch(0.945 0.015 187);
   --secondary-foreground: oklch(0.3 0.03 190);
   --muted: oklch(0.96 0.008 187);
@@ -151,6 +160,8 @@
   /* Âmbar de marca = laranja exato da logo (#ee831d). Uso intencional (CTAs, destaques). */
   --brand: oklch(0.714 0.165 56.6);
   --brand-foreground: oklch(0.27 0.06 55);
+  --brand-muted: oklch(0.95 0.04 57);
+  --brand-muted-foreground: oklch(0.34 0.08 55);
   /* Banhos do fundo de página (padrão `page-canvas`): mesma família do brand/primary,
      já com alpha — evita depender de color-mix e mantém o degradê suave. */
   --canvas-wash-brand: oklch(0.714 0.165 56.6 / 22%);
@@ -159,6 +170,8 @@
   --navbar-glass: oklch(0.986 0.005 197 / 62%);
   --destructive: oklch(0.52 0.19 27);
   --destructive-foreground: oklch(0.986 0.005 197);
+  --destructive-muted: oklch(0.94 0.03 27);
+  --destructive-muted-foreground: oklch(0.38 0.13 27);
   --success: oklch(0.42 0.1 150);
   --success-foreground: oklch(0.985 0.012 90);
   --success-muted: oklch(0.94 0.035 145);
@@ -206,6 +219,8 @@
   --popover-foreground: oklch(0.956 0.011 183);
   --primary: oklch(0.785 0.133 181.9);
   --primary-foreground: oklch(0.237 0.037 186);
+  --primary-muted: oklch(0.29 0.04 186);
+  --primary-muted-foreground: oklch(0.86 0.07 186);
   --secondary: oklch(0.3 0.025 188);
   --secondary-foreground: oklch(0.956 0.011 183);
   --muted: oklch(0.3 0.025 188);
@@ -214,11 +229,15 @@
   --accent-foreground: oklch(0.2 0.03 70);
   --brand: oklch(0.74 0.16 57);
   --brand-foreground: oklch(0.2 0.05 55);
+  --brand-muted: oklch(0.31 0.05 57);
+  --brand-muted-foreground: oklch(0.88 0.08 60);
   --canvas-wash-brand: oklch(0.74 0.16 57 / 14%);
   --canvas-wash-primary: oklch(0.785 0.133 181.9 / 10%);
   --navbar-glass: oklch(0.211 0.02 191 / 62%);
   --destructive: oklch(0.56 0.2 25);
   --destructive-foreground: oklch(0.96 0.012 90);
+  --destructive-muted: oklch(0.29 0.05 27);
+  --destructive-muted-foreground: oklch(0.86 0.07 27);
   --success: oklch(0.72 0.12 150);
   --success-foreground: oklch(0.18 0.025 145);
   --success-muted: oklch(0.29 0.045 145);
